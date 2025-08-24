@@ -52,6 +52,17 @@ export const translations = {
     "tutor.typeResponse": "Ihre Antwort eingeben...",
     "tutor.send": "Senden",
     
+    // Authentication
+    "auth.title": "Anmeldung",
+    "auth.welcome": "Willkommen bei MamaLearnEnglish",
+    "auth.description": "Verbessere dein Englisch durch Lesen, Hören und Sprechen",
+    "auth.email": "E-Mail",
+    "auth.password": "Passwort",
+    "auth.confirmPassword": "Passwort bestätigen",
+    "auth.signIn": "Anmelden",
+    "auth.signUp": "Registrieren",
+    "auth.signOut": "Abmelden",
+    
     // Common Actions
     "close": "Schließen",
     "save": "Speichern", 
@@ -113,6 +124,17 @@ export const translations = {
     "tutor.thinking": "Thinking...",
     "tutor.typeResponse": "Type your response...",
     "tutor.send": "Send",
+    
+    // Authentication
+    "auth.title": "Sign In",
+    "auth.welcome": "Welcome to MamaLearnEnglish",
+    "auth.description": "Improve your English through reading, listening and speaking",
+    "auth.email": "Email",
+    "auth.password": "Password", 
+    "auth.confirmPassword": "Confirm Password",
+    "auth.signIn": "Sign In",
+    "auth.signUp": "Sign Up",
+    "auth.signOut": "Sign Out",
     
     // Common Actions
     "close": "Close",

@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { BookCard } from "@/components/BookCard";
 import { ReadingSession } from "@/components/ReadingSession";
 import { SimpleReader } from "@/components/SimpleReader";
-import { BookOpen, Globe, Settings, Library, User } from "lucide-react";
+import { BookOpen, Globe, Settings, Library, User, LogOut } from "lucide-react";
 import { t, setLocale, getLocale } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<'library' | 'reading' | 'session'>('library');
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [locale, setCurrentLocale] = useState(getLocale());
@@ -116,12 +118,20 @@ But when the Rabbit actually took a watch out of its waistcoat-pocket, and looke
             </div>
             
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-4">
+                <User className="w-4 h-4" />
+                {user?.email}
+              </div>
               <Button variant="ghost" size="sm" onClick={toggleLocale}>
                 <Globe className="w-4 h-4 mr-2" />
                 {locale.toUpperCase()}
               </Button>
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                {t('auth.signOut')}
               </Button>
             </div>
           </div>
