@@ -14,7 +14,224 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      book_progress: {
+        Row: {
+          book_id: string
+          last_cfi: string | null
+          percent: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          last_cfi?: string | null
+          percent?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          last_cfi?: string | null
+          percent?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_progress_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      books: {
+        Row: {
+          author: string
+          cover_url: string | null
+          created_at: string | null
+          epub_path: string | null
+          id: string
+          opf_json: Json | null
+          source: string | null
+          title: string
+          year: number | null
+        }
+        Insert: {
+          author: string
+          cover_url?: string | null
+          created_at?: string | null
+          epub_path?: string | null
+          id?: string
+          opf_json?: Json | null
+          source?: string | null
+          title: string
+          year?: number | null
+        }
+        Update: {
+          author?: string
+          cover_url?: string | null
+          created_at?: string | null
+          epub_path?: string | null
+          id?: string
+          opf_json?: Json | null
+          source?: string | null
+          title?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          messages_jsonb: Json | null
+          session_id: string | null
+          transcript_text: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          messages_jsonb?: Json | null
+          session_id?: string | null
+          transcript_text?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          messages_jsonb?: Json | null
+          session_id?: string | null
+          transcript_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          cefr_level: string | null
+          created_at: string | null
+          id: string
+          locale: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cefr_level?: string | null
+          created_at?: string | null
+          id: string
+          locale?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cefr_level?: string | null
+          created_at?: string | null
+          id?: string
+          locale?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          book_id: string | null
+          ended_at: string | null
+          id: string
+          read_ms: number | null
+          started_at: string | null
+          talk_ms: number | null
+          user_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          ended_at?: string | null
+          id?: string
+          read_ms?: number | null
+          started_at?: string | null
+          talk_ms?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          ended_at?: string | null
+          id?: string
+          read_ms?: number | null
+          started_at?: string | null
+          talk_ms?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vocabulary: {
+        Row: {
+          book_id: string | null
+          cfi: string | null
+          created_at: string | null
+          difficulty: number | null
+          example: string | null
+          headword: string
+          id: string
+          lemma: string | null
+          pos: string | null
+          sense: string | null
+          synonym: string | null
+          translation_de: string | null
+          user_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          cfi?: string | null
+          created_at?: string | null
+          difficulty?: number | null
+          example?: string | null
+          headword: string
+          id?: string
+          lemma?: string | null
+          pos?: string | null
+          sense?: string | null
+          synonym?: string | null
+          translation_de?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          cfi?: string | null
+          created_at?: string | null
+          difficulty?: number | null
+          example?: string | null
+          headword?: string
+          id?: string
+          lemma?: string | null
+          pos?: string | null
+          sense?: string | null
+          synonym?: string | null
+          translation_de?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocabulary_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
