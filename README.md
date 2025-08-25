@@ -1,7 +1,9 @@
 # Make Ya Mama Learn English
 
-Some Mamas have worked all their lifes in carework. Thank you Mamas and damn you society for this unfair setting. Because these Mamas are fucked when going on vacation because these Mamas they speak no English.
-The MVP is for german speaking Mamas. 
+Some Mamas have worked all their lifes in carework. 
+Thank you Mamas and damn you society for this unfair setting. 
+Because these Mamas are fucked when going on vacation because these Mamas they speak no English.
+The MVP targets German speaking Mamas. 
 
 ## Project info
 
