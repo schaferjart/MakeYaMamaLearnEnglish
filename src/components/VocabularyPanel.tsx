@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Volume2, Save, X } from "lucide-react";
+import { BookOpen, Volume2, Save, X, Loader2 } from "lucide-react";
+import { lookupWord, translateText } from "@/lib/api";
 import { t } from "@/lib/i18n";
 
 interface VocabularyPanelProps {
@@ -19,23 +20,64 @@ interface VocabularyData {
   translation: string;
   example: string;
   difficulty: number;
+  pos?: string;
 }
 
 export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPanelProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
-  
-  // Mock data for demonstration - in real app this would come from API
-  const vocabularyData: VocabularyData = {
-    word: selectedText.toLowerCase(),
-    definition: "A sample definition would appear here from the Wordnik API",
-    synonyms: ["example", "sample", "instance"],
-    translation: "Ein Beispiel (German translation from DeepL)",
-    example: `"This is an example sentence using the word '${selectedText}'."`,
-    difficulty: Math.floor(Math.random() * 5) + 1
-  };
+  const [vocabularyData, setVocabularyData] = useState<VocabularyData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchWordData = async () => {
+      if (!selectedText.trim()) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Get word lookup and translation in parallel
+        const [wordData, translationData] = await Promise.all([
+          lookupWord(selectedText.toLowerCase()),
+          translateText(selectedText, 'DE', 'EN')
+        ]);
+
+        const data: VocabularyData = {
+          word: wordData.word,
+          definition: wordData.sense || wordData.definitions[0]?.text || "No definition available",
+          synonyms: [], // Could be extracted from definitions
+          translation: translationData.translation,
+          example: wordData.example || wordData.examples[0] || `"${selectedText}" - example not available`,
+          difficulty: Math.floor(Math.random() * 5) + 1, // Could be computed based on word frequency
+          pos: wordData.pos
+        };
+
+        setVocabularyData(data);
+      } catch (err) {
+        console.error('Error fetching word data:', err);
+        setError('Failed to fetch word information. Please try again.');
+        
+        // Fallback data
+        setVocabularyData({
+          word: selectedText.toLowerCase(),
+          definition: "Definition temporarily unavailable",
+          synonyms: [],
+          translation: "Translation temporarily unavailable",
+          example: `"${selectedText}" - example not available`,
+          difficulty: 3
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWordData();
+  }, [selectedText]);
 
   const handleSave = () => {
+    if (!vocabularyData) return;
+    
     setIsSaved(true);
     onSave?.(vocabularyData);
     setTimeout(() => {
@@ -75,25 +117,40 @@ export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPan
             <Volume2 className="w-3 h-3 mr-1" />
             Aussprechen
           </Button>
-          <Badge 
-            variant="secondary" 
-            className="text-xs"
-          >
-            {t('vocab.difficulty')}: {vocabularyData.difficulty}/5
-          </Badge>
+          {vocabularyData && (
+            <Badge 
+              variant="secondary" 
+              className="text-xs"
+            >
+              {t('vocab.difficulty')}: {vocabularyData.difficulty}/5
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">
-            {t('loading')}...
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+            <p>{t('loading')}...</p>
           </div>
-        ) : (
+        ) : error ? (
+          <div className="text-center py-4 text-destructive">
+            <p className="text-sm">{error}</p>
+            <Button variant="outline" size="sm" onClick={onClose} className="mt-2">
+              Close
+            </Button>
+          </div>
+        ) : vocabularyData ? (
           <>
             <div>
               <h4 className="font-medium text-sm text-primary mb-2">
                 {t('vocab.definition')}
+                {vocabularyData.pos && (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {vocabularyData.pos}
+                  </Badge>
+                )}
               </h4>
               <p className="text-sm text-foreground leading-relaxed">
                 {vocabularyData.definition}
@@ -161,7 +218,7 @@ export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPan
               </Button>
             </div>
           </>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

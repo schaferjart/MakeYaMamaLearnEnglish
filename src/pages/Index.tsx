@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ interface Book {
 const Index = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'library' | 'reading' | 'session'>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [locale, setCurrentLocale] = useState(getLocale());
@@ -117,11 +119,7 @@ You can select words to add them to your vocabulary and practice conversations w
 
 
   const handleStartReading = (bookId: string) => {
-    const book = books.find(b => b.id === bookId);
-    if (book) {
-      setSelectedBook(book);
-      setCurrentView('session');
-    }
+    navigate(`/reader/${bookId}`);
   };
 
   const handleStartReading2 = () => {

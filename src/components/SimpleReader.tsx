@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { VocabularyPanel } from "./VocabularyPanel";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
 
 interface SimpleReaderProps {
   bookTitle: string;
   content: string;
+  sessionId?: string | null;
 }
 
-export const SimpleReader = ({ bookTitle, content }: SimpleReaderProps) => {
+export const SimpleReader = ({ bookTitle, content, sessionId }: SimpleReaderProps) => {
+  const { user } = useAuth();
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
   const [selectionPosition, setSelectionPosition] = useState({ x: 0, y: 0 });
@@ -29,9 +33,24 @@ export const SimpleReader = ({ bookTitle, content }: SimpleReaderProps) => {
     }
   };
 
-  const handleVocabularySave = (vocabularyData: any) => {
-    console.log('Vocabulary saved:', vocabularyData);
-    // In real app, this would save to Supabase
+  const handleVocabularySave = async (vocabularyData: any) => {
+    if (!user || !sessionId) return;
+
+    try {
+      await supabase.from('vocabulary').insert({
+        user_id: user.id,
+        headword: vocabularyData.word,
+        lemma: vocabularyData.word.toLowerCase(),
+        pos: vocabularyData.pos,
+        sense: vocabularyData.definition,
+        example: vocabularyData.example,
+        translation_de: vocabularyData.translation,
+        difficulty: vocabularyData.difficulty
+      });
+      console.log('Vocabulary saved to database');
+    } catch (error) {
+      console.error('Error saving vocabulary:', error);
+    }
   };
 
   return (
