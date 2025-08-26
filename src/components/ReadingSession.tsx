@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, Square, Clock, BookOpen, MessageCircle } from "lucide-react";
+import { Play, Pause, Square, Clock, BookOpen, MessageCircle, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 
 interface ReadingSessionProps {
   bookTitle: string;
@@ -21,7 +22,22 @@ export const ReadingSession = ({
   const [sessionDuration, setSessionDuration] = useState([15]); // minutes
   const [isActive, setIsActive] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(15 * 60); // seconds
-  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Sample reading text for TTS demo
+  const [sampleText] = useState("Welcome to your reading session. This text-to-speech feature will help you listen to the content as you read along. You can pause, resume, or stop the audio at any time during your session.");
+
+  // Text-to-speech integration
+  const { 
+    speak, 
+    stop: stopTTS, 
+    pause: pauseTTS, 
+    resume: resumeTTS, 
+    isLoading: ttsLoading, 
+    isPlaying: ttsPlaying 
+  } = useTextToSpeech({
+    voice: 'Aria',
+    onEnd: () => console.log('TTS reading completed')
+  });
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -31,7 +47,7 @@ export const ReadingSession = ({
         setTimeRemaining(prev => {
           if (prev <= 1) {
             setIsActive(false);
-            setIsPlaying(false);
+            stopTTS();
             onStartConversation?.();
             return 0;
           }
@@ -41,7 +57,7 @@ export const ReadingSession = ({
     }
 
     return () => clearInterval(interval);
-  }, [isActive, timeRemaining, onStartConversation]);
+  }, [isActive, timeRemaining, onStartConversation, stopTTS]);
 
   const startSession = () => {
     setTimeRemaining(sessionDuration[0] * 60);
@@ -50,23 +66,33 @@ export const ReadingSession = ({
 
   const pauseSession = () => {
     setIsActive(false);
-    setIsPlaying(false);
+    if (ttsPlaying) {
+      pauseTTS();
+    }
   };
 
   const resumeSession = () => {
     setIsActive(true);
+    if (ttsPlaying) {
+      resumeTTS();
+    }
   };
 
   const endSession = () => {
     setIsActive(false);
-    setIsPlaying(false);
+    if (ttsPlaying) {
+      stopTTS();
+    }
     setTimeRemaining(sessionDuration[0] * 60);
     onSessionEnd?.();
   };
 
-  const toggleAudio = () => {
-    setIsPlaying(!isPlaying);
-    // In real app, this would control TTS
+  const toggleTTS = () => {
+    if (ttsPlaying) {
+      stopTTS();
+    } else {
+      speak(sampleText);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -164,39 +190,63 @@ export const ReadingSession = ({
         </CardContent>
       </Card>
 
-      {/* Audio Controls */}
+      {/* Text-to-Speech Controls */}
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Audio Wiedergabe</span>
+            <span className="text-sm font-medium">Text-to-Speech</span>
             <div className="flex gap-2">
               <Button 
-                variant={isPlaying ? "default" : "secondary"} 
+                variant={ttsPlaying ? "default" : "secondary"} 
                 size="sm"
-                onClick={toggleAudio}
-                disabled={!isActive}
+                onClick={toggleTTS}
+                disabled={ttsLoading}
               >
-                {isPlaying ? (
+                {ttsLoading ? (
                   <>
-                    <Pause className="w-4 h-4 mr-2" />
-                    {t('reader.pause')}
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : ttsPlaying ? (
+                  <>
+                    <VolumeX className="w-4 h-4 mr-2" />
+                    Stop Reading
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4 mr-2" />
-                    {t('reader.play')}
+                    <Volume2 className="w-4 h-4 mr-2" />
+                    Start Reading
                   </>
                 )}
               </Button>
+              {ttsPlaying && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={pauseTTS}
+                >
+                  <Pause className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
           
-          {isPlaying && (
+          {ttsPlaying && (
             <div className="mt-2 text-xs text-muted-foreground flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-              Liest vor mit Hervorhebung der aktuellen Wörter
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+              Reading aloud with ElevenLabs AI voice
             </div>
           )}
+          
+          {ttsLoading && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              Generating audio with ElevenLabs...
+            </div>
+          )}
+          
+          <div className="mt-3 p-2 bg-muted/50 rounded text-xs italic">
+            "{sampleText.substring(0, 100)}..."
+          </div>
         </CardContent>
       </Card>
     </div>

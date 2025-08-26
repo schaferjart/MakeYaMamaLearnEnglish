@@ -61,3 +61,24 @@ export const syncBooksFromStorage = async () => {
 
   return data
 }
+
+export interface TextToSpeechResult {
+  audioContent: string
+  contentType: string
+}
+
+export const generateSpeech = async (
+  text: string, 
+  voice: string = 'Aria',
+  model: string = 'eleven_multilingual_v2'
+): Promise<TextToSpeechResult> => {
+  const { data, error } = await supabase.functions.invoke('text-to-speech', {
+    body: { text, voice, model }
+  })
+
+  if (error) {
+    throw new Error(`Text-to-speech failed: ${error.message}`)
+  }
+
+  return data
+}

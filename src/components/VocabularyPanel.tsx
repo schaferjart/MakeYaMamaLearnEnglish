@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { BookOpen, Volume2, Save, X, Loader2 } from "lucide-react";
 import { lookupWord, translateText } from "@/lib/api";
 import { t } from "@/lib/i18n";
+import { TextToSpeechButton } from "@/components/TextToSpeechButton";
 
 interface VocabularyPanelProps {
   selectedText: string;
@@ -108,15 +109,12 @@ export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPan
         </div>
         
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
+          <TextToSpeechButton 
+            text={selectedText} 
             size="sm" 
-            onClick={handlePronounce}
-            className="text-xs"
-          >
-            <Volume2 className="w-3 h-3 mr-1" />
-            Aussprechen
-          </Button>
+            variant="outline"
+            voice="Sarah"
+          />
           {vocabularyData && (
             <Badge 
               variant="secondary" 
