@@ -7,17 +7,20 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Pause, Square, Clock, BookOpen, MessageCircle, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { ReadingProgressBar } from "./ReadingProgressBar";
 
 interface ReadingSessionProps {
   bookTitle: string;
   onSessionEnd?: () => void;
   onStartConversation?: () => void;
+  readingProgress?: any;
 }
 
 export const ReadingSession = ({ 
   bookTitle, 
   onSessionEnd, 
-  onStartConversation 
+  onStartConversation,
+  readingProgress
 }: ReadingSessionProps) => {
   const [sessionDuration, setSessionDuration] = useState([15]); // minutes
   const [isActive, setIsActive] = useState(false);
@@ -249,6 +252,15 @@ export const ReadingSession = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Reading Progress */}
+      {readingProgress && (
+        <ReadingProgressBar
+          progress={readingProgress}
+          bookTitle={bookTitle}
+          isTracking={true}
+        />
+      )}
     </div>
   );
 };

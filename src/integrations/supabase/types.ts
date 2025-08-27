@@ -138,6 +138,99 @@ export type Database = {
         }
         Relationships: []
       }
+      reading_progress: {
+        Row: {
+          book_id: string
+          created_at: string
+          current_position: number
+          id: string
+          last_read_at: string
+          progress_percentage: number
+          reading_speed_wpm: number | null
+          session_id: string | null
+          time_spent_seconds: number | null
+          total_length: number | null
+          updated_at: string
+          user_id: string
+          words_read: number | null
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          current_position?: number
+          id?: string
+          last_read_at?: string
+          progress_percentage?: number
+          reading_speed_wpm?: number | null
+          session_id?: string | null
+          time_spent_seconds?: number | null
+          total_length?: number | null
+          updated_at?: string
+          user_id: string
+          words_read?: number | null
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          current_position?: number
+          id?: string
+          last_read_at?: string
+          progress_percentage?: number
+          reading_speed_wpm?: number | null
+          session_id?: string | null
+          time_spent_seconds?: number | null
+          total_length?: number | null
+          updated_at?: string
+          user_id?: string
+          words_read?: number | null
+        }
+        Relationships: []
+      }
+      reading_statistics: {
+        Row: {
+          average_speed_wpm: number | null
+          books_completed: number | null
+          books_started: number | null
+          created_at: string
+          date: string
+          id: string
+          pages_read: number
+          sessions_count: number
+          total_time_seconds: number
+          updated_at: string
+          user_id: string
+          words_read: number
+        }
+        Insert: {
+          average_speed_wpm?: number | null
+          books_completed?: number | null
+          books_started?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          pages_read?: number
+          sessions_count?: number
+          total_time_seconds?: number
+          updated_at?: string
+          user_id: string
+          words_read?: number
+        }
+        Update: {
+          average_speed_wpm?: number | null
+          books_completed?: number | null
+          books_started?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          pages_read?: number
+          sessions_count?: number
+          total_time_seconds?: number
+          updated_at?: string
+          user_id?: string
+          words_read?: number
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
           book_id: string | null

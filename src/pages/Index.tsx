@@ -308,7 +308,9 @@ You can select words to add them to your vocabulary and practice conversations w
           <div className="space-y-6">
             <SimpleReader
               bookTitle={selectedBook.title}
-              content={selectedBook.content}
+              content={selectedBook.content || ''}
+              bookId={selectedBook.id}
+              sessionId={null}
             />
           </div>
         )}

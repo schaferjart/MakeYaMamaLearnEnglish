@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { VocabularyPanel } from "./VocabularyPanel";
 import { useAuth } from "@/hooks/useAuth";
+import { useReadingProgress } from "@/hooks/useReadingProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
 
@@ -9,13 +10,31 @@ interface SimpleReaderProps {
   bookTitle: string;
   content: string;
   sessionId?: string | null;
+  bookId: string;
+  onProgressUpdate?: (progress: any) => void;
 }
 
-export const SimpleReader = ({ bookTitle, content, sessionId }: SimpleReaderProps) => {
+export const SimpleReader = ({ 
+  bookTitle, 
+  content, 
+  sessionId, 
+  bookId, 
+  onProgressUpdate 
+}: SimpleReaderProps) => {
   const { user } = useAuth();
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
   const [selectionPosition, setSelectionPosition] = useState({ x: 0, y: 0 });
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  
+  // Reading progress tracking
+  const { progress, isTracking, startTracking, stopTracking, updatePosition } = useReadingProgress({
+    bookId,
+    sessionId,
+    content,
+    onProgressUpdate
+  });
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -32,6 +51,60 @@ export const SimpleReader = ({ bookTitle, content, sessionId }: SimpleReaderProp
       setShowVocabulary(true);
     }
   };
+
+  // Start tracking when component mounts
+  useEffect(() => {
+    startTracking();
+    return () => {
+      stopTracking();
+    };
+  }, [startTracking, stopTracking]);
+
+  // Track reading progress based on scroll position
+  useEffect(() => {
+    if (!contentRef.current || !isTracking) return;
+
+    const handleScroll = () => {
+      const element = contentRef.current;
+      if (!element) return;
+
+      setIsUserScrolling(true);
+      
+      // Calculate reading position based on scroll
+      const scrollTop = element.scrollTop;
+      const scrollHeight = element.scrollHeight;
+      const clientHeight = element.clientHeight;
+      
+      if (scrollHeight > clientHeight) {
+        const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+        const words = content.split(/\s+/).filter(word => word.length > 0);
+        const wordsRead = Math.floor((scrollPercentage / 100) * words.length);
+        
+        updatePosition(wordsRead, scrollPercentage);
+      }
+
+      // Clear scrolling indicator after a delay
+      setTimeout(() => setIsUserScrolling(false), 1000);
+    };
+
+    const element = contentRef.current;
+    element.addEventListener('scroll', handleScroll);
+    return () => element?.removeEventListener('scroll', handleScroll);
+  }, [content, isTracking, updatePosition]);
+
+  // Restore scroll position from saved progress
+  useEffect(() => {
+    if (!contentRef.current || !progress.progressPercentage || isUserScrolling) return;
+
+    const element = contentRef.current;
+    const scrollHeight = element.scrollHeight;
+    const clientHeight = element.clientHeight;
+    
+    if (scrollHeight > clientHeight) {
+      const targetScrollTop = (progress.progressPercentage / 100) * (scrollHeight - clientHeight);
+      element.scrollTop = targetScrollTop;
+    }
+  }, [progress.progressPercentage, isUserScrolling]);
 
   const handleVocabularySave = async (vocabularyData: any) => {
     if (!user || !sessionId) return;
@@ -65,7 +138,8 @@ export const SimpleReader = ({ bookTitle, content, sessionId }: SimpleReaderProp
           </div>
           
           <div 
-            className="prose prose-lg max-w-none leading-relaxed text-foreground font-serif select-text cursor-text"
+            ref={contentRef}
+            className="prose prose-lg max-w-none leading-relaxed text-foreground font-serif select-text cursor-text h-[70vh] overflow-y-auto"
             onMouseUp={handleTextSelection}
             style={{ 
               fontFamily: 'var(--font-reading)',

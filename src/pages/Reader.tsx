@@ -23,6 +23,7 @@ export const Reader = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showSession, setShowSession] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [readingProgress, setReadingProgress] = useState<any>(null);
 
   useEffect(() => {
     if (!bookId || !user) return;
@@ -168,6 +169,8 @@ export const Reader = () => {
               bookTitle={book.title}
               content={sampleContent}
               sessionId={sessionId}
+              bookId={bookId!}
+              onProgressUpdate={setReadingProgress}
             />
           </div>
 
@@ -179,6 +182,7 @@ export const Reader = () => {
                   bookTitle={book.title}
                   onSessionEnd={handleSessionEnd}
                   onStartConversation={startConversation}
+                  readingProgress={readingProgress}
                 />
               </div>
             </div>
