@@ -143,16 +143,3 @@ Help non-native English speakers improve their English through immersive reading
 ---
 
 This flow ensures that learning English feels natural, engaging, and structured — balancing reading, listening, vocabulary, and speaking practice.
-
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-
