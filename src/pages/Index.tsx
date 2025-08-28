@@ -6,7 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { BookCard } from "@/components/BookCard";
 import { ReadingSession } from "@/components/ReadingSession";
 import { SimpleReader } from "@/components/SimpleReader";
-import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw } from "lucide-react";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3 } from "lucide-react";
 import { t, setLocale, getLocale } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +33,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'library' | 'reading' | 'session'>('library');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'reading' | 'session'>('dashboard');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [locale, setCurrentLocale] = useState(getLocale());
   const [books, setBooks] = useState<Book[]>([]);
@@ -175,6 +179,14 @@ You can select words to add them to your vocabulary and practice conversations w
           {/* Navigation */}
           <nav className="flex gap-4 mt-4">
             <Button 
+              variant={currentView === 'dashboard' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentView('dashboard')}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
+            <Button 
               variant={currentView === 'library' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCurrentView('library')}
@@ -206,6 +218,33 @@ You can select words to add them to your vocabulary and practice conversations w
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {currentView === 'dashboard' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Dashboard</h2>
+              <p className="text-muted-foreground">
+                Track your reading progress and vocabulary growth
+              </p>
+            </div>
+            
+            <DashboardStats />
+            
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <VocabularyProgress />
+              </div>
+              <div className="space-y-6">
+                <QuickActions
+                  onViewLibrary={() => setCurrentView('library')}
+                  onSyncBooks={handleSyncBooks}
+                  syncing={syncing}
+                />
+                <RecentActivity onContinueReading={handleStartReading} />
+              </div>
+            </div>
+          </div>
+        )}
+
         {currentView === 'library' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
