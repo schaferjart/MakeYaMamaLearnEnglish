@@ -82,3 +82,61 @@ export const generateSpeech = async (
 
   return data
 }
+
+export interface VocabularyEntry {
+  id?: string
+  headword: string
+  lemma?: string
+  pos?: string
+  sense?: string
+  example?: string
+  synonym?: string
+  translation_de?: string
+  difficulty?: number
+  book_id?: string
+  cfi?: string
+}
+
+export const saveVocabulary = async (vocabularyData: VocabularyEntry): Promise<VocabularyEntry> => {
+  const { data, error } = await supabase
+    .from('vocabulary')
+    .insert({
+      headword: vocabularyData.headword,
+      lemma: vocabularyData.lemma,
+      pos: vocabularyData.pos,
+      sense: vocabularyData.sense,
+      example: vocabularyData.example,
+      synonym: vocabularyData.synonym,
+      translation_de: vocabularyData.translation_de,
+      difficulty: vocabularyData.difficulty,
+      book_id: vocabularyData.book_id,
+      cfi: vocabularyData.cfi
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to save vocabulary: ${error.message}`)
+  }
+
+  return data
+}
+
+export const getUserVocabulary = async (bookId?: string): Promise<VocabularyEntry[]> => {
+  let query = supabase
+    .from('vocabulary')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (bookId) {
+    query = query.eq('book_id', bookId)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    throw new Error(`Failed to fetch vocabulary: ${error.message}`)
+  }
+
+  return data || []
+}

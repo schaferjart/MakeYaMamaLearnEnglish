@@ -4,13 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BookOpen, Volume2, Save, X, Loader2 } from "lucide-react";
-import { lookupWord, translateText } from "@/lib/api";
+import { lookupWord, translateText, saveVocabulary } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 interface VocabularyPanelProps {
   selectedText: string;
   onClose: () => void;
+  bookId?: string;
+  cfi?: string;
   onSave?: (vocabularyData: VocabularyData) => void;
 }
 
@@ -24,7 +28,8 @@ interface VocabularyData {
   pos?: string;
 }
 
-export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPanelProps) => {
+export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: VocabularyPanelProps) => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [vocabularyData, setVocabularyData] = useState<VocabularyData | null>(null);
@@ -76,14 +81,46 @@ export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPan
     fetchWordData();
   }, [selectedText]);
 
-  const handleSave = () => {
-    if (!vocabularyData) return;
+  const handleSave = async () => {
+    if (!vocabularyData || !user) return;
     
-    setIsSaved(true);
-    onSave?.(vocabularyData);
-    setTimeout(() => {
-      onClose();
-    }, 1000);
+    try {
+      setIsLoading(true);
+      
+      await saveVocabulary({
+        headword: vocabularyData.word,
+        lemma: vocabularyData.word,
+        pos: vocabularyData.pos,
+        sense: vocabularyData.definition,
+        example: vocabularyData.example,
+        translation_de: vocabularyData.translation,
+        difficulty: vocabularyData.difficulty,
+        book_id: bookId,
+        cfi: cfi
+      });
+      
+      setIsSaved(true);
+      onSave?.(vocabularyData);
+      
+      toast({
+        title: "Vocabulary saved!",
+        description: `"${vocabularyData.word}" has been added to your vocabulary.`,
+      });
+      
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error saving vocabulary:', error);
+      toast({
+        title: "Save failed",
+        description: "Could not save vocabulary. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePronounce = () => {
@@ -198,7 +235,7 @@ export const VocabularyPanel = ({ selectedText, onClose, onSave }: VocabularyPan
             <div className="pt-2">
               <Button 
                 onClick={handleSave}
-                disabled={isSaved}
+                disabled={isSaved || isLoading || !user}
                 className="w-full"
                 variant={isSaved ? "secondary" : "default"}
               >

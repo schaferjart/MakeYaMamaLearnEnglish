@@ -106,24 +106,8 @@ export const SimpleReader = ({
     }
   }, [progress.progressPercentage, isUserScrolling]);
 
-  const handleVocabularySave = async (vocabularyData: any) => {
-    if (!user || !sessionId) return;
-
-    try {
-      await supabase.from('vocabulary').insert({
-        user_id: user.id,
-        headword: vocabularyData.word,
-        lemma: vocabularyData.word.toLowerCase(),
-        pos: vocabularyData.pos,
-        sense: vocabularyData.definition,
-        example: vocabularyData.example,
-        translation_de: vocabularyData.translation,
-        difficulty: vocabularyData.difficulty
-      });
-      console.log('Vocabulary saved to database');
-    } catch (error) {
-      console.error('Error saving vocabulary:', error);
-    }
+  const handleCloseVocabulary = () => {
+    setShowVocabulary(false);
   };
 
   return (
@@ -163,8 +147,8 @@ export const SimpleReader = ({
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <VocabularyPanel
             selectedText={selectedText}
-            onClose={() => setShowVocabulary(false)}
-            onSave={handleVocabularySave}
+            bookId={bookId}
+            onClose={handleCloseVocabulary}
           />
         </div>
       )}
