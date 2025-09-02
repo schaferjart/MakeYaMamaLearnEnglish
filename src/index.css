@@ -141,3 +141,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Reading Interface Styles */
+@layer utilities {
+  .bg-reading-focus {
+    @apply bg-[hsl(var(--reading-focus))];
+  }
+
+  .bg-audio-sync {
+    @apply bg-[hsl(var(--audio-sync))];
+  }
+
+  .bg-audio-sync\/20 {
+    background-color: hsl(var(--audio-sync) / 0.2);
+  }
+
+  .border-audio-sync\/30 {
+    border-color: hsl(var(--audio-sync) / 0.3);
+  }
+}

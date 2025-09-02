@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, Settings, Volume2, BookOpen } from 'lucide-react';
 import { SimpleReader } from '@/components/SimpleReader';
 import { ReadingSession } from '@/components/ReadingSession';
+import { ReadAlongInterface } from '@/components/ReadAlongInterface';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { t } from '@/lib/i18n';
@@ -24,6 +25,7 @@ export const Reader = () => {
   const [showSession, setShowSession] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [readingProgress, setReadingProgress] = useState<any>(null);
+  const [isReadAlongMode, setIsReadAlongMode] = useState(false);
 
   useEffect(() => {
     if (!bookId || !user) return;
@@ -151,6 +153,14 @@ export const Reader = () => {
           
           <div className="flex items-center gap-2">
             <Button
+              variant={isReadAlongMode ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setIsReadAlongMode(!isReadAlongMode)}
+            >
+              <Volume2 className="w-4 h-4 mr-1" />
+              {isReadAlongMode ? "Exit Read-Along" : "Read-Along Mode"}
+            </Button>
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSession(!showSession)}
@@ -162,32 +172,40 @@ export const Reader = () => {
       </header>
 
       <div className="container mx-auto py-6">
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Reading Content */}
-          <div className="lg:col-span-3">
-            <SimpleReader 
-              bookTitle={book.title}
-              content={sampleContent}
-              sessionId={sessionId}
-              bookId={bookId!}
-              onProgressUpdate={setReadingProgress}
-            />
-          </div>
-
-          {/* Session Panel */}
-          {showSession && (
-            <div className="lg:col-span-1">
-              <div className="sticky top-20">
-                <ReadingSession
-                  bookTitle={book.title}
-                  onSessionEnd={handleSessionEnd}
-                  onStartConversation={startConversation}
-                  readingProgress={readingProgress}
-                />
-              </div>
+        {isReadAlongMode ? (
+          <ReadAlongInterface
+            text={sampleContent}
+            bookTitle={book.title}
+            onClose={() => setIsReadAlongMode(false)}
+          />
+        ) : (
+          <div className="grid lg:grid-cols-4 gap-6">
+            {/* Reading Content */}
+            <div className="lg:col-span-3">
+              <SimpleReader 
+                bookTitle={book.title}
+                content={sampleContent}
+                sessionId={sessionId}
+                bookId={bookId!}
+                onProgressUpdate={setReadingProgress}
+              />
             </div>
-          )}
-        </div>
+
+            {/* Session Panel */}
+            {showSession && (
+              <div className="lg:col-span-1">
+                <div className="sticky top-20">
+                  <ReadingSession
+                    bookTitle={book.title}
+                    onSessionEnd={handleSessionEnd}
+                    onStartConversation={startConversation}
+                    readingProgress={readingProgress}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
