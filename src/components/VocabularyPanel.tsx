@@ -96,7 +96,8 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
         translation_de: vocabularyData.translation,
         difficulty: vocabularyData.difficulty,
         book_id: bookId,
-        cfi: cfi
+        cfi: cfi,
+        user_id: user.id
       });
       
       setIsSaved(true);

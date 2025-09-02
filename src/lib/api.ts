@@ -95,6 +95,7 @@ export interface VocabularyEntry {
   difficulty?: number
   book_id?: string
   cfi?: string
+  user_id?: string
 }
 
 export const saveVocabulary = async (vocabularyData: VocabularyEntry): Promise<VocabularyEntry> => {
@@ -110,7 +111,8 @@ export const saveVocabulary = async (vocabularyData: VocabularyEntry): Promise<V
       translation_de: vocabularyData.translation_de,
       difficulty: vocabularyData.difficulty,
       book_id: vocabularyData.book_id,
-      cfi: vocabularyData.cfi
+      cfi: vocabularyData.cfi,
+      user_id: vocabularyData.user_id
     })
     .select()
     .single()
