@@ -180,14 +180,16 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
         ) : vocabularyData ? (
           <>
             <div>
-              <h4 className="font-medium text-sm text-primary mb-2">
-                {t('vocab.definition')}
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-medium text-sm text-primary">
+                  {t('vocab.definition')}
+                </h4>
                 {vocabularyData.pos && (
-                  <Badge variant="outline" className="ml-2 text-xs">
+                  <Badge variant="outline" className="text-xs">
                     {vocabularyData.pos}
                   </Badge>
                 )}
-              </h4>
+              </div>
               <p className="text-sm text-foreground leading-relaxed">
                 {vocabularyData.definition}
               </p>
@@ -229,7 +231,7 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
                 {t('vocab.example')}
               </h4>
               <p className="text-sm text-muted-foreground italic">
-                {vocabularyData.example}
+                {vocabularyData.example.replace(/_/g, '').replace(/\.\.\./g, '…')}
               </p>
             </div>
 
