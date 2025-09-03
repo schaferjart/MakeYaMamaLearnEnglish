@@ -24,7 +24,6 @@ interface VocabularyData {
   synonyms: string[];
   translation: string;
   example: string;
-  difficulty: number;
   pos?: string;
 }
 
@@ -55,7 +54,6 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
           synonyms: [], // Could be extracted from definitions
           translation: translationData.translation,
           example: wordData.example || wordData.examples[0] || `"${selectedText}" - example not available`,
-          difficulty: Math.floor(Math.random() * 5) + 1, // Could be computed based on word frequency
           pos: wordData.pos
         };
 
@@ -71,7 +69,6 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
           synonyms: [],
           translation: "Translation temporarily unavailable",
           example: `"${selectedText}" - example not available`,
-          difficulty: 3
         });
       } finally {
         setIsLoading(false);
@@ -94,7 +91,6 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
         sense: vocabularyData.definition,
         example: vocabularyData.example,
         translation_de: vocabularyData.translation,
-        difficulty: vocabularyData.difficulty,
         book_id: bookId,
         cfi: cfi,
         user_id: user.id
@@ -153,14 +149,6 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
             variant="outline"
             voice="Sarah"
           />
-          {vocabularyData && (
-            <Badge 
-              variant="secondary" 
-              className="text-xs"
-            >
-              {t('vocab.difficulty')}: {vocabularyData.difficulty}/5
-            </Badge>
-          )}
         </div>
       </CardHeader>
 

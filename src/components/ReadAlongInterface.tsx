@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Play, 
@@ -9,16 +10,15 @@ import {
   Square, 
   SkipBack, 
   SkipForward, 
-  Volume2,
+  Volume2, 
   Settings,
-  Timer,
+  Clock,
   BookOpen,
-  VolumeX,
-  Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader2,
+  Timer
 } from 'lucide-react';
-
 import { useToast } from '@/hooks/use-toast';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { EpubChapter } from '@/hooks/useEpub';
@@ -29,14 +29,12 @@ interface ReadAlongInterfaceProps {
   bookTitle: string;
   bookId: string;
   sessionId: string | null;
-
   currentChapter?: EpubChapter | null;
   totalChapters?: number;
   onPreviousChapter?: () => void;
   onNextChapter?: () => void;
   canGoPrevious?: boolean;
   canGoNext?: boolean;
-
   onProgressUpdate?: (progress: any) => void;
   onSessionEnd?: () => void;
 }
@@ -62,7 +60,51 @@ export function ReadAlongInterface({
   const [volume, setVolume] = useState(0.8);
   const [sessionTime, setSessionTime] = useState(1500); // 25 minutes default
   const [remainingTime, setRemainingTime] = useState(1500);
+  const [shouldEndSession, setShouldEndSession] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { toast } = useToast();
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Create refs for mutable state values used in speak function
+  const sentencesRef = useRef<string[]>([]);
+  const currentSentenceIndexRef = useRef(currentSentence);
+  const isAutoAdvancingRef = useRef(isAutoAdvancing);
+  const isTimerActiveRef = useRef(isTimerActive);
+  const remainingTimeRef = useRef(remainingTime);
+  
+  // Split content into sentences
+  const sentences = useMemo(() => 
+    content.split(/[.!?]+/).filter(s => s.trim().length > 0),
+    [content]
+  );
+  
+  const currentText = sentences[currentSentence]?.trim() || '';
+  
+  // Update refs when props/state change
+  useEffect(() => {
+    sentencesRef.current = sentences;
+  }, [sentences]);
+  
+  useEffect(() => {
+    currentSentenceIndexRef.current = currentSentence;
+  }, [currentSentence]);
+  
+  useEffect(() => {
+    isAutoAdvancingRef.current = isAutoAdvancing;
+  }, [isAutoAdvancing]);
+
+  useEffect(() => {
+    isTimerActiveRef.current = isTimerActive;
+  }, [isTimerActive]);
+
+  useEffect(() => {
+    remainingTimeRef.current = remainingTime;
+  }, [remainingTime]);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -81,9 +123,6 @@ export function ReadAlongInterface({
     setShowVocabulary(false);
     setSelectedText("");
   };
-  
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const { toast } = useToast();
 
   // Persistent progress tracking
   const { progress, isTracking, startTracking, stopTracking, updatePosition } = useReadingProgress({
@@ -100,12 +139,6 @@ export function ReadAlongInterface({
       stopTracking();
     };
   }, [startTracking, stopTracking]);
-
-
-
-  // Split content into sentences
-  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  const currentText = sentences[currentSentence]?.trim() || '';
 
   // Calculate cumulative word counts for progress tracking
   const cumulativeWordCounts = useMemo(() => {
@@ -126,17 +159,13 @@ export function ReadAlongInterface({
     }
   }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts]);
 
-  // Direct Web Speech API state
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
   // Reset state when chapter content changes
   useEffect(() => {
     setCurrentSentence(0);
+    setIsAutoAdvancing(false);
     // Stop any speech from the previous chapter
     if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
     }
   }, [content]);
 
@@ -147,79 +176,106 @@ export function ReadAlongInterface({
   };
 
   const startTimer = useCallback(() => {
+    console.log('Starting timer...');
+    if (timerRef.current) {
+      console.log('Timer already running, clearing first');
+      clearInterval(timerRef.current);
+    }
+    
     setIsTimerActive(true);
     timerRef.current = setInterval(() => {
       setRemainingTime(prev => {
-        if (prev <= 1) {
-          setIsTimerActive(false);
-          // Stop any active speech
-          if ('speechSynthesis' in window) {
-            speechSynthesis.cancel();
-          }
-          toast({
-            title: "Reading session complete!",
-            description: "Let's practice what you've learned.",
-          });
-          onSessionEnd?.(); // Trigger conversation mode
+        const newTime = prev - 1;
+        console.log('Timer tick, remaining time:', newTime);
+        if (newTime <= 0) {
+          console.log('Timer reached zero, ending session');
           return 0;
         }
-        return prev - 1;
+        return newTime;
       });
     }, 1000);
-  }, [toast, onSessionEnd]);
+  }, []);
 
   const stopTimer = useCallback(() => {
-    setIsTimerActive(false);
+    console.log('Stopping timer...');
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    setIsTimerActive(false);
   }, []);
 
-  // Direct Web Speech API implementation (like conversation component)
-  const speak = useCallback((text: string) => {
-    if ('speechSynthesis' in window) {
-      // Stop any current speech
-      speechSynthesis.cancel();
-      setIsLoading(true);
+  // Handle session end when timer reaches zero
+  useEffect(() => {
+    if (remainingTime <= 0 && isTimerActive) {
+      console.log('Session time expired');
+      setShouldEndSession(true);
+      stopTimer();
+    }
+  }, [remainingTime, isTimerActive, stopTimer]);
 
+  // Handle session end notification asynchronously
+  useEffect(() => {
+    if (shouldEndSession) {
+      console.log('Triggering session end');
+      toast({
+        title: "Session Complete",
+        description: "Your reading session has ended.",
+      });
+      onSessionEnd?.();
+      setShouldEndSession(false);
+    }
+  }, [shouldEndSession, toast, onSessionEnd]);
+
+  const speak = useCallback((text: string, sentenceIndex: number) => {
+    console.log(`Speaking sentence ${sentenceIndex}: ${text.substring(0, 50)}...`);
+    
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      setIsLoading(true);
+      
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
       utterance.rate = speechRate;
-      utterance.pitch = 1.0;
       utterance.volume = volume;
+      utterance.lang = 'en-US';
+      utteranceRef.current = utterance;
       
       // Try to get a good English voice
-      const voices = speechSynthesis.getVoices();
+      const voices = window.speechSynthesis.getVoices();
       const englishVoice = voices.find(voice => 
         voice.lang.startsWith('en') && voice.name.includes('Female')
       ) || voices.find(voice => voice.lang.startsWith('en'));
       
       if (englishVoice) utterance.voice = englishVoice;
-
+      
       utterance.onstart = () => {
+        console.log(`Started speaking sentence ${sentenceIndex}`);
         setIsLoading(false);
         setIsPlaying(true);
-        if (!isTimerActive && remainingTime > 0) {
+        if (!isTimerActiveRef.current && remainingTimeRef.current > 0) {
           startTimer();
         }
       };
-
+      
       utterance.onend = () => {
+        console.log(`Finished speaking sentence ${sentenceIndex}`);
         setIsPlaying(false);
-        currentUtteranceRef.current = null;
         
-        // Auto-advance to next sentence
-        if (currentSentence < sentences.length - 1) {
-          setTimeout(() => {
-            const nextSentence = currentSentence + 1;
-            setCurrentSentence(nextSentence);
-            if (sentences[nextSentence]?.trim()) {
-              speak(sentences[nextSentence].trim());
-            }
-          }, 800);
-        } else {
-          // Finished reading all sentences
+        // Use refs to access current values without causing dependency changes
+        const currentSentences = sentencesRef.current;
+        const currentIndex = currentSentenceIndexRef.current;
+        const isStillAutoAdvancing = isAutoAdvancingRef.current;
+        
+        console.log(`onend: currentIndex=${currentIndex}, isAutoAdvancing=${isStillAutoAdvancing}, totalSentences=${currentSentences.length}`);
+        
+        if (isStillAutoAdvancing && currentIndex < currentSentences.length - 1) {
+          console.log(`Moving from sentence ${currentIndex} to ${currentIndex + 1}`);
+          setCurrentSentence(currentIndex + 1);
+        } else if (currentIndex >= currentSentences.length - 1) {
+          console.log('Reached end of sentences, stopping auto-advance');
+          setIsAutoAdvancing(false);
           stopTimer();
           toast({
             title: "Reading complete!",
@@ -227,96 +283,118 @@ export function ReadAlongInterface({
           });
         }
       };
-
-      utterance.onerror = () => {
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
         setIsLoading(false);
         setIsPlaying(false);
-        currentUtteranceRef.current = null;
         toast({
-          title: "Speech error",
-          description: "There was an issue with text-to-speech. Please try again.",
+          title: "Speech Error",
+          description: "There was an error with text-to-speech.",
           variant: "destructive",
         });
       };
-
-      currentUtteranceRef.current = utterance;
-      speechSynthesis.speak(utterance);
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      toast({
+        title: "Not Supported",
+        description: "Text-to-speech is not supported in this browser.",
+        variant: "destructive",
+      });
     }
-  }, [speechRate, volume, currentSentence, sentences, isTimerActive, remainingTime, startTimer, stopTimer, toast]);
+  }, [speechRate, volume, startTimer, stopTimer, toast]);
 
-  const stop = useCallback(() => {
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-      setIsPlaying(false);
-      setIsLoading(false);
-      currentUtteranceRef.current = null;
+  // Auto-advance effect - triggers when currentSentence changes during auto-advancing
+  useEffect(() => {
+    console.log(`useEffect triggered. isAutoAdvancing: ${isAutoAdvancing} isPlaying: ${isPlaying} isLoading: ${isLoading} currentSentence: ${currentSentence}`);
+    
+    if (isAutoAdvancing && !isPlaying && !isLoading && currentSentence < sentencesRef.current.length) {
+      const sentenceText = sentencesRef.current[currentSentence]?.trim();
+      if (sentenceText) {
+        console.log(`Will speak sentence: ${currentSentence} text: ${sentenceText.substring(0, 50)}...`);
+        speak(sentenceText, currentSentence);
+      }
     }
-  }, []);
-
-  const pause = useCallback(() => {
-    if ('speechSynthesis' in window && isPlaying) {
-      speechSynthesis.pause();
-    }
-  }, [isPlaying]);
-
-  const resume = useCallback(() => {
-    if ('speechSynthesis' in window && speechSynthesis.paused) {
-      speechSynthesis.resume();
-    }
-  }, []);
-
-  const handleNextSentence = (sentenceIndex: number) => {
-    if (sentenceIndex < sentences.length && sentences[sentenceIndex]?.trim()) {
-      speak(sentences[sentenceIndex].trim());
-    }
-  };
+  }, [currentSentence, isAutoAdvancing, isPlaying, isLoading, speak]);
 
   const handlePlay = () => {
+    console.log('handlePlay called');
     if (currentText) {
-      speak(currentText);
+      setIsAutoAdvancing(true);
+      speak(currentText, currentSentence);
     }
   };
 
   const handlePause = () => {
-    pause();
+    console.log('handlePause called');
+    setIsAutoAdvancing(false);
+    if ('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      window.speechSynthesis.pause();
+    }
+    setIsPlaying(false);
     stopTimer();
   };
 
+  const handleResume = () => {
+    console.log('handleResume called');
+    if ('speechSynthesis' in window && window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+      setIsPlaying(true);
+      setIsAutoAdvancing(true);
+      if (!isTimerActiveRef.current && remainingTimeRef.current > 0) {
+        startTimer();
+      }
+    }
+  };
+
   const handleStop = () => {
-    stop();
+    console.log('handleStop called');
+    setIsAutoAdvancing(false);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlaying(false);
+    setIsLoading(false);
     setCurrentSentence(0);
     stopTimer();
   };
 
   const handlePrevious = () => {
     const newIndex = Math.max(0, currentSentence - 1);
+    console.log(`handlePrevious: moving to sentence ${newIndex}`);
     setCurrentSentence(newIndex);
-    if (isPlaying && sentences[newIndex]?.trim()) {
-      speak(sentences[newIndex].trim());
+    if (isAutoAdvancing && sentences[newIndex]?.trim()) {
+      speak(sentences[newIndex].trim(), newIndex);
     }
   };
 
   const handleNext = () => {
     const newIndex = Math.min(sentences.length - 1, currentSentence + 1);
+    console.log(`handleNext: moving to sentence ${newIndex}`);
     setCurrentSentence(newIndex);
-    if (isPlaying && sentences[newIndex]?.trim()) {
-      speak(sentences[newIndex].trim());
+    if (isAutoAdvancing && sentences[newIndex]?.trim()) {
+      speak(sentences[newIndex].trim(), newIndex);
     }
   };
 
   const handleSentenceClick = (index: number) => {
+    console.log(`handleSentenceClick: clicked sentence ${index}`);
     setCurrentSentence(index);
-    if (isPlaying && sentences[index]?.trim()) {
-      speak(sentences[index].trim());
+    if (isAutoAdvancing && sentences[index]?.trim()) {
+      speak(sentences[index].trim(), index);
     }
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stop();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       stopTimer();
     };
-  }, [stop, stopTimer]);
+  }, [stopTimer]);
 
   const progressPercentage = ((sessionTime - remainingTime) / sessionTime) * 100;
   const readingProgress = (currentSentence / Math.max(sentences.length - 1, 1)) * 100;
@@ -468,6 +546,19 @@ export function ReadAlongInterface({
                   <Button variant="default" size="icon" onClick={handlePause}>
                     <Pause className="w-5 h-5" />
                   </Button>
+                ) : window.speechSynthesis?.paused ? (
+                  <Button 
+                    variant="default" 
+                    size="icon" 
+                    onClick={handleResume}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Play className="w-5 h-5" />
+                    )}
+                  </Button>
                 ) : (
                   <Button 
                     variant="default" 
@@ -541,10 +632,9 @@ export function ReadAlongInterface({
               </div>
             </CardContent>
           </Card>
-
-          {/* Back Button Placeholder - will be replaced by chapter navigation */}
         </div>
       </div>
+      
       {/* Vocabulary Panel Overlay */}
       {showVocabulary && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">

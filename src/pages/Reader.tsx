@@ -105,18 +105,8 @@ export const Reader = () => {
     }
     
     // Fallback content for books without EPUB
-    return `Sample content for "${book?.title || 'Unknown Book'}"
-
-This is placeholder content that will be displayed when no EPUB file is available. In a complete implementation, this would be replaced with the actual book content.
-
-You can still test all the features:
-- Select text to look up words and add them to your vocabulary
-- Use the read-along mode with text-to-speech
-- Practice conversations with the AI tutor about the content
-- Track your reading progress and statistics
-
-The vocabulary system, progress tracking, and AI tutor will work with any text content, whether it comes from an EPUB file or other sources.`;
-  };
+    return `No EPUB content available for "${book?.title || 'Unknown Book'}". Please upload an EPUB file to enable reading functionality.`;
+    };
 
   const handlePreviousChapter = () => {
     if (chapters.length === 0 || !currentChapter) return;
