@@ -25,7 +25,8 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(5 * 60)
+  const [timeLeft, setTimeLeft] = useState(3 * 60) // Default to 3 minutes
+  const [totalTime, setTotalTime] = useState(3 * 60)
   const [elapsed, setElapsed] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
   const [didRetry, setDidRetry] = useState(false)
@@ -439,6 +440,29 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div>{t('tutor.start')}</div>
           <div>{format(timeLeft)}</div>
+        </div>
+        
+        {/* Timer duration options */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Duration:</span>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((minutes) => (
+              <Button
+                key={minutes}
+                variant={totalTime === minutes * 60 ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  const newTime = minutes * 60;
+                  setTimeLeft(newTime);
+                  setTotalTime(newTime);
+                }}
+                disabled={elapsed > 0} // Disable once conversation has started
+                className="h-6 px-2 text-xs"
+              >
+                {minutes}m
+              </Button>
+            ))}
+          </div>
         </div>
         {isThinking && (
           <div className="text-xs text-muted-foreground">{t('tutor.thinking')}</div>
