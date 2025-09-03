@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Settings, Volume2, BookOpen } from 'lucide-react';
-import { SimpleReader } from '@/components/SimpleReader';
-import { ReadingSession } from '@/components/ReadingSession';
 import { ReadAlongInterface } from '@/components/ReadAlongInterface';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,10 +22,8 @@ export const Reader = () => {
   const { user } = useAuth();
   const [book, setBook] = useState<Book | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [showSession, setShowSession] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [readingProgress, setReadingProgress] = useState<any>(null);
-  const [isReadAlongMode, setIsReadAlongMode] = useState(false);
   const [showConversation, setShowConversation] = useState(false);
   
   // EPUB parsing
@@ -196,21 +192,14 @@ The vocabulary system, progress tracking, and AI tutor will work with any text c
           </div>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant={isReadAlongMode ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setIsReadAlongMode(!isReadAlongMode)}
-            >
-              <Volume2 className="w-4 h-4 mr-1" />
-              {isReadAlongMode ? "Exit Read-Along" : "Read-Along Mode"}
-            </Button>
-            <Button
+            {/* The session settings button could be repurposed later if needed */}
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSession(!showSession)}
             >
               <Settings className="w-4 h-4" />
-            </Button>
+            </Button> */}
           </div>
         </div>
       </header>
@@ -225,45 +214,21 @@ The vocabulary system, progress tracking, and AI tutor will work with any text c
               onEnd={() => navigate('/')}
             />
           </div>
-        ) : isReadAlongMode ? (
-          <ReadAlongInterface
-            text={content}
-            bookTitle={book.title}
-            onClose={() => setIsReadAlongMode(false)}
-          />
         ) : (
-          <div className="grid lg:grid-cols-4 gap-6">
-            {/* Reading Content */}
-            <div className="lg:col-span-3">
-              <SimpleReader 
-                bookTitle={book.title}
-                content={content}
-                sessionId={sessionId}
-                bookId={bookId!}
-                onProgressUpdate={setReadingProgress}
-                currentChapter={currentChapter}
-                totalChapters={chapters.length}
-                onPreviousChapter={handlePreviousChapter}
-                onNextChapter={handleNextChapter}
-                canGoPrevious={canGoPrevious}
-                canGoNext={canGoNext}
-              />
-            </div>
-
-            {/* Session Panel */}
-            {showSession && (
-              <div className="lg:col-span-1">
-                <div className="sticky top-20">
-                  <ReadingSession
-                    bookTitle={book.title}
-                    onSessionEnd={handleSessionEnd}
-                    onStartConversation={startConversation}
-                    readingProgress={readingProgress}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          <ReadAlongInterface
+            content={content}
+            bookTitle={book.title}
+            bookId={bookId!}
+            sessionId={sessionId}
+            currentChapter={currentChapter}
+            totalChapters={chapters.length}
+            onPreviousChapter={handlePreviousChapter}
+            onNextChapter={handleNextChapter}
+            canGoPrevious={canGoPrevious}
+            canGoNext={canGoNext}
+            onProgressUpdate={setReadingProgress}
+            onSessionEnd={handleSessionEnd}
+          />
         )}
       </div>
     </div>
