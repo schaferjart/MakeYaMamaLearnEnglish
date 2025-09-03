@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { t } from '@/lib/i18n';
 import { ConversationTutor } from '@/components/ConversationTutor';
+import { useEpub } from '@/hooks/useEpub';
 
 interface Book {
   id: string;
@@ -28,6 +29,15 @@ export const Reader = () => {
   const [readingProgress, setReadingProgress] = useState<any>(null);
   const [isReadAlongMode, setIsReadAlongMode] = useState(false);
   const [showConversation, setShowConversation] = useState(false);
+  
+  // EPUB parsing
+  const { 
+    chapters, 
+    currentChapter, 
+    isLoading: epubLoading, 
+    error: epubError,
+    getFullText 
+  } = useEpub(book?.epub_path);
 
   useEffect(() => {
     if (!bookId || !user) return;
@@ -88,28 +98,33 @@ export const Reader = () => {
     setShowConversation(true);
   };
 
-  // Mock content for now - in real app this would load from EPUB
-  const sampleContent = `Chapter 1: The Beginning
+  // Get content from EPUB or fallback to sample
+  const getBookContent = () => {
+    if (epubError) {
+      return `Error loading EPUB: ${epubError}`;
+    }
+    
+    if (book?.epub_path && chapters.length > 0) {
+      return getFullText();
+    }
+    
+    // Fallback content for books without EPUB
+    return `Sample content for "${book?.title || 'Unknown Book'}"
 
-  In the heart of a bustling city, where the sounds of traffic and the chatter of pedestrians created a symphony of urban life, there lived a young woman named Emma. She had always been fascinated by languages, spending countless hours in libraries and bookshops, surrounded by words from different cultures and times.
+This is placeholder content that will be displayed when no EPUB file is available. In a complete implementation, this would be replaced with the actual book content.
 
-  Emma worked as a translator for a small publishing house, where she discovered her true passion: helping others understand the beauty of literature across language barriers. Every morning, she would walk to work through the old quarter of the city, passing by ancient buildings that told stories of their own.
+You can still test all the features:
+- Select text to look up words and add them to your vocabulary
+- Use the read-along mode with text-to-speech
+- Practice conversations with the AI tutor about the content
+- Track your reading progress and statistics
 
-  The cobblestone streets echoed with the footsteps of commuters, but Emma always took her time, observing the small details that others might miss. A flower blooming in a window box, the way sunlight filtered through the narrow alleyways, or the sound of church bells marking the passage of time.
+The vocabulary system, progress tracking, and AI tutor will work with any text content, whether it comes from an EPUB file or other sources.`;
+  };
 
-  On this particular morning, as autumn leaves danced in the crisp air, Emma received an assignment that would change her life forever. It was a manuscript written in an old dialect, filled with mysterious references and beautiful prose that seemed to jump off the page.
+  const content = getBookContent();
 
-  As she began to read, Emma realized that this was not just any ordinary text. The words seemed to possess a magical quality, as if they were speaking directly to her soul. Each sentence revealed new layers of meaning, and she found herself completely absorbed in the story.
-
-  The manuscript told the tale of a scholar who had dedicated his life to preserving ancient knowledge, traveling from library to library, collecting rare books and documenting forgotten languages. Emma felt a deep connection to this character, recognizing her own passion reflected in his journey.
-
-  Hours passed without Emma realizing it. The office around her had grown quiet as her colleagues went about their daily tasks, but she remained focused on the text before her. Every word was carefully chosen, every phrase constructed with precision and beauty.
-
-  As the day drew to a close, Emma knew that this project would be different from anything she had worked on before. It would challenge her skills as a translator and open her mind to new possibilities. She carefully placed the manuscript in her bag, eager to continue her work at home where she could give it her full attention.
-
-  Walking home through the same cobblestone streets, Emma saw the city with new eyes. The ancient buildings seemed to whisper stories of the past, and she wondered how many other treasures were hidden in the world, waiting to be discovered by someone with the patience and passion to seek them out.`;
-
-  if (isLoading) {
+  if (isLoading || epubLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -179,13 +194,13 @@ export const Reader = () => {
             <ConversationTutor 
               sessionId={sessionId}
               bookId={bookId!}
-              readContent={sampleContent}
+              readContent={content}
               onEnd={() => navigate('/')}
             />
           </div>
         ) : isReadAlongMode ? (
           <ReadAlongInterface
-            text={sampleContent}
+            text={content}
             bookTitle={book.title}
             onClose={() => setIsReadAlongMode(false)}
           />
@@ -195,7 +210,7 @@ export const Reader = () => {
             <div className="lg:col-span-3">
               <SimpleReader 
                 bookTitle={book.title}
-                content={sampleContent}
+                content={content}
                 sessionId={sessionId}
                 bookId={bookId!}
                 onProgressUpdate={setReadingProgress}
