@@ -101,12 +101,7 @@ export function ReadAlongInterface({
     };
   }, [startTracking, stopTracking]);
 
-  // Reset state when chapter content changes
-  useEffect(() => {
-    setCurrentSentence(0);
-    // Stop any speech from the previous chapter
-    stop();
-  }, [content, stop]);
+
 
   // Split content into sentences
   const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
@@ -170,6 +165,13 @@ export function ReadAlongInterface({
     },
     fallbackToWebSpeech: false,
   });
+
+  // Reset state when chapter content changes
+  useEffect(() => {
+    setCurrentSentence(0);
+    // Stop any speech from the previous chapter
+    stop();
+  }, [content, stop]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
