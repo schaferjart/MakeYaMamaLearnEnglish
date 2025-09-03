@@ -191,14 +191,7 @@ The vocabulary system, progress tracking, and AI tutor will work with any text c
           </div>
           
           <div className="flex items-center gap-2">
-            {/* The session settings button could be repurposed later if needed */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSession(!showSession)}
-            >
-              <Settings className="w-4 h-4" />
-            </Button> */}
+            {/* Session controls removed - handled internally by ReadAlongInterface */}
           </div>
         </div>
       </header>
