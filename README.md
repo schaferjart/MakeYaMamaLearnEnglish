@@ -2,9 +2,11 @@
 
 Some Mamas have worked all their lifes in carework. 
 
-Thank you Mamas and damn you society for this unfair setting. 
+Thank you Mama - and damn you society for this unfair setting. 
 
-Because these Mamas are fucked when going on vacation because these Mamas they speak no English.
+But when going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it.
+
+So let's try and expand the comfort zone
 
 The MVP targets German speaking Mamas. 
 
