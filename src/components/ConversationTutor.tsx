@@ -453,10 +453,11 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
                 size="sm"
                 onClick={() => {
                   const newTime = minutes * 60;
+                  console.log(`Setting conversation time to ${minutes} minutes (${newTime} seconds)`);
                   setTimeLeft(newTime);
                   setTotalTime(newTime);
                 }}
-                disabled={elapsed > 0} // Disable once conversation has started
+                                 disabled={messages.some(m => m.role === 'user')} // Disable once user has responded
                 className="h-6 px-2 text-xs"
               >
                 {minutes}m
