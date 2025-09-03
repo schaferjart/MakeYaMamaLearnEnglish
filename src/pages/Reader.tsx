@@ -36,6 +36,7 @@ export const Reader = () => {
     currentChapter, 
     isLoading: epubLoading, 
     error: epubError,
+    loadChapter,
     getFullText 
   } = useEpub(book?.epub_path);
 
@@ -104,8 +105,8 @@ export const Reader = () => {
       return `Error loading EPUB: ${epubError}`;
     }
     
-    if (book?.epub_path && chapters.length > 0) {
-      return getFullText();
+    if (book?.epub_path && chapters.length > 0 && currentChapter) {
+      return currentChapter.content;
     }
     
     // Fallback content for books without EPUB
@@ -121,6 +122,32 @@ You can still test all the features:
 
 The vocabulary system, progress tracking, and AI tutor will work with any text content, whether it comes from an EPUB file or other sources.`;
   };
+
+  const handlePreviousChapter = () => {
+    if (chapters.length === 0 || !currentChapter) return;
+    
+    const currentIndex = chapters.findIndex(c => c.id === currentChapter.id);
+    if (currentIndex > 0) {
+      loadChapter(chapters[currentIndex - 1].id);
+    }
+  };
+
+  const handleNextChapter = () => {
+    if (chapters.length === 0 || !currentChapter) return;
+    
+    const currentIndex = chapters.findIndex(c => c.id === currentChapter.id);
+    if (currentIndex < chapters.length - 1) {
+      loadChapter(chapters[currentIndex + 1].id);
+    }
+  };
+
+  const getCurrentChapterIndex = () => {
+    if (!currentChapter) return 0;
+    return chapters.findIndex(c => c.id === currentChapter.id);
+  };
+
+  const canGoPrevious = getCurrentChapterIndex() > 0;
+  const canGoNext = getCurrentChapterIndex() < chapters.length - 1;
 
   const content = getBookContent();
 
@@ -214,6 +241,12 @@ The vocabulary system, progress tracking, and AI tutor will work with any text c
                 sessionId={sessionId}
                 bookId={bookId!}
                 onProgressUpdate={setReadingProgress}
+                currentChapter={currentChapter}
+                totalChapters={chapters.length}
+                onPreviousChapter={handlePreviousChapter}
+                onNextChapter={handleNextChapter}
+                canGoPrevious={canGoPrevious}
+                canGoNext={canGoNext}
               />
             </div>
 

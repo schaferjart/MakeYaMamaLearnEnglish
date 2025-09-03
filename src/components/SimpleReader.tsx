@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { VocabularyPanel } from "./VocabularyPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
@@ -12,6 +14,12 @@ interface SimpleReaderProps {
   sessionId?: string | null;
   bookId: string;
   onProgressUpdate?: (progress: any) => void;
+  currentChapter?: { id: string; label: string; } | null;
+  totalChapters?: number;
+  onPreviousChapter?: () => void;
+  onNextChapter?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
 }
 
 export const SimpleReader = ({ 
@@ -19,7 +27,13 @@ export const SimpleReader = ({
   content, 
   sessionId, 
   bookId, 
-  onProgressUpdate 
+  onProgressUpdate,
+  currentChapter,
+  totalChapters,
+  onPreviousChapter,
+  onNextChapter,
+  canGoPrevious,
+  canGoNext
 }: SimpleReaderProps) => {
   const { user } = useAuth();
   const [selectedText, setSelectedText] = useState("");
@@ -115,10 +129,48 @@ export const SimpleReader = ({
       <Card className="max-w-4xl mx-auto">
         <CardContent className="p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-primary mb-2">{bookTitle}</h1>
-            <p className="text-sm text-muted-foreground">
-              Wählen Sie ein Wort oder eine Phrase aus, um die Definition und Übersetzung zu sehen
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-primary mb-2">{bookTitle}</h1>
+                {currentChapter && (
+                  <p className="text-lg font-medium text-foreground mb-1">{currentChapter.label}</p>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Wählen Sie ein Wort oder eine Phrase aus, um die Definition und Übersetzung zu sehen
+                </p>
+              </div>
+            </div>
+            
+            {/* Chapter Navigation */}
+            <div className="flex items-center justify-between border-t border-b border-border py-3 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPreviousChapter}
+                disabled={!canGoPrevious}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous Chapter
+              </Button>
+              
+              {totalChapters && (
+                <span className="text-sm text-muted-foreground">
+                  Chapter {currentChapter ? (totalChapters - (totalChapters - 1)) : 1} of {totalChapters}
+                </span>
+              )}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNextChapter}
+                disabled={!canGoNext}
+                className="flex items-center gap-2"
+              >
+                Next Chapter
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           
           <div 
