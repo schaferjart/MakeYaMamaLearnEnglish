@@ -9,7 +9,7 @@ Because these Mamas are fucked when going on vacation because these Mamas they s
 The MVP targets German speaking Mamas. 
 
 
-**https://lovable.dev/projects/2d828b18-4803-48d9-a22b-10c55f635581**
+**https://preview--mamalearnsenglish.lovable.app/**
 
 
 
