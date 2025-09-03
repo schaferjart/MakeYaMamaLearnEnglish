@@ -75,12 +75,7 @@ const Index = () => {
             ...book,
             progress: progressData?.percent ? Math.round(progressData.percent) : 0,
             wordsLearned: wordsCount || 0,
-            content: `This is a placeholder for the book content. The actual EPUB content will be loaded when you start reading "${book.title}" by ${book.author}.
-            
-For now, you can test the reading interface with this sample text. In the future, this will be replaced with the actual EPUB content extraction and display.
-
-You can select words to add them to your vocabulary and practice conversations with the AI tutor about the book content.`
-          };
+            content: ""          };
         })
       );
 
@@ -126,9 +121,6 @@ You can select words to add them to your vocabulary and practice conversations w
     navigate(`/reader/${bookId}`);
   };
 
-  const handleStartReading2 = () => {
-    setCurrentView('reading');
-  };
 
   const handleSessionEnd = () => {
     setCurrentView('library');

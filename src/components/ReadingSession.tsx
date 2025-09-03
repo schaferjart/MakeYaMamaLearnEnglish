@@ -257,13 +257,13 @@ export const ReadingSession = ({
           {ttsPlaying && (
             <div className="mt-2 text-xs text-muted-foreground flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-              Reading aloud with ElevenLabs AI voice
+              Reading aloud with browser voice
             </div>
           )}
           
           {ttsLoading && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Generating audio with ElevenLabs...
+              Generating speech with browser...
             </div>
           )}
           

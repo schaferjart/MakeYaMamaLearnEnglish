@@ -29,6 +29,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
   const [elapsed, setElapsed] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
   const [didRetry, setDidRetry] = useState(false)
+  const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
   const [speechRetryCount, setSpeechRetryCount] = useState(0)
   const cancelTokenRef = useRef(0)
   const recognitionRef = useRef<any>(null)
@@ -179,13 +180,16 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
     
     recognition.onresult = (event: any) => {
       const transcript = event.results?.[0]?.[0]?.transcript || ''
+      if (!transcript.trim() || isProcessingTranscript) return
+      
+      setIsProcessingTranscript(true)
       console.log('Web Speech API transcription:', transcript)
-      setSpeechRetryCount(0) // Reset retry count on successful transcription
-      if (transcript.trim()) {
-        setInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
-        toast({ title: 'Success', description: 'Speech recognized successfully!' })
-      }
-    }
+      setSpeechRetryCount(0)
+      setInput((prev) => prev ? `${prev} ${transcript.trim()}` : transcript.trim())
+      toast({ title: 'Success', description: 'Speech recognized successfully!' })
+      
+      setTimeout(() => setIsProcessingTranscript(false), 1000)
+    };
     
     recognition.onerror = (event: any) => {
       console.error('Web Speech API error:', event.error)
@@ -315,24 +319,15 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           })
 
           const result = await whisperTranscribe(audioBlob)
-          const transcript = result?.text || ''
-          
-          if (transcript.trim()) {
-            setInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
-            toast({ title: 'Success', description: 'Speech transcribed successfully!' })
-          } else {
-            toast({ title: 'No speech detected', description: 'Please try speaking more clearly.' })
-          }
         } catch (error) {
           console.error('Transcription error:', error)
           const errorMessage = error instanceof Error ? error.message : 'Please try again or use typing.'
-          toast({ 
-            title: 'Transcription failed', 
+          toast({
+            title: 'Transcription failed',
             description: errorMessage,
             variant: "destructive"
           })
-        }
-        
+        }        
         // Cleanup
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getTracks().forEach(track => track.stop())

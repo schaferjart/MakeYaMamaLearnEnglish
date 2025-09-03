@@ -87,7 +87,6 @@ export const Reader = () => {
         })
         .eq('id', sessionId);
     }
-    setShowSession(false);
     setShowConversation(true);
   };
 
@@ -106,18 +105,8 @@ export const Reader = () => {
     }
     
     // Fallback content for books without EPUB
-    return `Sample content for "${book?.title || 'Unknown Book'}"
-
-This is placeholder content that will be displayed when no EPUB file is available. In a complete implementation, this would be replaced with the actual book content.
-
-You can still test all the features:
-- Select text to look up words and add them to your vocabulary
-- Use the read-along mode with text-to-speech
-- Practice conversations with the AI tutor about the content
-- Track your reading progress and statistics
-
-The vocabulary system, progress tracking, and AI tutor will work with any text content, whether it comes from an EPUB file or other sources.`;
-  };
+    return `No EPUB content available for "${book?.title || 'Unknown Book'}". Please upload an EPUB file to enable reading functionality.`;
+    };
 
   const handlePreviousChapter = () => {
     if (chapters.length === 0 || !currentChapter) return;
@@ -192,14 +181,7 @@ The vocabulary system, progress tracking, and AI tutor will work with any text c
           </div>
           
           <div className="flex items-center gap-2">
-            {/* The session settings button could be repurposed later if needed */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSession(!showSession)}
-            >
-              <Settings className="w-4 h-4" />
-            </Button> */}
+            {/* Session controls removed - handled internally by ReadAlongInterface */}
           </div>
         </div>
       </header>
