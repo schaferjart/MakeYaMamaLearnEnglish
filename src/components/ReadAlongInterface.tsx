@@ -18,7 +18,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+
 import { useToast } from '@/hooks/use-toast';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { EpubChapter } from '@/hooks/useEpub';
@@ -126,55 +126,19 @@ export function ReadAlongInterface({
     }
   }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts]);
 
-  const { 
-    speak, 
-    stop, 
-    pause, 
-    resume, 
-    isLoading, 
-    isPlaying 
-  } = useTextToSpeech({
-    voice: 'Aria',
-    onStart: () => {
-      if (!isTimerActive && remainingTime > 0) {
-        startTimer();
-      }
-    },
-    onEnd: () => {
-      // Auto-advance to next sentence
-      if (currentSentence < sentences.length - 1) {
-        setTimeout(() => {
-          const nextSentence = currentSentence + 1;
-          setCurrentSentence(nextSentence);
-          if (sentences[nextSentence]?.trim()) {
-            speak(sentences[nextSentence].trim());
-          }
-        }, 800);
-      } else {
-        // Finished reading all sentences
-        stopTimer();
-        toast({
-          title: "Reading complete!",
-          description: "You've finished reading the entire content.",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Speech error",
-        description: "There was an issue with text-to-speech. Please try again.",
-        variant: "destructive",
-      });
-    },
-    fallbackToWebSpeech: true,
-  });
+  // Direct Web Speech API state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Reset state when chapter content changes
   useEffect(() => {
     setCurrentSentence(0);
     // Stop any speech from the previous chapter
-    stop();
-  }, [content, stop]);
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+  }, [content]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -188,7 +152,10 @@ export function ReadAlongInterface({
       setRemainingTime(prev => {
         if (prev <= 1) {
           setIsTimerActive(false);
-          stop(); // Stop any active speech
+          // Stop any active speech
+          if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+          }
           toast({
             title: "Reading session complete!",
             description: "Let's practice what you've learned.",
@@ -199,13 +166,102 @@ export function ReadAlongInterface({
         return prev - 1;
       });
     }, 1000);
-  }, [stop, toast]);
+  }, [toast, onSessionEnd]);
 
   const stopTimer = useCallback(() => {
     setIsTimerActive(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+  }, []);
+
+  // Direct Web Speech API implementation (like conversation component)
+  const speak = useCallback((text: string) => {
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      speechSynthesis.cancel();
+      setIsLoading(true);
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = speechRate;
+      utterance.pitch = 1.0;
+      utterance.volume = volume;
+      
+      // Try to get a good English voice
+      const voices = speechSynthesis.getVoices();
+      const englishVoice = voices.find(voice => 
+        voice.lang.startsWith('en') && voice.name.includes('Female')
+      ) || voices.find(voice => voice.lang.startsWith('en'));
+      
+      if (englishVoice) utterance.voice = englishVoice;
+
+      utterance.onstart = () => {
+        setIsLoading(false);
+        setIsPlaying(true);
+        if (!isTimerActive && remainingTime > 0) {
+          startTimer();
+        }
+      };
+
+      utterance.onend = () => {
+        setIsPlaying(false);
+        currentUtteranceRef.current = null;
+        
+        // Auto-advance to next sentence
+        if (currentSentence < sentences.length - 1) {
+          setTimeout(() => {
+            const nextSentence = currentSentence + 1;
+            setCurrentSentence(nextSentence);
+            if (sentences[nextSentence]?.trim()) {
+              speak(sentences[nextSentence].trim());
+            }
+          }, 800);
+        } else {
+          // Finished reading all sentences
+          stopTimer();
+          toast({
+            title: "Reading complete!",
+            description: "You've finished reading the entire content.",
+          });
+        }
+      };
+
+      utterance.onerror = () => {
+        setIsLoading(false);
+        setIsPlaying(false);
+        currentUtteranceRef.current = null;
+        toast({
+          title: "Speech error",
+          description: "There was an issue with text-to-speech. Please try again.",
+          variant: "destructive",
+        });
+      };
+
+      currentUtteranceRef.current = utterance;
+      speechSynthesis.speak(utterance);
+    }
+  }, [speechRate, volume, currentSentence, sentences, isTimerActive, remainingTime, startTimer, stopTimer, toast]);
+
+  const stop = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+      setIsLoading(false);
+      currentUtteranceRef.current = null;
+    }
+  }, []);
+
+  const pause = useCallback(() => {
+    if ('speechSynthesis' in window && isPlaying) {
+      speechSynthesis.pause();
+    }
+  }, [isPlaying]);
+
+  const resume = useCallback(() => {
+    if ('speechSynthesis' in window && speechSynthesis.paused) {
+      speechSynthesis.resume();
     }
   }, []);
 
