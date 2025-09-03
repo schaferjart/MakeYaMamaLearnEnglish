@@ -163,7 +163,7 @@ export function ReadAlongInterface({
         variant: "destructive",
       });
     },
-    fallbackToWebSpeech: false,
+    fallbackToWebSpeech: true,
   });
 
   // Reset state when chapter content changes
