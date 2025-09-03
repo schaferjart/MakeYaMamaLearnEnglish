@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -14,71 +14,131 @@ import {
   Timer,
   BookOpen,
   VolumeX,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+
 import { useToast } from '@/hooks/use-toast';
+import { useReadingProgress } from '@/hooks/useReadingProgress';
+import { EpubChapter } from '@/hooks/useEpub';
+import { VocabularyPanel } from '@/components/VocabularyPanel';
 
 interface ReadAlongInterfaceProps {
-  text: string;
+  content: string;
   bookTitle: string;
-  onClose?: () => void;
+  bookId: string;
+  sessionId: string | null;
+
+  currentChapter?: EpubChapter | null;
+  totalChapters?: number;
+  onPreviousChapter?: () => void;
+  onNextChapter?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
+
+  onProgressUpdate?: (progress: any) => void;
+  onSessionEnd?: () => void;
 }
 
-export function ReadAlongInterface({ text, bookTitle, onClose }: ReadAlongInterfaceProps) {
+export function ReadAlongInterface({
+  content,
+  bookTitle,
+  bookId,
+  sessionId,
+  currentChapter,
+  totalChapters,
+  onPreviousChapter,
+  onNextChapter,
+  canGoPrevious,
+  canGoNext,
+  onProgressUpdate,
+  onSessionEnd
+}: ReadAlongInterfaceProps) {
+  const [selectedText, setSelectedText] = useState("");
+  const [showVocabulary, setShowVocabulary] = useState(false);
   const [currentSentence, setCurrentSentence] = useState(0);
   const [speechRate, setSpeechRate] = useState(1.0);
   const [volume, setVolume] = useState(0.8);
   const [sessionTime, setSessionTime] = useState(1500); // 25 minutes default
   const [remainingTime, setRemainingTime] = useState(1500);
   const [isTimerActive, setIsTimerActive] = useState(false);
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    const selectedString = selection?.toString().trim();
+
+    if (selection && selectedString && selectedString.length > 0 && selectedString.length < 300) {
+      const readingTextElement = document.querySelector('.reading-text');
+      if (readingTextElement && selection.anchorNode && readingTextElement.contains(selection.anchorNode.parentElement)) {
+          setSelectedText(selectedString);
+          setShowVocabulary(true);
+      }
+    }
+  };
+
+  const handleCloseVocabulary = () => {
+    setShowVocabulary(false);
+    setSelectedText("");
+  };
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  // Split text into sentences
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  // Persistent progress tracking
+  const { progress, isTracking, startTracking, stopTracking, updatePosition } = useReadingProgress({
+    bookId,
+    sessionId,
+    content,
+    onProgressUpdate
+  });
+
+  // Start/stop progress tracking
+  useEffect(() => {
+    startTracking();
+    return () => {
+      stopTracking();
+    };
+  }, [startTracking, stopTracking]);
+
+
+
+  // Split content into sentences
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
   const currentText = sentences[currentSentence]?.trim() || '';
 
-  const { 
-    speak, 
-    stop, 
-    pause, 
-    resume, 
-    isLoading, 
-    isPlaying 
-  } = useTextToSpeech({
-    voice: 'Aria',
-    onStart: () => {
-      if (!isTimerActive && remainingTime > 0) {
-        startTimer();
-      }
-    },
-    onEnd: () => {
-      // Auto-advance to next sentence
-      if (currentSentence < sentences.length - 1) {
-        setTimeout(() => {
-          setCurrentSentence(prev => prev + 1);
-          handleNextSentence(currentSentence + 1);
-        }, 800);
-      } else {
-        // Finished reading all sentences
-        stopTimer();
-        toast({
-          title: "Reading complete!",
-          description: "You've finished reading the entire text.",
-        });
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Speech error",
-        description: "There was an issue with text-to-speech. Please try again.",
-        variant: "destructive",
-      });
-    },
-    fallbackToWebSpeech: false,
-  });
+  // Calculate cumulative word counts for progress tracking
+  const cumulativeWordCounts = useMemo(() => {
+    let count = 0;
+    return sentences.map(sentence => {
+      count += sentence.split(/\s+/).filter(Boolean).length;
+      return count;
+    });
+  }, [sentences]);
+
+  // Update persistent progress when sentence changes
+  useEffect(() => {
+    if (isTracking && cumulativeWordCounts.length > 0) {
+      const wordsRead = cumulativeWordCounts[currentSentence] || 0;
+      const totalWords = cumulativeWordCounts[cumulativeWordCounts.length - 1] || 0;
+      const percentage = totalWords > 0 ? (wordsRead / totalWords) * 100 : 0;
+      updatePosition(wordsRead, percentage);
+    }
+  }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts]);
+
+  // Direct Web Speech API state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Reset state when chapter content changes
+  useEffect(() => {
+    setCurrentSentence(0);
+    // Stop any speech from the previous chapter
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+  }, [content]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -92,23 +152,116 @@ export function ReadAlongInterface({ text, bookTitle, onClose }: ReadAlongInterf
       setRemainingTime(prev => {
         if (prev <= 1) {
           setIsTimerActive(false);
-          stop();
+          // Stop any active speech
+          if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+          }
           toast({
             title: "Reading session complete!",
-            description: "Great job on completing your reading session.",
+            description: "Let's practice what you've learned.",
           });
+          onSessionEnd?.(); // Trigger conversation mode
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-  }, [stop, toast]);
+  }, [toast, onSessionEnd]);
 
   const stopTimer = useCallback(() => {
     setIsTimerActive(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+  }, []);
+
+  // Direct Web Speech API implementation (like conversation component)
+  const speak = useCallback((text: string) => {
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      speechSynthesis.cancel();
+      setIsLoading(true);
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = speechRate;
+      utterance.pitch = 1.0;
+      utterance.volume = volume;
+      
+      // Try to get a good English voice
+      const voices = speechSynthesis.getVoices();
+      const englishVoice = voices.find(voice => 
+        voice.lang.startsWith('en') && voice.name.includes('Female')
+      ) || voices.find(voice => voice.lang.startsWith('en'));
+      
+      if (englishVoice) utterance.voice = englishVoice;
+
+      utterance.onstart = () => {
+        setIsLoading(false);
+        setIsPlaying(true);
+        if (!isTimerActive && remainingTime > 0) {
+          startTimer();
+        }
+      };
+
+      utterance.onend = () => {
+        setIsPlaying(false);
+        currentUtteranceRef.current = null;
+        
+        // Auto-advance to next sentence
+        if (currentSentence < sentences.length - 1) {
+          setTimeout(() => {
+            const nextSentence = currentSentence + 1;
+            setCurrentSentence(nextSentence);
+            if (sentences[nextSentence]?.trim()) {
+              speak(sentences[nextSentence].trim());
+            }
+          }, 800);
+        } else {
+          // Finished reading all sentences
+          stopTimer();
+          toast({
+            title: "Reading complete!",
+            description: "You've finished reading the entire content.",
+          });
+        }
+      };
+
+      utterance.onerror = () => {
+        setIsLoading(false);
+        setIsPlaying(false);
+        currentUtteranceRef.current = null;
+        toast({
+          title: "Speech error",
+          description: "There was an issue with text-to-speech. Please try again.",
+          variant: "destructive",
+        });
+      };
+
+      currentUtteranceRef.current = utterance;
+      speechSynthesis.speak(utterance);
+    }
+  }, [speechRate, volume, currentSentence, sentences, isTimerActive, remainingTime, startTimer, stopTimer, toast]);
+
+  const stop = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+      setIsLoading(false);
+      currentUtteranceRef.current = null;
+    }
+  }, []);
+
+  const pause = useCallback(() => {
+    if ('speechSynthesis' in window && isPlaying) {
+      speechSynthesis.pause();
+    }
+  }, [isPlaying]);
+
+  const resume = useCallback(() => {
+    if ('speechSynthesis' in window && speechSynthesis.paused) {
+      speechSynthesis.resume();
     }
   }, []);
 
@@ -179,14 +332,43 @@ export function ReadAlongInterface({ text, bookTitle, onClose }: ReadAlongInterf
                 <BookOpen className="w-5 h-5 text-primary" />
                 {bookTitle}
               </CardTitle>
-              {onClose && (
-                <Button variant="ghost" onClick={onClose}>
-                  <Settings className="w-4 h-4" />
-                </Button>
-              )}
             </CardHeader>
             <CardContent>
-              <div className="reading-text max-h-96 overflow-y-auto bg-reading-focus p-6 rounded-lg border border-border">
+              {/* Chapter Navigation */}
+              <div className="flex items-center justify-between border-b border-border py-3 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onPreviousChapter}
+                  disabled={!canGoPrevious}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+
+                {currentChapter && (
+                  <span className="text-sm text-muted-foreground text-center px-2 truncate">
+                    {currentChapter.label}
+                  </span>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onNextChapter}
+                  disabled={!canGoNext}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div
+                className="reading-text max-h-96 overflow-y-auto bg-reading-focus p-6 rounded-lg border border-border"
+                onMouseUp={handleTextSelection}
+              >
                 {sentences.map((sentence, index) => (
                   <span
                     key={index}
@@ -360,19 +542,19 @@ export function ReadAlongInterface({ text, bookTitle, onClose }: ReadAlongInterf
             </CardContent>
           </Card>
 
-          {/* Back Button */}
-          {onClose && (
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={onClose}
-              size="lg"
-            >
-              Back to Reader
-            </Button>
-          )}
+          {/* Back Button Placeholder - will be replaced by chapter navigation */}
         </div>
       </div>
+      {/* Vocabulary Panel Overlay */}
+      {showVocabulary && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <VocabularyPanel
+            selectedText={selectedText}
+            bookId={bookId}
+            onClose={handleCloseVocabulary}
+          />
+        </div>
+      )}
     </div>
   );
 }

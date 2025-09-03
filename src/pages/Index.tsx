@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookCard } from "@/components/BookCard";
 import { ReadingSession } from "@/components/ReadingSession";
-import { SimpleReader } from "@/components/SimpleReader";
+import { ReadAlongInterface } from "@/components/ReadAlongInterface";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
@@ -345,9 +345,9 @@ You can select words to add them to your vocabulary and practice conversations w
 
         {currentView === 'reading' && selectedBook && (
           <div className="space-y-6">
-            <SimpleReader
-              bookTitle={selectedBook.title}
+            <ReadAlongInterface
               content={selectedBook.content || ''}
+              bookTitle={selectedBook.title}
               bookId={selectedBook.id}
               sessionId={null}
             />
