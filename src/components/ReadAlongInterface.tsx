@@ -144,8 +144,11 @@ export function ReadAlongInterface({
       // Auto-advance to next sentence
       if (currentSentence < sentences.length - 1) {
         setTimeout(() => {
-          setCurrentSentence(prev => prev + 1);
-          handleNextSentence(currentSentence + 1);
+          const nextSentence = currentSentence + 1;
+          setCurrentSentence(nextSentence);
+          if (sentences[nextSentence]?.trim()) {
+            speak(sentences[nextSentence].trim());
+          }
         }, 800);
       } else {
         // Finished reading all sentences
