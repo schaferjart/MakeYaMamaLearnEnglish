@@ -58,8 +58,8 @@ export function ReadAlongInterface({
   const [currentSentence, setCurrentSentence] = useState(0);
   const [speechRate, setSpeechRate] = useState(1.0);
   const [volume, setVolume] = useState(0.8);
-  const [sessionTime, setSessionTime] = useState(1500); // 25 minutes default
-  const [remainingTime, setRemainingTime] = useState(1500);
+  const [sessionTime, setSessionTime] = useState(300); // 5 minutes default
+  const [remainingTime, setRemainingTime] = useState(300);
   const [shouldEndSession, setShouldEndSession] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
@@ -502,11 +502,47 @@ export function ReadAlongInterface({
                 className="h-3"
               />
               
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setRemainingTime(900)}
+                  onClick={() => {
+                    setRemainingTime(60);
+                    setSessionTime(60);
+                  }}
+                  disabled={isTimerActive}
+                >
+                  1m
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setRemainingTime(300);
+                    setSessionTime(300);
+                  }}
+                  disabled={isTimerActive}
+                >
+                  5m
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setRemainingTime(600);
+                    setSessionTime(600);
+                  }}
+                  disabled={isTimerActive}
+                >
+                  10m
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setRemainingTime(900);
+                    setSessionTime(900);
+                  }}
                   disabled={isTimerActive}
                 >
                   15m
@@ -514,7 +550,10 @@ export function ReadAlongInterface({
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setRemainingTime(1500)}
+                  onClick={() => {
+                    setRemainingTime(1500);
+                    setSessionTime(1500);
+                  }}
                   disabled={isTimerActive}
                 >
                   25m
@@ -522,7 +561,10 @@ export function ReadAlongInterface({
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setRemainingTime(3600)}
+                  onClick={() => {
+                    setRemainingTime(3600);
+                    setSessionTime(3600);
+                  }}
                   disabled={isTimerActive}
                 >
                   60m
