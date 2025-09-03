@@ -93,11 +93,25 @@ serve(async (req) => {
         error: errorText 
       })
       
+      // Parse error response to get specific error details
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = null
+      }
+
       // Return a more user-friendly error for common issues
       if (response.status === 400) {
         throw new Error('Audio format not supported or file corrupted')
       } else if (response.status === 413) {
         throw new Error('Audio file too large')
+      } else if (response.status === 429) {
+        if (errorData?.error?.code === 'insufficient_quota') {
+          throw new Error('OpenAI API quota exceeded. Please add a valid OpenAI API key with available credits.')
+        } else {
+          throw new Error('OpenAI API rate limit exceeded. Please try again in a moment.')
+        }
       } else {
         throw new Error(`Transcription service error: ${response.status}`)
       }

@@ -325,7 +325,12 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           }
         } catch (error) {
           console.error('Transcription error:', error)
-          toast({ title: 'Transcription failed', description: 'Please try again or use typing.' })
+          const errorMessage = error instanceof Error ? error.message : 'Please try again or use typing.'
+          toast({ 
+            title: 'Transcription failed', 
+            description: errorMessage,
+            variant: "destructive"
+          })
         }
         
         // Cleanup
