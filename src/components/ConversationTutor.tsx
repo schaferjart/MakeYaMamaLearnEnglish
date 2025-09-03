@@ -319,6 +319,21 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           })
 
           const result = await whisperTranscribe(audioBlob)
+          console.log('Whisper transcription result:', result)
+          
+          if (result && result.text && result.text.trim()) {
+            setInput(result.text.trim())
+            toast({
+              title: 'Speech recognized!',
+              description: 'Audio transcribed successfully.',
+            })
+          } else {
+            toast({
+              title: 'No speech detected',
+              description: 'Please try speaking more clearly or use typing.',
+              variant: "destructive"
+            })
+          }
         } catch (error) {
           console.error('Transcription error:', error)
           const errorMessage = error instanceof Error ? error.message : 'Please try again or use typing.'
