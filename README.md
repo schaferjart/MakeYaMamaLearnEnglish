@@ -1,19 +1,17 @@
 # Make Ya Mama Learn English
 
 Some Mamas have worked all their lifes in carework. 
+
 Thank you Mamas and damn you society for this unfair setting. 
+
 Because these Mamas are fucked when going on vacation because these Mamas they speak no English.
+
 The MVP targets German speaking Mamas. 
 
-## Project info
 
-**URL**: https://lovable.dev/projects/2d828b18-4803-48d9-a22b-10c55f635581
+**https://lovable.dev/projects/2d828b18-4803-48d9-a22b-10c55f635581**
 
-## Purpose
 
-Help non-native English speakers improve their English through immersive reading and comprehension exercises. The app combines reading, listening, vocabulary learning, and conversational practice into one seamless experience.
-
----
 
 ## Flow & User Experience
 
