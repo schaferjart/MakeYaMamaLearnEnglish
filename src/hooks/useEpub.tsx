@@ -38,16 +38,19 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
         setIsLoading(true);
         setError(null);
 
-        // Get signed URL from Supabase storage
-        const { data: signedUrlData, error: urlError } = await supabase.storage
+        // Download EPUB file as blob from Supabase storage
+        const { data: fileData, error: downloadError } = await supabase.storage
           .from('ebooks')
-          .createSignedUrl(epubPath, 3600); // 1 hour expiry
+          .download(epubPath);
 
-        if (urlError) throw urlError;
-        if (!signedUrlData?.signedUrl) throw new Error('Failed to get signed URL');
+        if (downloadError) throw downloadError;
+        if (!fileData) throw new Error('Failed to download EPUB file');
 
-        // Load EPUB with signed URL
-        const epubBook = ePub(signedUrlData.signedUrl);
+        // Convert blob to ArrayBuffer for EPUB.js
+        const arrayBuffer = await fileData.arrayBuffer();
+
+        // Load EPUB from ArrayBuffer
+        const epubBook = ePub(arrayBuffer);
         await epubBook.ready;
 
         setBook(epubBook);
