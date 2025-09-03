@@ -87,7 +87,6 @@ export const Reader = () => {
         })
         .eq('id', sessionId);
     }
-    setShowSession(false);
     setShowConversation(true);
   };
 
