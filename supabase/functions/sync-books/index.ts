@@ -94,37 +94,73 @@ serve(async (req) => {
 
                   // Extract cover image
                   try {
+                    console.log(`Starting cover extraction for ${file.name}`)
+                    
                     // Look for cover reference in metadata
                     const coverMetaMatch = opfText.match(/<meta name="cover" content="([^"]+)"/)
                     let coverImagePath = null
 
+                    console.log(`Cover meta match for ${file.name}:`, coverMetaMatch)
+
                     if (coverMetaMatch) {
                       const coverId = coverMetaMatch[1]
+                      console.log(`Found cover ID: ${coverId}`)
                       const itemMatch = opfText.match(new RegExp(`<item[^>]+id="${coverId}"[^>]+href="([^"]+)"`))
+                      console.log(`Item match for cover ID:`, itemMatch)
                       if (itemMatch) {
                         coverImagePath = opfDir + itemMatch[1]
+                        console.log(`Cover image path from metadata: ${coverImagePath}`)
                       }
                     }
 
                     // Fallback: look for common cover image names
                     if (!coverImagePath) {
-                      const commonCoverNames = ['cover.jpg', 'cover.jpeg', 'cover.png', 'Cover.jpg', 'Cover.jpeg', 'Cover.png']
+                      console.log(`No cover found in metadata, checking common names for ${file.name}`)
+                      const commonCoverNames = [
+                        'cover.jpg', 'cover.jpeg', 'cover.png', 'cover.gif',
+                        'Cover.jpg', 'Cover.jpeg', 'Cover.png', 'Cover.gif',
+                        'title.jpg', 'title.jpeg', 'title.png',
+                        'titlepage.jpg', 'titlepage.jpeg', 'titlepage.png'
+                      ]
+                      
+                      // List all files in the EPUB to see what's available
+                      const allFiles = Object.keys(contents.files)
+                      console.log(`All files in ${file.name}:`, allFiles.slice(0, 10)) // Show first 10 files
+                      
                       for (const coverName of commonCoverNames) {
                         const fullPath = opfDir + coverName
+                        console.log(`Checking for cover at: ${fullPath}`)
                         if (contents.file(fullPath)) {
                           coverImagePath = fullPath
+                          console.log(`Found cover at: ${fullPath}`)
                           break
+                        }
+                      }
+                      
+                      // Also try root directory
+                      if (!coverImagePath) {
+                        for (const coverName of commonCoverNames) {
+                          console.log(`Checking for cover at root: ${coverName}`)
+                          if (contents.file(coverName)) {
+                            coverImagePath = coverName
+                            console.log(`Found cover at root: ${coverName}`)
+                            break
+                          }
                         }
                       }
                     }
 
                     // Extract and upload cover if found
                     if (coverImagePath) {
+                      console.log(`Attempting to extract cover from: ${coverImagePath}`)
                       const coverFile = contents.file(coverImagePath)
                       if (coverFile) {
+                        console.log(`Cover file found, extracting data...`)
                         const coverData = await coverFile.async('uint8array')
                         const coverExtension = coverImagePath.split('.').pop()?.toLowerCase() || 'jpg'
                         const coverFileName = `${file.name.replace('.epub', '')}.${coverExtension}`
+
+                        console.log(`Uploading cover as: ${coverFileName}, size: ${coverData.length} bytes`)
 
                         // Upload cover to covers bucket
                         const { error: uploadError } = await supabase.storage
@@ -141,14 +177,18 @@ serve(async (req) => {
                             .getPublicUrl(coverFileName)
                           
                           coverUrl = publicUrlData.publicUrl
-                          console.log(`Extracted and uploaded cover for ${title}`)
+                          console.log(`Successfully extracted and uploaded cover for ${title}: ${coverUrl}`)
                         } else {
                           console.log(`Failed to upload cover for ${title}:`, uploadError)
                         }
+                      } else {
+                        console.log(`Cover file not accessible at path: ${coverImagePath}`)
                       }
+                    } else {
+                      console.log(`No cover image found for ${file.name}`)
                     }
                   } catch (coverError) {
-                    console.log(`Could not extract cover from ${file.name}:`, coverError)
+                    console.log(`Error extracting cover from ${file.name}:`, coverError)
                   }
                 }
               }
