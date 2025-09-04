@@ -446,7 +446,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Duration:</span>
           <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((minutes) => (
+            {[1, 2, 3, 4, .05].map((minutes) => (
               <Button
                 key={minutes}
                 variant={totalTime === minutes * 60 ? "default" : "outline"}

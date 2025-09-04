@@ -242,13 +242,44 @@ export function ReadAlongInterface({
       utterance.lang = 'en-US';
       utteranceRef.current = utterance;
       
-      // Try to get a good English voice
+      // Prioritize high-quality English voices
       const voices = window.speechSynthesis.getVoices();
-      const englishVoice = voices.find(voice => 
-        voice.lang.startsWith('en') && voice.name.includes('Female')
-      ) || voices.find(voice => voice.lang.startsWith('en'));
-      
-      if (englishVoice) utterance.voice = englishVoice;
+      console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+
+      // Priority list of known good English voices
+      const preferredVoices = [
+        'Samantha', 'Alex', 'Victoria', 'Karen', 'Susan', // macOS
+        'Microsoft Zira - English (United States)', 'Microsoft David - English (United States)', // Windows  
+        'Google US English', 'Google UK English Female', 'Google UK English Male', // Chrome
+        'English United States', 'English (US)', // Generic
+      ];
+
+      // First try to find a preferred voice
+      let selectedVoice = voices.find(voice => 
+        voice.lang.startsWith('en') && 
+        preferredVoices.some(preferred => voice.name.includes(preferred))
+      );
+
+      // Fallback: any English voice that's not German-accented
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && 
+          !voice.name.toLowerCase().includes('german') &&
+          !voice.name.toLowerCase().includes('deutsch')
+        );
+      }
+
+      // Last resort: any English voice
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
+      }
+
+      if (selectedVoice) {
+        console.log(`Selected voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+        utterance.voice = selectedVoice;
+      } else {
+        console.log('No English voice found, using default');
+      }
       
       utterance.onstart = () => {
         console.log(`Started speaking sentence ${sentenceIndex}`);
@@ -562,8 +593,8 @@ export function ReadAlongInterface({
                   variant="outline" 
                   size="sm" 
                   onClick={() => {
-                    setRemainingTime(3600);
-                    setSessionTime(3600);
+                    setRemainingTime(10);
+                    setSessionTime(10);
                   }}
                   disabled={isTimerActive}
                 >
