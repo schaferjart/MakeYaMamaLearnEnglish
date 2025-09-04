@@ -153,6 +153,8 @@ export type Database = {
           updated_at: string
           user_id: string
           words_read: number | null
+          chapter_id: string | null
+          last_sentence_index: number | null
         }
         Insert: {
           book_id: string
@@ -168,6 +170,8 @@ export type Database = {
           updated_at?: string
           user_id: string
           words_read?: number | null
+          chapter_id?: string | null
+          last_sentence_index?: number | null
         }
         Update: {
           book_id?: string
@@ -183,6 +187,8 @@ export type Database = {
           updated_at?: string
           user_id?: string
           words_read?: number | null
+          chapter_id?: string | null
+          last_sentence_index?: number | null
         }
         Relationships: []
       }

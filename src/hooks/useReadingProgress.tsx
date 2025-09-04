@@ -11,6 +11,8 @@ interface ReadingProgress {
   readingSpeedWpm: number;
   timeSpentSeconds: number;
   lastReadAt: string;
+  chapterId?: string;
+  lastSentenceIndex?: number;
 }
 
 interface UseReadingProgressOptions {
@@ -71,7 +73,9 @@ export const useReadingProgress = ({
             wordsRead: data.words_read || 0,
             readingSpeedWpm: data.reading_speed_wpm || 0,
             timeSpentSeconds: data.time_spent_seconds || 0,
-            lastReadAt: data.last_read_at
+            lastReadAt: data.last_read_at,
+            chapterId: data.chapter_id,
+            lastSentenceIndex: data.last_sentence_index || 0
           };
           setProgress(loadedProgress);
           progressRef.current = loadedProgress;
@@ -121,7 +125,7 @@ export const useReadingProgress = ({
   }, [isTracking, user, progress]);
 
   // Update reading position
-  const updatePosition = useCallback((position: number, percentage?: number) => {
+  const updatePosition = useCallback((position: number, percentage?: number, resumeInfo?: {chapterId: string, sentenceIndex: number}) => {
     if (!isTracking) return;
 
     const calculatedPercentage = percentage ?? (totalWords > 0 ? (position / totalWords) * 100 : 0);
@@ -131,7 +135,9 @@ export const useReadingProgress = ({
       progressPercentage: Math.min(100, Math.max(0, calculatedPercentage)),
       wordsRead: Math.max(progress.wordsRead, position),
       totalLength: totalWords,
-      lastReadAt: new Date().toISOString()
+      lastReadAt: new Date().toISOString(),
+      chapterId: resumeInfo?.chapterId,
+      lastSentenceIndex: resumeInfo?.sentenceIndex
     };
 
     setProgress(updatedProgress);
@@ -157,7 +163,9 @@ export const useReadingProgress = ({
         words_read: progressData.wordsRead,
         reading_speed_wpm: progressData.readingSpeedWpm,
         time_spent_seconds: progressData.timeSpentSeconds,
-        last_read_at: progressData.lastReadAt
+        last_read_at: progressData.lastReadAt,
+        chapter_id: progressData.chapterId,
+        last_sentence_index: progressData.lastSentenceIndex || 0
       };
 
       if (progressIdRef.current) {

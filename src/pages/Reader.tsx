@@ -25,6 +25,7 @@ export const Reader = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [readingProgress, setReadingProgress] = useState<any>(null);
   const [showConversation, setShowConversation] = useState(false);
+  const [initialSentenceIndex, setInitialSentenceIndex] = useState<number>(0);
   
   // EPUB parsing
   const { 
@@ -76,6 +77,23 @@ export const Reader = () => {
 
     loadBook();
   }, [bookId, user]);
+
+  // Resume from saved reading position
+  useEffect(() => {
+    if (chapters.length > 0 && readingProgress && !showConversation) {
+      const { chapterId, lastSentenceIndex } = readingProgress;
+      
+      if (chapterId && lastSentenceIndex > 0) {
+        // Navigate to saved chapter if different from current
+        const savedChapter = chapters.find(c => c.id === chapterId);
+        if (savedChapter && (!currentChapter || currentChapter.id !== chapterId)) {
+          loadChapter(chapterId);
+        }
+        // Set initial sentence for ReadAlongInterface
+        setInitialSentenceIndex(lastSentenceIndex);
+      }
+    }
+  }, [chapters, readingProgress, currentChapter, loadChapter, showConversation]);
 
   const handleSessionEnd = async () => {
     if (sessionId) {
@@ -193,7 +211,7 @@ export const Reader = () => {
               sessionId={sessionId}
               bookId={bookId!}
               readContent={content}
-              onEnd={() => navigate('/')}
+              onEnd={() => setShowConversation(false)}
             />
           </div>
         ) : (
@@ -210,6 +228,7 @@ export const Reader = () => {
             canGoNext={canGoNext}
             onProgressUpdate={setReadingProgress}
             onSessionEnd={handleSessionEnd}
+            initialSentenceIndex={initialSentenceIndex}
           />
         )}
       </div>

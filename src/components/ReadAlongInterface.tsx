@@ -37,6 +37,7 @@ interface ReadAlongInterfaceProps {
   canGoNext?: boolean;
   onProgressUpdate?: (progress: any) => void;
   onSessionEnd?: () => void;
+  initialSentenceIndex?: number;
 }
 
 export function ReadAlongInterface({
@@ -51,7 +52,8 @@ export function ReadAlongInterface({
   canGoPrevious,
   canGoNext,
   onProgressUpdate,
-  onSessionEnd
+  onSessionEnd,
+  initialSentenceIndex = 0
 }: ReadAlongInterfaceProps) {
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
@@ -155,9 +157,14 @@ export function ReadAlongInterface({
       const wordsRead = cumulativeWordCounts[currentSentence] || 0;
       const totalWords = cumulativeWordCounts[cumulativeWordCounts.length - 1] || 0;
       const percentage = totalWords > 0 ? (wordsRead / totalWords) * 100 : 0;
-      updatePosition(wordsRead, percentage);
+      
+      // Pass chapter and sentence info for resume functionality
+      updatePosition(wordsRead, percentage, {
+        chapterId: currentChapter?.id || '',
+        sentenceIndex: currentSentence
+      });
     }
-  }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts]);
+  }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts, currentChapter]);
 
   // Reset state when chapter content changes
   useEffect(() => {
@@ -168,6 +175,13 @@ export function ReadAlongInterface({
       window.speechSynthesis.cancel();
     }
   }, [content]);
+
+  // Resume from saved sentence position
+  useEffect(() => {
+    if (initialSentenceIndex > 0 && sentences.length > 0) {
+      setCurrentSentence(Math.min(initialSentenceIndex, sentences.length - 1));
+    }
+  }, [initialSentenceIndex, sentences.length]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
