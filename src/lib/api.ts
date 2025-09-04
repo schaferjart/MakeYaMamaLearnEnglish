@@ -53,7 +53,9 @@ export const translateText = async (
 }
 
 export const syncBooksFromStorage = async () => {
+  console.log('Calling sync-books edge function...');
   const { data, error } = await supabase.functions.invoke('sync-books')
+  console.log('Edge function response:', { data, error });
 
   if (error) {
     throw new Error(`Book sync failed: ${error.message}`)

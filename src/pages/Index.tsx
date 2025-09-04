@@ -94,8 +94,10 @@ const Index = () => {
 
   const handleSyncBooks = async () => {
     try {
+      console.log('Starting book sync...');
       setSyncing(true);
       const result = await syncBooksFromStorage();
+      console.log('Sync result:', result);
       
       toast({
         title: "Books synced successfully",
