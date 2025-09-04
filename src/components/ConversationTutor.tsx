@@ -49,7 +49,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       utterance.pitch = 1.0
       utterance.volume = 1.0
       
-      // Try to get a good English voice
+      // Prioritize high-quality English voices
       const voices = speechSynthesis.getVoices()
       const englishVoice = voices.find(voice => 
         voice.lang.startsWith('en') && voice.name.includes('Female')

@@ -279,6 +279,11 @@ export function ReadAlongInterface({
         utterance.voice = selectedVoice;
       } else {
         console.log('No English voice found, using default');
+        toast({
+          title: "No English Voice Available",
+          description: "Please install English TTS voices in your system settings for the best experience. Go to Settings > Time & Language > Speech > Add voices.",
+          variant: "destructive",
+        });
       }
       
       utterance.onstart = () => {
