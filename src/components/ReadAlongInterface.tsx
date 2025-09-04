@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
+import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
+import { useAuth } from '@/hooks/useAuth';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
 
@@ -69,8 +71,12 @@ export function ReadAlongInterface({
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
+  const { user } = useAuth();
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Simple localStorage-based resume
+  const { saveResumeData } = useLocalStorageResume(bookId, user?.id || '');
   
   // Create refs for mutable state values used in speak function
   const sentencesRef = useRef<string[]>([]);
@@ -164,8 +170,13 @@ export function ReadAlongInterface({
         sentenceIndex: currentSentence
       };
       updatePosition(wordsRead, percentage, resumeInfo);
+      
+      // Also save to localStorage for reliable resume
+      if (currentChapter?.id && currentSentence > 0) {
+        saveResumeData(currentChapter.id, currentSentence);
+      }
     }
-  }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts, currentChapter]);
+      }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts, currentChapter, saveResumeData]);
 
   // Reset state when chapter content changes
   useEffect(() => {

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { t } from '@/lib/i18n';
 import { ConversationTutor } from '@/components/ConversationTutor';
 import { useEpub } from '@/hooks/useEpub';
+import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
 
 interface Book {
   id: string;
@@ -27,6 +28,9 @@ export const Reader = () => {
   const [showConversation, setShowConversation] = useState(false);
   const [initialSentenceIndex, setInitialSentenceIndex] = useState<number>(0);
   const [hasResumed, setHasResumed] = useState<boolean>(false);
+  
+  // Simple localStorage-based resume
+  const { resumeData, saveResumeData } = useLocalStorageResume(bookId || '', user?.id || '');
   
   // EPUB parsing
   const { 
@@ -135,18 +139,17 @@ export const Reader = () => {
     loadSavedProgress();
   }, [user, bookId]);
 
-  // Resume from saved reading position (only once per book load)
+  // Resume from saved reading position using localStorage
   useEffect(() => {
-    if (hasResumed || !chapters.length || !readingProgress || showConversation) return;
+    if (hasResumed || !chapters.length || !resumeData || showConversation) return;
     
-    // Only resume if this looks like initial app load (not from progress updates)
-    const { chapterId, lastSentenceIndex } = readingProgress;
-    if (!chapterId || lastSentenceIndex <= 0) {
+    const { chapterId, sentenceIndex } = resumeData;
+    if (!chapterId || sentenceIndex <= 0) {
       setHasResumed(true);
       return;
     }
     
-    console.log('RESUMING: Navigating to chapter:', chapterId, 'sentence:', lastSentenceIndex);
+    console.log('RESUMING: Navigating to chapter:', chapterId, 'sentence:', sentenceIndex);
     
     // Navigate to saved chapter if different from current
     const savedChapter = chapters.find(c => c.id === chapterId);
@@ -155,9 +158,9 @@ export const Reader = () => {
     }
     
     // Set initial sentence (will be applied when chapter loads)
-    setInitialSentenceIndex(lastSentenceIndex);
+    setInitialSentenceIndex(sentenceIndex);
     setHasResumed(true);
-  }, [chapters.length, readingProgress?.id]); // Only trigger on chapters load or new progress ID
+  }, [chapters.length, resumeData, currentChapter, loadChapter, showConversation, hasResumed]);
 
   const handleSessionEnd = async () => {
     if (sessionId) {
