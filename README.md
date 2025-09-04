@@ -1,4 +1,4 @@
-# Make Ya Mama Learn English
+# Make Ya Mama Learn English V2
 
 Some Mamas have worked all their lifes in carework. 
 
@@ -9,6 +9,10 @@ But when going on vacation these Mamas are fucked because these Mamas they speak
 So let's try and expand the comfort zone
 
 The MVP targets German speaking Mamas. 
+
+The Application uses WEB Speech API - installed on system. Meaning your Mama neds to have an English package installed on her Phone or Computer - otherwise the voice will be phonetically wrong. 
+
+For Requests regarding uploading particular books, text me. 
 
 
 **https://preview--mamalearnsenglish.lovable.app/**
@@ -139,7 +143,3 @@ The MVP targets German speaking Mamas.
     
 6. Session ends → Progress and words saved → Return to library/dashboard.
     
-
----
-
-This flow ensures that learning English feels natural, engaging, and structured — balancing reading, listening, vocabulary, and speaking practice.
