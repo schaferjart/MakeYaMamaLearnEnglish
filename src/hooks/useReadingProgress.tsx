@@ -54,6 +54,10 @@ export const useReadingProgress = ({
 
     const loadProgress = async () => {
       try {
+        // First try to load from localStorage (fallback for testing)
+        const localStorageKey = `reading_progress_${user.id}_${bookId}`;
+        const localProgress = localStorage.getItem(localStorageKey);
+        
         const { data, error } = await supabase
           .from('reading_progress')
           .select('*')
@@ -74,12 +78,18 @@ export const useReadingProgress = ({
             readingSpeedWpm: data.reading_speed_wpm || 0,
             timeSpentSeconds: data.time_spent_seconds || 0,
             lastReadAt: data.last_read_at,
-            chapterId: data.chapter_id,
-            lastSentenceIndex: data.last_sentence_index || 0
+            chapterId: (data as any).chapter_id || (localProgress ? JSON.parse(localProgress).chapterId : null),
+            lastSentenceIndex: (data as any).last_sentence_index || (localProgress ? JSON.parse(localProgress).lastSentenceIndex : 0)
           };
           setProgress(loadedProgress);
           progressRef.current = loadedProgress;
           onProgressUpdate?.(loadedProgress);
+        } else if (localProgress) {
+          // Fallback to localStorage if DB doesn't have the new fields yet
+          const parsed = JSON.parse(localProgress);
+          setProgress(parsed);
+          progressRef.current = parsed;
+          onProgressUpdate?.(parsed);
         }
       } catch (error) {
         console.error('Error loading reading progress:', error);
@@ -168,6 +178,10 @@ export const useReadingProgress = ({
         last_sentence_index: progressData.lastSentenceIndex || 0
       };
 
+      // Save to localStorage as backup (especially for resume data)
+      const localStorageKey = `reading_progress_${user.id}_${bookId}`;
+      localStorage.setItem(localStorageKey, JSON.stringify(progressData));
+
       if (progressIdRef.current) {
         // Update existing progress
         const { error } = await supabase
@@ -175,7 +189,9 @@ export const useReadingProgress = ({
           .update(dataToSave)
           .eq('id', progressIdRef.current);
 
-        if (error) throw error;
+        if (error) {
+          console.warn('Error updating progress in DB, using localStorage:', error);
+        }
       } else {
         // Create new progress entry
         const { data, error } = await supabase
@@ -184,8 +200,11 @@ export const useReadingProgress = ({
           .select('id')
           .single();
 
-        if (error) throw error;
-        progressIdRef.current = data.id;
+        if (error) {
+          console.warn('Error creating progress in DB, using localStorage:', error);
+        } else {
+          progressIdRef.current = data.id;
+        }
       }
 
       // Update daily statistics

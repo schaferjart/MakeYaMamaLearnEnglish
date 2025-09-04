@@ -78,6 +78,44 @@ export const Reader = () => {
     loadBook();
   }, [bookId, user]);
 
+  // Load saved reading progress from database
+  useEffect(() => {
+    if (!user || !bookId) return;
+
+    const loadSavedProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('reading_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('book_id', bookId)
+          .order('last_read_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (data && !error) {
+          const savedProgress = {
+            id: data.id,
+            progressPercentage: parseFloat(data.progress_percentage.toString()),
+            currentPosition: data.current_position,
+            totalLength: data.total_length,
+            wordsRead: data.words_read || 0,
+            readingSpeedWpm: data.reading_speed_wpm || 0,
+            timeSpentSeconds: data.time_spent_seconds || 0,
+            lastReadAt: data.last_read_at,
+            chapterId: data.chapter_id,
+            lastSentenceIndex: data.last_sentence_index || 0
+          };
+          setReadingProgress(savedProgress);
+        }
+      } catch (error) {
+        console.error('Error loading saved progress:', error);
+      }
+    };
+
+    loadSavedProgress();
+  }, [user, bookId]);
+
   // Resume from saved reading position
   useEffect(() => {
     if (chapters.length > 0 && readingProgress && !showConversation) {
@@ -87,10 +125,14 @@ export const Reader = () => {
         // Navigate to saved chapter if different from current
         const savedChapter = chapters.find(c => c.id === chapterId);
         if (savedChapter && (!currentChapter || currentChapter.id !== chapterId)) {
+          console.log('Resuming at chapter:', chapterId, 'sentence:', lastSentenceIndex);
           loadChapter(chapterId);
+          setInitialSentenceIndex(lastSentenceIndex);
+        } else if (currentChapter && currentChapter.id === chapterId) {
+          // Already in correct chapter, just set sentence
+          console.log('Resuming in current chapter at sentence:', lastSentenceIndex);
+          setInitialSentenceIndex(lastSentenceIndex);
         }
-        // Set initial sentence for ReadAlongInterface
-        setInitialSentenceIndex(lastSentenceIndex);
       }
     }
   }, [chapters, readingProgress, currentChapter, loadChapter, showConversation]);

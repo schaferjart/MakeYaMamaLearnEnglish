@@ -179,7 +179,9 @@ export function ReadAlongInterface({
   // Resume from saved sentence position
   useEffect(() => {
     if (initialSentenceIndex > 0 && sentences.length > 0) {
-      setCurrentSentence(Math.min(initialSentenceIndex, sentences.length - 1));
+      const resumeSentence = Math.min(initialSentenceIndex, sentences.length - 1);
+      console.log('Resuming reading at sentence:', resumeSentence, 'of', sentences.length);
+      setCurrentSentence(resumeSentence);
     }
   }, [initialSentenceIndex, sentences.length]);
 
