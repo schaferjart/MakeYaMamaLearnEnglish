@@ -103,13 +103,31 @@ export const Reader = () => {
             readingSpeedWpm: data.reading_speed_wpm || 0,
             timeSpentSeconds: data.time_spent_seconds || 0,
             lastReadAt: data.last_read_at,
-            chapterId: data.chapter_id,
-            lastSentenceIndex: data.last_sentence_index || 0
+            chapterId: (data as any).chapter_id || null,
+            lastSentenceIndex: (data as any).last_sentence_index || 0
           };
+          console.log('Loaded saved progress from DB:', savedProgress);
           setReadingProgress(savedProgress);
+        } else {
+          // Try localStorage as fallback
+          const localStorageKey = `reading_progress_${user.id}_${bookId}`;
+          const localProgress = localStorage.getItem(localStorageKey);
+          if (localProgress) {
+            const parsed = JSON.parse(localProgress);
+            console.log('Loaded saved progress from localStorage:', parsed);
+            setReadingProgress(parsed);
+          }
         }
       } catch (error) {
         console.error('Error loading saved progress:', error);
+        // Try localStorage as fallback
+        const localStorageKey = `reading_progress_${user.id}_${bookId}`;
+        const localProgress = localStorage.getItem(localStorageKey);
+        if (localProgress) {
+          const parsed = JSON.parse(localProgress);
+          console.log('Loaded saved progress from localStorage (after error):', parsed);
+          setReadingProgress(parsed);
+        }
       }
     };
 
@@ -118,14 +136,22 @@ export const Reader = () => {
 
   // Resume from saved reading position
   useEffect(() => {
+    console.log('Resume effect triggered:', {
+      chaptersLength: chapters.length,
+      hasReadingProgress: !!readingProgress,
+      showConversation,
+      readingProgress
+    });
+    
     if (chapters.length > 0 && readingProgress && !showConversation) {
       const { chapterId, lastSentenceIndex } = readingProgress;
+      console.log('Checking resume data:', { chapterId, lastSentenceIndex });
       
       if (chapterId && lastSentenceIndex > 0) {
         // Navigate to saved chapter if different from current
         const savedChapter = chapters.find(c => c.id === chapterId);
         if (savedChapter && (!currentChapter || currentChapter.id !== chapterId)) {
-          console.log('Resuming at chapter:', chapterId, 'sentence:', lastSentenceIndex);
+          console.log('Resuming at different chapter:', chapterId, 'sentence:', lastSentenceIndex);
           loadChapter(chapterId);
           setInitialSentenceIndex(lastSentenceIndex);
         } else if (currentChapter && currentChapter.id === chapterId) {
@@ -133,6 +159,8 @@ export const Reader = () => {
           console.log('Resuming in current chapter at sentence:', lastSentenceIndex);
           setInitialSentenceIndex(lastSentenceIndex);
         }
+      } else {
+        console.log('No valid resume data found');
       }
     }
   }, [chapters, readingProgress, currentChapter, loadChapter, showConversation]);
