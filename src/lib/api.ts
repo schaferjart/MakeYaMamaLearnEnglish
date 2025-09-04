@@ -88,7 +88,7 @@ export const saveVocabulary = async (vocabularyData: VocabularyEntry): Promise<V
       example: vocabularyData.example,
       synonym: vocabularyData.synonym,
       translation_de: vocabularyData.translation_de,
-      difficulty: vocabularyData.difficulty,
+      
       book_id: vocabularyData.book_id,
       cfi: vocabularyData.cfi,
       user_id: vocabularyData.user_id

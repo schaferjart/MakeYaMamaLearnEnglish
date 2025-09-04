@@ -40,7 +40,6 @@ export const ReadingSession = ({
   } = useTextToSpeech({
     voice: 'Aria',
     onEnd: () => console.log('TTS reading completed'),
-    fallbackToWebSpeech: false,
   });
 
   useEffect(() => {

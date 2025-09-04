@@ -19,7 +19,7 @@ export const TextToSpeechButton = ({
   disabled = false,
   className = ""
 }: TextToSpeechButtonProps) => {
-  const { speak, stop, isLoading, isPlaying } = useTextToSpeech({ voice, preferWebSpeech: true })
+  const { speak, stop, isLoading, isPlaying } = useTextToSpeech({ voice })
 
   const handleClick = () => {
     if (isPlaying) {

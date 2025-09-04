@@ -330,7 +330,7 @@ const Index = () => {
             <ReadingSession
               bookTitle={selectedBook.title}
               onSessionEnd={handleSessionEnd}
-              onStartConversation={handleStartReading2}
+              onStartConversation={() => setCurrentView('reading')}
             />
           </div>
         )}
