@@ -49,10 +49,11 @@ serve(async (req) => {
           continue
         }
 
-        // Try to extract metadata from EPUB file
+        // Try to extract metadata and cover from EPUB file
         let author = 'Unknown Author'
         let title = 'Unknown Title'
         let translator = ''
+        let coverUrl = null
 
         try {
           // Download the EPUB file
@@ -74,6 +75,7 @@ serve(async (req) => {
               if (opfPathMatch) {
                 const opfPath = opfPathMatch[1]
                 const opfFile = contents.file(opfPath)
+                const opfDir = opfPath.substring(0, opfPath.lastIndexOf('/') + 1)
                 
                 if (opfFile) {
                   const opfText = await opfFile.async('text')
@@ -88,6 +90,65 @@ serve(async (req) => {
                   const authorMatch = opfText.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/)
                   if (authorMatch) {
                     author = authorMatch[1].trim()
+                  }
+
+                  // Extract cover image
+                  try {
+                    // Look for cover reference in metadata
+                    const coverMetaMatch = opfText.match(/<meta name="cover" content="([^"]+)"/)
+                    let coverImagePath = null
+
+                    if (coverMetaMatch) {
+                      const coverId = coverMetaMatch[1]
+                      const itemMatch = opfText.match(new RegExp(`<item[^>]+id="${coverId}"[^>]+href="([^"]+)"`))
+                      if (itemMatch) {
+                        coverImagePath = opfDir + itemMatch[1]
+                      }
+                    }
+
+                    // Fallback: look for common cover image names
+                    if (!coverImagePath) {
+                      const commonCoverNames = ['cover.jpg', 'cover.jpeg', 'cover.png', 'Cover.jpg', 'Cover.jpeg', 'Cover.png']
+                      for (const coverName of commonCoverNames) {
+                        const fullPath = opfDir + coverName
+                        if (contents.file(fullPath)) {
+                          coverImagePath = fullPath
+                          break
+                        }
+                      }
+                    }
+
+                    // Extract and upload cover if found
+                    if (coverImagePath) {
+                      const coverFile = contents.file(coverImagePath)
+                      if (coverFile) {
+                        const coverData = await coverFile.async('uint8array')
+                        const coverExtension = coverImagePath.split('.').pop()?.toLowerCase() || 'jpg'
+                        const coverFileName = `${file.name.replace('.epub', '')}.${coverExtension}`
+
+                        // Upload cover to covers bucket
+                        const { error: uploadError } = await supabase.storage
+                          .from('covers')
+                          .upload(coverFileName, coverData, {
+                            contentType: `image/${coverExtension === 'jpg' ? 'jpeg' : coverExtension}`,
+                            upsert: true
+                          })
+
+                        if (!uploadError) {
+                          // Get public URL for the uploaded cover
+                          const { data: publicUrlData } = supabase.storage
+                            .from('covers')
+                            .getPublicUrl(coverFileName)
+                          
+                          coverUrl = publicUrlData.publicUrl
+                          console.log(`Extracted and uploaded cover for ${title}`)
+                        } else {
+                          console.log(`Failed to upload cover for ${title}:`, uploadError)
+                        }
+                      }
+                    }
+                  } catch (coverError) {
+                    console.log(`Could not extract cover from ${file.name}:`, coverError)
                   }
                 }
               }
@@ -122,7 +183,7 @@ serve(async (req) => {
           source: translator ? `Translated by ${translator}` : 'Standard Ebooks',
           year: null,
           opf_json: null,
-          cover_url: null
+          cover_url: coverUrl
         }
 
         // Insert book into database
