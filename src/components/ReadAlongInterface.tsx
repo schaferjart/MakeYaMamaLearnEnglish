@@ -163,7 +163,6 @@ export function ReadAlongInterface({
         chapterId: currentChapter?.id || '',
         sentenceIndex: currentSentence
       };
-      console.log('Updating position with resume info:', resumeInfo);
       updatePosition(wordsRead, percentage, resumeInfo);
     }
   }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts, currentChapter]);
@@ -178,7 +177,7 @@ export function ReadAlongInterface({
     }
   }, [content]);
 
-  // Resume from saved sentence position
+  // Resume from saved sentence position (only when initialSentenceIndex changes)
   useEffect(() => {
     console.log('ReadAlongInterface resume check:', {
       initialSentenceIndex,
@@ -186,12 +185,12 @@ export function ReadAlongInterface({
       currentChapter: currentChapter?.id
     });
     
-    if (initialSentenceIndex > 0 && sentences.length > 0) {
+    if (initialSentenceIndex > 0 && sentences.length > 0 && currentSentence !== initialSentenceIndex) {
       const resumeSentence = Math.min(initialSentenceIndex, sentences.length - 1);
       console.log('Resuming reading at sentence:', resumeSentence, 'of', sentences.length);
       setCurrentSentence(resumeSentence);
     }
-  }, [initialSentenceIndex, sentences.length, currentChapter]);
+  }, [initialSentenceIndex, sentences.length]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

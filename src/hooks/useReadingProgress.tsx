@@ -210,7 +210,6 @@ export const useReadingProgress = ({
       // Save to localStorage as backup for resume functionality
       const localKey = `reading_progress_${user.id}_${bookId}`;
       localStorage.setItem(localKey, JSON.stringify(progressData));
-      console.log('Saved progress with resume data:', progressData);
 
       // Update daily statistics
       await updateDailyStats(progressData);

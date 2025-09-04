@@ -26,6 +26,7 @@ export const Reader = () => {
   const [readingProgress, setReadingProgress] = useState<any>(null);
   const [showConversation, setShowConversation] = useState(false);
   const [initialSentenceIndex, setInitialSentenceIndex] = useState<number>(0);
+  const [hasResumed, setHasResumed] = useState<boolean>(false);
   
   // EPUB parsing
   const { 
@@ -134,36 +135,29 @@ export const Reader = () => {
     loadSavedProgress();
   }, [user, bookId]);
 
-  // Resume from saved reading position
+  // Resume from saved reading position (only once per book load)
   useEffect(() => {
-    console.log('Resume effect triggered:', {
-      chaptersLength: chapters.length,
-      hasReadingProgress: !!readingProgress,
-      showConversation,
-      readingProgress
-    });
+    if (hasResumed || !chapters.length || !readingProgress || showConversation) return;
     
-    if (chapters.length > 0 && readingProgress && !showConversation) {
-      const { chapterId, lastSentenceIndex } = readingProgress;
-      console.log('Checking resume data:', { chapterId, lastSentenceIndex });
-      
-      if (chapterId && lastSentenceIndex > 0) {
-        // Navigate to saved chapter if different from current
-        const savedChapter = chapters.find(c => c.id === chapterId);
-        if (savedChapter && (!currentChapter || currentChapter.id !== chapterId)) {
-          console.log('Resuming at different chapter:', chapterId, 'sentence:', lastSentenceIndex);
-          loadChapter(chapterId);
-          setInitialSentenceIndex(lastSentenceIndex);
-        } else if (currentChapter && currentChapter.id === chapterId) {
-          // Already in correct chapter, just set sentence
-          console.log('Resuming in current chapter at sentence:', lastSentenceIndex);
-          setInitialSentenceIndex(lastSentenceIndex);
-        }
-      } else {
-        console.log('No valid resume data found');
-      }
+    // Only resume if this looks like initial app load (not from progress updates)
+    const { chapterId, lastSentenceIndex } = readingProgress;
+    if (!chapterId || lastSentenceIndex <= 0) {
+      setHasResumed(true);
+      return;
     }
-  }, [chapters, readingProgress, currentChapter, loadChapter, showConversation]);
+    
+    console.log('RESUMING: Navigating to chapter:', chapterId, 'sentence:', lastSentenceIndex);
+    
+    // Navigate to saved chapter if different from current
+    const savedChapter = chapters.find(c => c.id === chapterId);
+    if (savedChapter && (!currentChapter || currentChapter.id !== chapterId)) {
+      loadChapter(chapterId);
+    }
+    
+    // Set initial sentence (will be applied when chapter loads)
+    setInitialSentenceIndex(lastSentenceIndex);
+    setHasResumed(true);
+  }, [chapters.length, readingProgress?.id]); // Only trigger on chapters load or new progress ID
 
   const handleSessionEnd = async () => {
     if (sessionId) {
@@ -281,7 +275,10 @@ export const Reader = () => {
               sessionId={sessionId}
               bookId={bookId!}
               readContent={content}
-              onEnd={() => setShowConversation(false)}
+              onEnd={() => {
+                setShowConversation(false);
+                setHasResumed(false); // Allow resume when returning from conversation
+              }}
             />
           </div>
         ) : (
