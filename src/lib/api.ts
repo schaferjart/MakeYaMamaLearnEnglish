@@ -53,7 +53,9 @@ export const translateText = async (
 }
 
 export const syncBooksFromStorage = async () => {
+  console.log('Calling sync-books edge function...');
   const { data, error } = await supabase.functions.invoke('sync-books')
+  console.log('Edge function response:', { data, error });
 
   if (error) {
     throw new Error(`Book sync failed: ${error.message}`)
@@ -88,7 +90,7 @@ export const saveVocabulary = async (vocabularyData: VocabularyEntry): Promise<V
       example: vocabularyData.example,
       synonym: vocabularyData.synonym,
       translation_de: vocabularyData.translation_de,
-      difficulty: vocabularyData.difficulty,
+      
       book_id: vocabularyData.book_id,
       cfi: vocabularyData.cfi,
       user_id: vocabularyData.user_id
