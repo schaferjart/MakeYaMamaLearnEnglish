@@ -28,6 +28,8 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
   const [timeLeft, setTimeLeft] = useState(3 * 60) // Default to 3 minutes
   const [totalTime, setTotalTime] = useState(3 * 60)
   const [elapsed, setElapsed] = useState(0)
+  const [isWaitingForTtsCompletion, setIsWaitingForTtsCompletion] = useState(false)
+  const [conversationEnded, setConversationEnded] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [didRetry, setDidRetry] = useState(false)
   const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
@@ -41,6 +43,8 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
   const recordingStartTimeRef = useRef<number>(0)
 
   // Simple browser Speech Synthesis TTS
+  const [isPlaying, setIsPlaying] = useState(false)
+  
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text)
@@ -48,6 +52,30 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       utterance.rate = 0.8
       utterance.pitch = 1.0
       utterance.volume = 1.0
+      
+      utterance.onstart = () => {
+        setIsPlaying(true)
+      }
+      
+      utterance.onend = () => {
+        setIsPlaying(false)
+        
+        // Check if we were waiting for TTS to complete before ending conversation
+        if (isWaitingForTtsCompletion && conversationEnded) {
+          console.log('AI speech completed, now ending conversation gracefully')
+          void finalizeAndEnd()
+        }
+      }
+      
+      utterance.onerror = () => {
+        setIsPlaying(false)
+        
+        // If we were waiting for completion, proceed with conversation end
+        if (isWaitingForTtsCompletion && conversationEnded) {
+          console.log('AI speech error during graceful completion, proceeding with conversation end')
+          void finalizeAndEnd()
+        }
+      }
       
       // Prioritize high-quality English voices
       const voices = speechSynthesis.getVoices()
@@ -59,10 +87,11 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       speechSynthesis.speak(utterance)
     }
   }
-  const isPlaying = false
+  
   const stop = () => {
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel()
+      setIsPlaying(false)
     }
   }
 
@@ -81,7 +110,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           .eq('id', userId || '')
           .single()
         if (error) throw error
-        const cefrLevel = data?.cefr_level || 'A2'
+        const cefrLevel = data?.cefr_level || 'A1'
         const history = [] as Array<{ role: 'user' | 'ai'; content: string }>
         const { reply } = await invokeAiTutor({
           sessionId: sessionId || undefined,
@@ -117,18 +146,49 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         setElapsed((e) => e + 1)
         if (next <= 0) {
           clearInterval(timer)
-          if (isPlaying) stop()
-          void finalizeAndEnd()
+          console.log('Conversation timer expired, checking if TTS is active')
+          
+          // Check both our state and the actual speech synthesis queue
+          const isSpeechActive = isPlaying || speechSynthesis.speaking || speechSynthesis.pending;
+          
+          // Always wait a moment to catch any TTS that might be starting
+          console.log('Timer expired - TTS state check (isPlaying:', isPlaying, 'speechSynthesis.speaking:', speechSynthesis.speaking, 'speechSynthesis.pending:', speechSynthesis.pending, ')')
+          console.log('Setting up graceful completion monitoring...')
+          setIsWaitingForTtsCompletion(true)
+          setConversationEnded(true)
+          
+          // If no speech is active, the monitor will end the conversation quickly
+          // If speech starts later, the monitor will wait for it to complete
+          
           return 0
         }
         return next
       })
     }, 1000)
 
+    // Monitor speech synthesis end when waiting for completion
+    const checkSpeechEnd = () => {
+      if (isWaitingForTtsCompletion && conversationEnded) {
+        const isSpeechActive = isPlaying || speechSynthesis.speaking || speechSynthesis.pending;
+        
+        if (!isSpeechActive) {
+          console.log('All speech synthesis completed, ending conversation gracefully')
+          void finalizeAndEnd()
+        } else {
+          console.log('Still waiting for TTS completion (isPlaying:', isPlaying, 'speechSynthesis.speaking:', speechSynthesis.speaking, 'speechSynthesis.pending:', speechSynthesis.pending, ')')
+        }
+      }
+    }
+
+    // Start monitoring with a small delay to catch any TTS that might be starting
+    const speechEndInterval = setInterval(checkSpeechEnd, 200) // Check every 200ms
+
     return () => {
       cancelled = true
       clearInterval(timer)
-      if (isPlaying) stop()
+      clearInterval(speechEndInterval)
+      // Ensure all TTS is stopped when component unmounts
+      stop()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -142,7 +202,16 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           .eq('id', sessionId)
       }
     } catch {}
-    onEnd()
+    
+    // Stop any active TTS immediately
+    stop()
+    
+    // Add graceful pause before ending conversation
+    console.log('Conversation ending, adding graceful pause before returning to reading');
+    setTimeout(() => {
+      console.log('Ending conversation after graceful pause');
+      onEnd();
+    }, 1500); // 1.5 second pause
   }
 
   const supportsSTT = () => typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
@@ -446,7 +515,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Duration:</span>
           <div className="flex gap-1">
-            {[1, 2, 3, 4, .05].map((minutes) => (
+            {[1, 2, 3, 4, .1].map((minutes) => (
               <Button
                 key={minutes}
                 variant={totalTime === minutes * 60 ? "default" : "outline"}

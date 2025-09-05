@@ -1,3 +1,4 @@
+// ReadAlongInterface.tsx (Use resumeData prop, optimize saving with lastSavedSentence ref, remove time throttle)
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -10,7 +11,7 @@ import {
   Square, 
   SkipBack, 
   SkipForward, 
-  Volume2, 
+  Volume2,
   Settings,
   Clock,
   BookOpen,
@@ -26,6 +27,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
 
+interface ResumeData {
+  chapterId: string;
+  sentenceIndex: number;
+  timestamp: number;
+}
+
 interface ReadAlongInterfaceProps {
   content: string;
   bookTitle: string;
@@ -39,7 +46,8 @@ interface ReadAlongInterfaceProps {
   canGoNext?: boolean;
   onProgressUpdate?: (progress: any) => void;
   onSessionEnd?: () => void;
-  initialSentenceIndex?: number;
+  resumeData?: ResumeData | null; // New prop
+  isReturningFromConversation?: boolean; // Flag to advance to next sentence
 }
 
 export function ReadAlongInterface({
@@ -55,7 +63,8 @@ export function ReadAlongInterface({
   canGoNext,
   onProgressUpdate,
   onSessionEnd,
-  initialSentenceIndex = 0
+  resumeData,
+  isReturningFromConversation
 }: ReadAlongInterfaceProps) {
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
@@ -65,6 +74,8 @@ export function ReadAlongInterface({
   const [sessionTime, setSessionTime] = useState(300); // 5 minutes default
   const [remainingTime, setRemainingTime] = useState(300);
   const [shouldEndSession, setShouldEndSession] = useState(false);
+  const [isWaitingForTtsCompletion, setIsWaitingForTtsCompletion] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false); // Prevent TTS after session end
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -72,11 +83,24 @@ export function ReadAlongInterface({
   
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Refs for stable access to current values
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isWaitingForTtsRef = useRef(false);
+  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null); // Cache voice selection
+  const hasResumedRef = useRef(false); // Track if we've already resumed
+  const conversationReturnRef = useRef(false); // Store conversation return flag
+  const lastResumedSentenceRef = useRef(-1); // Track the last sentence we resumed to
   
+  // Track if TTS is currently active
+  const isTtsActive = isPlaying && utteranceRef.current !== null;
+
   // Simple localStorage-based resume
   const { saveResumeData } = useLocalStorageResume(bookId, user?.id || '');
+  
+  // Ref for throttling saves to once per sentence change
+  const lastSavedSentence = useRef<number>(-1);
   
   // Create refs for mutable state values used in speak function
   const sentencesRef = useRef<string[]>([]);
@@ -160,48 +184,86 @@ export function ReadAlongInterface({
   // Update persistent progress when sentence changes
   useEffect(() => {
     if (isTracking && cumulativeWordCounts.length > 0) {
-      const wordsRead = cumulativeWordCounts[currentSentence] || 0;
-      const totalWords = cumulativeWordCounts[cumulativeWordCounts.length - 1] || 0;
-      const percentage = totalWords > 0 ? (wordsRead / totalWords) * 100 : 0;
-      
-      // Pass chapter and sentence info for resume functionality
-      const resumeInfo = {
-        chapterId: currentChapter?.id || '',
-        sentenceIndex: currentSentence
-      };
-      updatePosition(wordsRead, percentage, resumeInfo);
-      
-      // Also save to localStorage for reliable resume
-      if (currentChapter?.id && currentSentence > 0) {
-        saveResumeData(currentChapter.id, currentSentence);
-      }
+      // Use setTimeout to avoid setState during render warning
+      setTimeout(() => {
+        const wordsRead = cumulativeWordCounts[currentSentence] || 0;
+        const totalWords = cumulativeWordCounts[cumulativeWordCounts.length - 1] || 0;
+        const percentage = totalWords > 0 ? (wordsRead / totalWords) * 100 : 0;
+        
+        // Update reading progress (without resume info - that's handled separately)
+        updatePosition(wordsRead, percentage);
+      }, 0);
     }
-      }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts, currentChapter, saveResumeData]);
+  }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts]);
 
-  // Reset state when chapter content changes
+  // Save resume data separately to avoid setState during render warnings
   useEffect(() => {
-    setCurrentSentence(0);
-    setIsAutoAdvancing(false);
-    // Stop any speech from the previous chapter
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (currentChapter?.id && currentSentence > 0 && isTracking && currentSentence !== lastSavedSentence.current) {
+      // Use setTimeout to ensure this runs after render is complete
+      const timeoutId = setTimeout(() => {
+        saveResumeData(currentChapter.id, currentSentence);
+        lastSavedSentence.current = currentSentence;
+      }, 0);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [content]);
+  }, [currentSentence, currentChapter?.id, isTracking, saveResumeData]);
 
-  // Resume from saved sentence position (only when initialSentenceIndex changes)
+  // Resume from saved sentence position
   useEffect(() => {
     console.log('ReadAlongInterface resume check:', {
-      initialSentenceIndex,
-      sentencesLength: sentences.length,
-      currentChapter: currentChapter?.id
+      resumeData,
+      'resumeData.sentenceIndex': resumeData?.sentenceIndex,
+      'resumeData.chapterId': resumeData?.chapterId,
+      'sentencesLength': sentences.length,
+      'currentSentence': currentSentence,
+      'currentChapter?.id': currentChapter?.id,
+      'isReturningFromConversation': isReturningFromConversation
     });
     
-    if (initialSentenceIndex > 0 && sentences.length > 0 && currentSentence !== initialSentenceIndex) {
-      const resumeSentence = Math.min(initialSentenceIndex, sentences.length - 1);
+    // Only resume if we have valid data and haven't set a sentence yet
+    if (resumeData?.sentenceIndex >= 0 && sentences.length > 0 && currentSentence === 0) {
+      let resumeSentence;
+      
+      if (isReturningFromConversation) {
+        // When returning from conversation, advance to the next sentence
+        const nextSentence = resumeData.sentenceIndex + 1;
+        resumeSentence = Math.min(nextSentence, sentences.length - 1);
+        
+        console.log('Returning from conversation - Resume calculation:', {
+          'resumeData.sentenceIndex': resumeData.sentenceIndex,
+          'nextSentence': nextSentence,
+          'sentences.length - 1': sentences.length - 1,
+          'Math.min result': resumeSentence
+        });
+      } else {
+        // On page reload or normal resume, stay at the same sentence
+        resumeSentence = Math.min(resumeData.sentenceIndex, sentences.length - 1);
+        
+        console.log('Page reload - Resume calculation:', {
+          'resumeData.sentenceIndex': resumeData.sentenceIndex,
+          'sentences.length - 1': sentences.length - 1,
+          'resumeSentence': resumeSentence
+        });
+      }
+      
       console.log('Resuming reading at sentence:', resumeSentence, 'of', sentences.length);
       setCurrentSentence(resumeSentence);
+    } else if (currentSentence !== 0) {
+      console.log('Resume skipped - currentSentence already set to:', currentSentence);
+    } else if (sentences.length === 0) {
+      console.log('Resume skipped - sentences not loaded yet');
+    } else {
+      console.log('Resume skipped - no valid resume data');
     }
-  }, [initialSentenceIndex, sentences.length]);
+  }, [resumeData?.sentenceIndex, sentences.length, currentChapter?.id, isReturningFromConversation]);
+
+  // Reset resume flags when component unmounts or chapter changes
+  useEffect(() => {
+    hasResumedRef.current = false;
+    conversationReturnRef.current = false;
+    lastResumedSentenceRef.current = -1;
+  }, [currentChapter?.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -239,62 +301,110 @@ export function ReadAlongInterface({
     setIsTimerActive(false);
   }, []);
 
-  // Handle session end when timer reaches zero
+  // Handle timer expiration with graceful TTS completion
   useEffect(() => {
     if (remainingTime <= 0 && isTimerActive) {
-      console.log('Session time expired');
-      setShouldEndSession(true);
+      console.log('Timer reached zero, checking TTS state');
       stopTimer();
+      
+      // Immediately set session ended to prevent new TTS
+      setSessionEnded(true);
+      
+      // If TTS is currently active, wait for it to complete
+      if (isTtsActive) {
+        console.log('TTS is active, waiting for completion before ending session');
+        setIsWaitingForTtsCompletion(true);
+        isWaitingForTtsRef.current = true;
+        // The session will end in utterance.onend when TTS completes
+      } else {
+        console.log('No active TTS, ending session immediately');
+        setShouldEndSession(true);
+      }
     }
-  }, [remainingTime, isTimerActive, stopTimer]);
+  }, [remainingTime, isTimerActive, isTtsActive, stopTimer]);
 
   // Handle session end notification asynchronously
   useEffect(() => {
     if (shouldEndSession) {
       console.log('Triggering session end');
+      
+      // Ensure session is marked as ended
+      if (!sessionEnded) {
+        setSessionEnded(true); // Prevent further TTS
+      }
+      
+      // Show appropriate message based on transition type
+      const message = isWaitingForTtsCompletion 
+        ? "Session completed after current sentence finished"
+        : "Session time expired";
+      
       toast({
-        title: "Session Complete",
-        description: "Your reading session has ended.",
+        title: "Reading session ended",
+        description: message,
+        duration: 3000,
       });
-      onSessionEnd?.();
+      
+      // Add graceful pause before starting conversation
+      setTimeout(() => {
+        console.log('Starting conversation after graceful pause');
+        onSessionEnd?.();
+      }, 1500); // 1.5 second pause
+      
+      // Reset states
       setShouldEndSession(false);
+      setIsWaitingForTtsCompletion(false);
+      isWaitingForTtsRef.current = false;
     }
-  }, [shouldEndSession, toast, onSessionEnd]);
+  }, [shouldEndSession, isWaitingForTtsCompletion, toast, onSessionEnd]);
+
+  // Status logging for debugging graceful transitions
+  useEffect(() => {
+    if (isWaitingForTtsCompletion) {
+      console.log('Status: Waiting for TTS completion before session end', {
+        currentSentence,
+        isPlaying,
+        isTtsActive,
+        isWaitingForTtsCompletion
+      });
+    }
+  }, [isWaitingForTtsCompletion, currentSentence, isPlaying, isTtsActive]);
 
   const speak = useCallback((text: string, sentenceIndex: number) => {
-    console.log(`Speaking sentence ${sentenceIndex}: ${text.substring(0, 50)}...`);
-    
-    if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      setIsLoading(true);
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = speechRate;
-      utterance.volume = volume;
-      utterance.lang = 'en-US';
-      utteranceRef.current = utterance;
-      
-      // Prioritize high-quality English voices
-      const voices = window.speechSynthesis.getVoices();
-      console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+    if (!text.trim()) return;
 
-      // Priority list of known good English voices
+    console.log(`Speaking sentence ${sentenceIndex}: ${text.substring(0, 50)}...`);
+
+    // Cancel any existing speech
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // Create new utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = speechRate;
+    utterance.volume = volume;
+
+    // Use cached voice or select best English voice (only once)
+    if (!selectedVoiceRef.current) {
+      const voices = window.speechSynthesis.getVoices();
+      console.log('Selecting voice (first time only):', voices.length, 'voices available');
+
+      // Select best English voice
       const preferredVoices = [
-        'Samantha', 'Alex', 'Victoria', 'Karen', 'Susan', // macOS
-        'Microsoft Zira - English (United States)', 'Microsoft David - English (United States)', // Windows  
-        'Google US English', 'Google UK English Female', 'Google UK English Male', // Chrome
-        'English United States', 'English (US)', // Generic
+        'Samantha (en-US)',
+        'Alex (en-US)', 
+        'Victoria (en-US)',
+        'Daniel (English (United Kingdom)) (en-GB)',
+        'Karen (en-AU)'
       ];
 
-      // First try to find a preferred voice
-      let selectedVoice = voices.find(voice => 
-        voice.lang.startsWith('en') && 
-        preferredVoices.some(preferred => voice.name.includes(preferred))
-      );
+      let selectedVoice = null;
+      for (const preferred of preferredVoices) {
+        selectedVoice = voices.find(voice => `${voice.name} (${voice.lang})` === preferred);
+        if (selectedVoice) break;
+      }
 
-      // Fallback: any English voice that's not German-accented
+      // Fallback to any English voice
       if (!selectedVoice) {
         selectedVoice = voices.find(voice => 
           voice.lang.startsWith('en') && 
@@ -303,96 +413,115 @@ export function ReadAlongInterface({
         );
       }
 
-      // Last resort: any English voice
-      if (!selectedVoice) {
-        selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
-      }
-
       if (selectedVoice) {
-        console.log(`Selected voice: ${selectedVoice.name} (${selectedVoice.lang})`);
-        utterance.voice = selectedVoice;
+        selectedVoiceRef.current = selectedVoice;
+        console.log('Selected and cached voice:', `${selectedVoice.name} (${selectedVoice.lang})`);
       } else {
-        console.log('No English voice found, using default');
-        toast({
-          title: "No English Voice Available",
-          description: "Please install English TTS voices in your system settings for the best experience. Go to Settings > Time & Language > Speech > Add voices.",
-          variant: "destructive",
-        });
+        console.warn('No suitable English voice found, using default');
+      }
+    }
+
+    // Use cached voice
+    if (selectedVoiceRef.current) {
+      utterance.voice = selectedVoiceRef.current;
+    }
+
+    // Set up event handlers
+    utterance.onstart = () => {
+      console.log(`Started speaking sentence ${sentenceIndex}`);
+      setIsPlaying(true);
+      setIsLoading(false);
+      startTimer();
+    };
+
+    utterance.onend = () => {
+      console.log(`Finished speaking sentence ${sentenceIndex}`);
+      setIsPlaying(false);
+      setIsLoading(false);
+      utteranceRef.current = null;
+      
+      // Check if we were waiting for TTS to complete before ending session
+      if (isWaitingForTtsRef.current) {
+        console.log('TTS completed, now ending session gracefully');
+        setIsWaitingForTtsCompletion(false);
+        isWaitingForTtsRef.current = false;
+        setShouldEndSession(true);
+        return;
       }
       
-      utterance.onstart = () => {
-        console.log(`Started speaking sentence ${sentenceIndex}`);
-        setIsLoading(false);
-        setIsPlaying(true);
-        if (!isTimerActiveRef.current && remainingTimeRef.current > 0) {
-          startTimer();
-        }
-      };
+      // Don't auto-advance if session has ended
+      if (sessionEnded) {
+        console.log('Session ended, not auto-advancing');
+        return;
+      }
       
-      utterance.onend = () => {
-        console.log(`Finished speaking sentence ${sentenceIndex}`);
-        setIsPlaying(false);
-        
-        // Use refs to access current values without causing dependency changes
-        const currentSentences = sentencesRef.current;
-        const currentIndex = currentSentenceIndexRef.current;
-        const isStillAutoAdvancing = isAutoAdvancingRef.current;
-        
-        console.log(`onend: currentIndex=${currentIndex}, isAutoAdvancing=${isStillAutoAdvancing}, totalSentences=${currentSentences.length}`);
-        
-        if (isStillAutoAdvancing && currentIndex < currentSentences.length - 1) {
-          console.log(`Moving from sentence ${currentIndex} to ${currentIndex + 1}`);
-          setCurrentSentence(currentIndex + 1);
-        } else if (currentIndex >= currentSentences.length - 1) {
-          console.log('Reached end of sentences, stopping auto-advance');
-          setIsAutoAdvancing(false);
-          stopTimer();
-          toast({
-            title: "Reading complete!",
-            description: "You've finished reading the entire content.",
-          });
-        }
-      };
-      
-      utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event);
-        setIsLoading(false);
-        setIsPlaying(false);
+      // Normal auto-advance logic - only if still auto-advancing and not at end
+      if (isAutoAdvancing && sentenceIndex < sentences.length - 1) {
+        console.log(`Auto-advancing from sentence ${sentenceIndex} to ${sentenceIndex + 1}`);
+        setCurrentSentence(sentenceIndex + 1);
+      } else if (sentenceIndex >= sentences.length - 1) {
+        console.log('Reached end of chapter, stopping auto-advance');
+        setIsAutoAdvancing(false);
+        stopTimer();
         toast({
-          title: "Speech Error",
-          description: "There was an error with text-to-speech.",
-          variant: "destructive",
+          title: "Chapter complete!",
+          description: "You've finished reading this chapter.",
         });
-      };
+      }
+    };
+
+    utterance.onerror = (event) => {
+      console.log('Speech synthesis error:', event);
+      setIsPlaying(false);
+      setIsLoading(false);
+      utteranceRef.current = null;
       
-      window.speechSynthesis.speak(utterance);
-    } else {
-      toast({
-        title: "Not Supported",
-        description: "Text-to-speech is not supported in this browser.",
-        variant: "destructive",
-      });
-    }
-  }, [speechRate, volume, startTimer, stopTimer, toast]);
+      // If we were waiting for completion, proceed with session end
+      if (isWaitingForTtsRef.current) {
+        console.log('TTS error during graceful completion, proceeding with session end');
+        setIsWaitingForTtsCompletion(false);
+        isWaitingForTtsRef.current = false;
+        setShouldEndSession(true);
+      }
+    };
+
+    // Start speaking
+    setIsLoading(true);
+    window.speechSynthesis.speak(utterance);
+    utteranceRef.current = utterance;
+  }, [speechRate, volume, startTimer, stopTimer, toast, isAutoAdvancing, sentences.length, sessionEnded]);
 
   // Auto-advance effect - triggers when currentSentence changes during auto-advancing
   useEffect(() => {
-    console.log(`useEffect triggered. isAutoAdvancing: ${isAutoAdvancing} isPlaying: ${isPlaying} isLoading: ${isLoading} currentSentence: ${currentSentence}`);
+    console.log(`useEffect triggered. isAutoAdvancing: ${isAutoAdvancing} isPlaying: ${isPlaying} isLoading: ${isLoading} currentSentence: ${currentSentence} sessionEnded: ${sessionEnded}`);
     
-    if (isAutoAdvancing && !isPlaying && !isLoading && currentSentence < sentencesRef.current.length) {
-      const sentenceText = sentencesRef.current[currentSentence]?.trim();
-      if (sentenceText) {
-        console.log(`Will speak sentence: ${currentSentence} text: ${sentenceText.substring(0, 50)}...`);
-        speak(sentenceText, currentSentence);
+    // Don't start TTS if session has ended
+    if (sessionEnded) {
+      console.log('Session ended, not starting TTS');
+      return;
+    }
+    
+    // Only speak if we're auto-advancing, not already playing/loading, and have sentences
+    if (isAutoAdvancing && !isPlaying && !isLoading && sentences.length > 0 && currentSentence < sentences.length) {
+      const sentence = sentences[currentSentence];
+      if (sentence) {
+        console.log(`Will speak sentence: ${currentSentence} text: ${sentence.substring(0, 50)}...`);
+        speak(sentence, currentSentence);
       }
     }
-  }, [currentSentence, isAutoAdvancing, isPlaying, isLoading, speak]);
+  }, [currentSentence, isAutoAdvancing, isPlaying, isLoading, sentences, speak, sessionEnded]);
 
   const handlePlay = () => {
     console.log('handlePlay called');
-    if (currentText) {
+    
+    // Don't start if session has ended
+    if (sessionEnded) {
+      console.log('Session ended, not starting play');
+      return;
+    }
+    
+    if (sentences.length > 0) {
       setIsAutoAdvancing(true);
-      speak(currentText, currentSentence);
     }
   };
 
@@ -456,15 +585,24 @@ export function ReadAlongInterface({
     }
   };
 
-  // Cleanup on unmount
+  // Cleanup effect - only cancel TTS if not waiting for graceful completion
   useEffect(() => {
     return () => {
-      if ('speechSynthesis' in window) {
+      console.log('ReadAlongInterface unmounting');
+      
+      // Only cancel TTS if we're not waiting for graceful completion
+      if ('speechSynthesis' in window && !isWaitingForTtsRef.current) {
+        console.log('Canceling TTS on unmount');
         window.speechSynthesis.cancel();
       }
-      stopTimer();
+      
+      // Always stop timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, [stopTimer]);
+  }, []); // Empty dependency array - this only runs on unmount
 
   const progressPercentage = ((sessionTime - remainingTime) / sessionTime) * 100;
   const readingProgress = (currentSentence / Math.max(sentences.length - 1, 1)) * 100;

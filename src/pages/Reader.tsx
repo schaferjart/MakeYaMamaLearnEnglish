@@ -1,3 +1,4 @@
+// Reader.tsx (Remove initialSentenceIndex state, pass initialResumeData as resumeData prop, adjust resume effect)
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -26,11 +27,11 @@ export const Reader = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [readingProgress, setReadingProgress] = useState<any>(null);
   const [showConversation, setShowConversation] = useState(false);
-  const [initialSentenceIndex, setInitialSentenceIndex] = useState<number>(0);
-  const [hasResumed, setHasResumed] = useState<boolean>(false);
+  const [hasResumed, setHasResumed] = useState(false);
+  const [isReturningFromConversation, setIsReturningFromConversation] = useState(false);
   
-  // Simple localStorage-based resume
-  const { resumeData, saveResumeData } = useLocalStorageResume(bookId || '', user?.id || '');
+  // Use localStorage for temporary resume functionality
+  const { initialResumeData, resumeData, saveResumeData, refreshResumeData } = useLocalStorageResume(bookId || '', user?.id || '');
   
   // EPUB parsing
   const { 
@@ -139,16 +140,17 @@ export const Reader = () => {
     loadSavedProgress();
   }, [user, bookId]);
 
-  // Resume from saved reading position using localStorage
+  // Resume to saved position when component mounts
   useEffect(() => {
-    if (hasResumed || !chapters.length || !resumeData || showConversation) return;
+    if (hasResumed || !chapters.length || showConversation) return;
     
-    const { chapterId, sentenceIndex } = resumeData;
-    if (!chapterId || sentenceIndex <= 0) {
+    // Only resume if we have valid resume data
+    if (!resumeData?.chapterId || !resumeData?.sentenceIndex || resumeData.sentenceIndex <= 0) {
       setHasResumed(true);
       return;
     }
     
+    const { chapterId, sentenceIndex } = resumeData;
     console.log('RESUMING: Navigating to chapter:', chapterId, 'sentence:', sentenceIndex);
     
     // Navigate to saved chapter if different from current
@@ -157,22 +159,56 @@ export const Reader = () => {
       loadChapter(chapterId);
     }
     
-    // Set initial sentence (will be applied when chapter loads)
-    setInitialSentenceIndex(sentenceIndex);
+    // No need to set initialSentenceIndex - it will be handled by prop in ReadAlongInterface
     setHasResumed(true);
-  }, [chapters.length, resumeData, currentChapter, loadChapter, showConversation, hasResumed]);
+  }, [chapters.length, currentChapter?.id, loadChapter, showConversation, hasResumed, resumeData]);
 
   const handleSessionEnd = async () => {
-    if (sessionId) {
-      await supabase
-        .from('sessions')
-        .update({ 
-          ended_at: new Date().toISOString(),
-          read_ms: 900000 // 15 minutes default
-        })
-        .eq('id', sessionId);
+    console.log('Session ending, updating database and transitioning to conversation');
+    
+    // Update session in database
+    try {
+      if (sessionId && user?.id) {
+        await supabase
+          .from('sessions')
+          .update({ 
+            ended_at: new Date().toISOString(),
+          })
+          .eq('id', sessionId)
+        console.log('Session updated in database');
+      }
+    } catch (error) {
+      console.error('Error updating session:', error);
     }
+    
+    // Mark that we're starting a conversation (so next resume will advance sentence)
+    setIsReturningFromConversation(true);
+    
+    // Transition to conversation mode
     setShowConversation(true);
+  };
+
+  const handleConversationEnd = () => {
+    console.log('Conversation ended, returning to reading mode');
+    
+    // Refresh resume data to get the latest saved position
+    refreshResumeData();
+    
+    // Add graceful pause before returning to reading
+    setTimeout(() => {
+      console.log('Returning to reading after graceful pause');
+      
+      // Reset resume state to allow fresh resume
+      setHasResumed(false);
+      
+      // Return to reading mode (this will remount ReadAlongInterface)
+      setShowConversation(false);
+      
+      // Reset the flag after a short delay (after ReadAlongInterface mounts and uses it)
+      setTimeout(() => {
+        setIsReturningFromConversation(false);
+      }, 100);
+    }, 1000); // 1 second pause
   };
 
   const startConversation = () => {
@@ -273,17 +309,12 @@ export const Reader = () => {
 
       <div className="container mx-auto py-6">
         {showConversation ? (
-          <div className="max-w-3xl mx-auto">
-            <ConversationTutor 
-              sessionId={sessionId}
-              bookId={bookId!}
-              readContent={content}
-              onEnd={() => {
-                setShowConversation(false);
-                setHasResumed(false); // Allow resume when returning from conversation
-              }}
-            />
-          </div>
+          <ConversationTutor 
+            sessionId={sessionId}
+            bookId={bookId!}
+            readContent={content}
+            onEnd={handleConversationEnd}
+          />
         ) : (
           <ReadAlongInterface
             content={content}
@@ -298,7 +329,8 @@ export const Reader = () => {
             canGoNext={canGoNext}
             onProgressUpdate={setReadingProgress}
             onSessionEnd={handleSessionEnd}
-            initialSentenceIndex={initialSentenceIndex}
+            resumeData={resumeData} // Direct passing
+            isReturningFromConversation={isReturningFromConversation}
           />
         )}
       </div>

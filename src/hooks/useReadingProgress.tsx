@@ -1,3 +1,4 @@
+// useReadingProgress.tsx (Make localStorage primary for resume fields to avoid DB schema issues)
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -11,8 +12,7 @@ interface ReadingProgress {
   readingSpeedWpm: number;
   timeSpentSeconds: number;
   lastReadAt: string;
-  chapterId?: string;
-  lastSentenceIndex?: number;
+  // Removed chapterId and lastSentenceIndex - these are handled by useLocalStorageResume
 }
 
 interface UseReadingProgressOptions {
@@ -48,16 +48,23 @@ export const useReadingProgress = ({
   // Calculate total word count from content
   const totalWords = content ? content.split(/\s+/).filter(word => word.length > 0).length : 0;
 
-  // Load existing progress
+  // Load existing progress - prioritize localStorage for resume fields
   useEffect(() => {
     if (!user || !bookId) return;
 
     const loadProgress = async () => {
       try {
-        // First try to load from localStorage (fallback for testing)
+        // Always load from localStorage first for resume independence
         const localStorageKey = `reading_progress_${user.id}_${bookId}`;
         const localProgress = localStorage.getItem(localStorageKey);
-        
+        let loadedProgress: ReadingProgress | null = null;
+
+        if (localProgress) {
+          loadedProgress = JSON.parse(localProgress);
+          console.log('Loaded progress from localStorage:', loadedProgress);
+        }
+
+        // Load core progress from DB if available
         const { data, error } = await supabase
           .from('reading_progress')
           .select('*')
@@ -69,7 +76,7 @@ export const useReadingProgress = ({
 
         if (data && !error) {
           progressIdRef.current = data.id;
-          const loadedProgress = {
+          const dbProgress = {
             id: data.id,
             progressPercentage: parseFloat(data.progress_percentage.toString()),
             currentPosition: data.current_position,
@@ -78,21 +85,31 @@ export const useReadingProgress = ({
             readingSpeedWpm: data.reading_speed_wpm || 0,
             timeSpentSeconds: data.time_spent_seconds || 0,
             lastReadAt: data.last_read_at,
-            chapterId: (data as any).chapter_id || (localProgress ? JSON.parse(localProgress).chapterId : null),
-            lastSentenceIndex: (data as any).last_sentence_index || (localProgress ? JSON.parse(localProgress).lastSentenceIndex : 0)
+            // Use localStorage for resume fields to avoid schema dependency
+            // chapterId: loadedProgress?.chapterId || (data as any).chapter_id || null,
+            // lastSentenceIndex: loadedProgress?.lastSentenceIndex || (data as any).last_sentence_index || 0
           };
+          setProgress(dbProgress);
+          progressRef.current = dbProgress;
+          onProgressUpdate?.(dbProgress);
+          console.log('Merged progress (DB + LS):', dbProgress);
+        } else if (loadedProgress) {
+          // Pure localStorage if DB fails
           setProgress(loadedProgress);
           progressRef.current = loadedProgress;
           onProgressUpdate?.(loadedProgress);
-        } else if (localProgress) {
-          // Fallback to localStorage if DB doesn't have the new fields yet
+        }
+      } catch (error) {
+        console.error('Error loading reading progress:', error);
+        // Fallback fully to localStorage
+        const localStorageKey = `reading_progress_${user.id}_${bookId}`;
+        const localProgress = localStorage.getItem(localStorageKey);
+        if (localProgress) {
           const parsed = JSON.parse(localProgress);
           setProgress(parsed);
           progressRef.current = parsed;
           onProgressUpdate?.(parsed);
         }
-      } catch (error) {
-        console.error('Error loading reading progress:', error);
       }
     };
 
@@ -135,31 +152,38 @@ export const useReadingProgress = ({
   }, [isTracking, user, progress]);
 
   // Update reading position
-  const updatePosition = useCallback((position: number, percentage?: number, resumeInfo?: {chapterId: string, sentenceIndex: number}) => {
+  const updatePosition = useCallback((position: number, percentage?: number) => {
     if (!isTracking) return;
 
     const calculatedPercentage = percentage ?? (totalWords > 0 ? (position / totalWords) * 100 : 0);
-    const updatedProgress = {
-      ...progress,
-      currentPosition: position,
-      progressPercentage: Math.min(100, Math.max(0, calculatedPercentage)),
-      wordsRead: Math.max(progress.wordsRead, position),
-      totalLength: totalWords,
-      lastReadAt: new Date().toISOString(),
-      chapterId: resumeInfo?.chapterId,
-      lastSentenceIndex: resumeInfo?.sentenceIndex
-    };
+    
+    // Use functional update to avoid depending on current progress state
+    setProgress(prevProgress => {
+      const updatedProgress = {
+        ...prevProgress,
+        currentPosition: position,
+        progressPercentage: Math.min(100, Math.max(0, calculatedPercentage)),
+        wordsRead: Math.max(prevProgress.wordsRead, position),
+        totalLength: totalWords,
+        lastReadAt: new Date().toISOString(),
+        // Resume fields removed - handled by useLocalStorageResume
+      };
+      
+      // Update ref for save operations
+      progressRef.current = updatedProgress;
+      
+      // Trigger callback
+      onProgressUpdate?.(updatedProgress);
+      
+      return updatedProgress;
+    });
+  }, [isTracking, totalWords, onProgressUpdate]);
 
-    setProgress(updatedProgress);
-    progressRef.current = updatedProgress;
-    onProgressUpdate?.(updatedProgress);
-  }, [isTracking, progress, totalWords, onProgressUpdate]);
-
-  // Save progress to database (throttled)
+  // Save progress to database (throttled), always save to localStorage
   const saveProgress = useCallback(async (progressData: ReadingProgress) => {
     if (!user || !bookId) return;
     const now = Date.now();
-    if (now - lastSaveRef.current < 15000) return; // throttle to 15s
+    if (now - lastSaveRef.current < 15000) return; // throttle to 15s for DB
     lastSaveRef.current = now;
 
     try {
@@ -174,26 +198,26 @@ export const useReadingProgress = ({
         reading_speed_wpm: progressData.readingSpeedWpm,
         time_spent_seconds: progressData.timeSpentSeconds,
         last_read_at: progressData.lastReadAt,
-        chapter_id: progressData.chapterId,
-        last_sentence_index: progressData.lastSentenceIndex || 0
+        // chapter_id: progressData.chapterId,
+        // last_sentence_index: progressData.lastSentenceIndex || 0
       };
 
-      // Save to localStorage as backup (especially for resume data)
+      // Always save full progress to localStorage
       const localStorageKey = `reading_progress_${user.id}_${bookId}`;
       localStorage.setItem(localStorageKey, JSON.stringify(progressData));
 
       if (progressIdRef.current) {
-        // Update existing progress
+        // Update existing progress in DB
         const { error } = await supabase
           .from('reading_progress')
           .update(dataToSave)
           .eq('id', progressIdRef.current);
 
         if (error) {
-          console.warn('Error updating progress in DB, using localStorage:', error);
+          console.warn('Error updating progress in DB, relying on localStorage:', error);
         }
       } else {
-        // Create new progress entry
+        // Create new progress entry in DB
         const { data, error } = await supabase
           .from('reading_progress')
           .insert(dataToSave)
@@ -201,15 +225,11 @@ export const useReadingProgress = ({
           .single();
 
         if (error) {
-          console.warn('Error creating progress in DB, using localStorage:', error);
+          console.warn('Error creating progress in DB, relying on localStorage:', error);
         } else {
           progressIdRef.current = data.id;
         }
       }
-
-      // Save to localStorage as backup for resume functionality
-      const localKey = `reading_progress_${user.id}_${bookId}`;
-      localStorage.setItem(localKey, JSON.stringify(progressData));
 
       // Update daily statistics
       await updateDailyStats(progressData);
