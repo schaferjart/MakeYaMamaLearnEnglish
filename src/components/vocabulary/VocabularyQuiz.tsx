@@ -13,6 +13,12 @@ import {
   GraduationCap
 } from "lucide-react";
 
+// Utility function to clean XML tags from text
+const cleanXmlTags = (text: string): string => {
+  if (!text) return text;
+  return text.replace(/<xref[^>]*>([^<]*)<\/xref>/g, '$1');
+};
+
 interface VocabularyQuizProps {
   vocabulary: VocabularyEntry[];
   onComplete: () => void;
@@ -250,7 +256,7 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
             ) : (
               <div className="space-y-2">
                 <p className="text-lg text-foreground italic">
-                  "{currentQuestion.word.sense}"
+                  "{cleanXmlTags(currentQuestion.word.sense)}"
                 </p>
                 {currentQuestion.word.pos && (
                   <Badge variant="outline" className="text-sm">

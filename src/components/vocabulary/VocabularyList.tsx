@@ -1,21 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VocabularyEntry } from "@/lib/api";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
 import { BookOpen, Calendar, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VocabularyListProps {
   vocabulary: VocabularyEntry[];
   onRefresh: () => void;
 }
 
+interface BookInfo {
+  id: string;
+  title: string;
+  author: string;
+}
+
+// Utility function to clean XML tags from text
+const cleanXmlTags = (text: string): string => {
+  if (!text) return text;
+  return text.replace(/<xref[^>]*>([^<]*)<\/xref>/g, '$1');
+};
+
 export const VocabularyList: React.FC<VocabularyListProps> = ({
   vocabulary,
   onRefresh
 }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [books, setBooks] = useState<Record<string, BookInfo>>({});
+
+  // Fetch book information for all unique book IDs
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const uniqueBookIds = [...new Set(vocabulary.map(v => v.book_id).filter(Boolean))];
+      
+      if (uniqueBookIds.length === 0) return;
+
+      try {
+        const { data: booksData, error } = await supabase
+          .from('books')
+          .select('id, title, author')
+          .in('id', uniqueBookIds);
+
+        if (error) throw error;
+
+        const booksMap = (booksData || []).reduce((acc, book) => {
+          acc[book.id] = book;
+          return acc;
+        }, {} as Record<string, BookInfo>);
+
+        setBooks(booksMap);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, [vocabulary]);
 
   const handleDelete = async (wordId: string) => {
     // TODO: Implement delete functionality
@@ -48,6 +91,12 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
     return groups;
   }, {} as Record<string, VocabularyEntry[]>);
 
+  const getBookTitle = (bookId: string): string => {
+    if (bookId === 'unknown') return 'Unbekanntes Buch';
+    const book = books[bookId];
+    return book ? `${book.title} von ${book.author}` : `Buch ${bookId.slice(0, 8)}...`;
+  };
+
   return (
     <div className="space-y-6">
       {Object.entries(groupedByBook).map(([bookId, words]) => (
@@ -55,7 +104,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
           <CardHeader className="bg-muted/50">
             <CardTitle className="flex items-center gap-2 text-lg">
               <BookOpen className="w-5 h-5 text-primary" />
-              {bookId === 'unknown' ? 'Unbekanntes Buch' : `Buch ${bookId.slice(0, 8)}...`}
+              {getBookTitle(bookId)}
               <Badge variant="outline" className="ml-auto">
                 {words.length} Wörter
               </Badge>
@@ -100,7 +149,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                       {/* Definition */}
                       {word.sense && (
                         <p className="text-muted-foreground text-sm">
-                          {word.sense}
+                          {cleanXmlTags(word.sense)}
                         </p>
                       )}
 
@@ -108,7 +157,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                       {word.example && (
                         <div className="bg-muted/50 rounded-md p-3 border-l-4 border-primary/30">
                           <p className="text-sm italic">
-                            "{word.example}"
+                            "{cleanXmlTags(word.example)}"
                           </p>
                         </div>
                       )}

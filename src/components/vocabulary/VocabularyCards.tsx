@@ -14,6 +14,12 @@ import {
   Trophy
 } from "lucide-react";
 
+// Utility function to clean XML tags from text
+const cleanXmlTags = (text: string): string => {
+  if (!text) return text;
+  return text.replace(/<xref[^>]*>([^<]*)<\/xref>/g, '$1');
+};
+
 interface VocabularyCardsProps {
   vocabulary: VocabularyEntry[];
   onComplete: () => void;
@@ -176,7 +182,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
                   <h4 className="font-semibold text-sm text-muted-foreground mb-2">
                     Definition:
                   </h4>
-                  <p className="text-foreground">{currentCard.sense}</p>
+                  <p className="text-foreground">{cleanXmlTags(currentCard.sense)}</p>
                 </div>
               )}
               
@@ -186,7 +192,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
                     Beispiel:
                   </h4>
                   <p className="text-foreground italic">
-                    "{currentCard.example}"
+                    "{cleanXmlTags(currentCard.example)}"
                   </p>
                 </div>
               )}
