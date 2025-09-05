@@ -37,10 +37,14 @@ export const BookCard = ({
               src={coverUrl} 
               alt={`Cover of ${title}`}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                console.log(`Failed to load cover for "${title}": ${coverUrl}`);
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
-            <Book className="w-16 h-16 text-muted-foreground" />
-          )}
+          ) : null}
+          <Book className={`w-16 h-16 text-muted-foreground ${coverUrl ? 'hidden' : ''}`} />
           
           {isStarted && (
             <div className="absolute top-2 right-2">

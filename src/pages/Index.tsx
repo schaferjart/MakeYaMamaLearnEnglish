@@ -73,6 +73,7 @@ const Index = () => {
 
           return {
             ...book,
+            coverUrl: book.cover_url, // Map cover_url to coverUrl for component compatibility
             progress: progressData?.percent ? Math.round(progressData.percent) : 0,
             wordsLearned: wordsCount || 0,
             content: ""          };
