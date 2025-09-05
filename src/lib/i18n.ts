@@ -54,8 +54,8 @@ export const translations = {
     
     // Authentication
     "auth.title": "Anmeldung",
-    "auth.welcome": "Willkommen bei MamaLearnEnglish",
-    "auth.description": "Verbessere dein Englisch durch Lesen, Hören und Sprechen",
+    "auth.welcome": "Liebe Mama, du hast ein Leben lang für andere gesorgt - jetzt ist Zeit für dich!",
+    "auth.description": "Erweitere deine Komfortzone und lerne Englisch für deine wohlverdienten Reisen",
     "auth.email": "E-Mail",
     "auth.password": "Passwort",
     "auth.confirmPassword": "Passwort bestätigen",
