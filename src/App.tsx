@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { Reader } from "./pages/Reader";
+import Vocabulary from "./pages/Vocabulary";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
 
@@ -36,6 +37,10 @@ const App = () => {
             <Route 
               path="/reader/:bookId" 
               element={user ? <Reader /> : <Navigate to="/auth" replace />} 
+            />
+            <Route 
+              path="/vocabulary" 
+              element={user ? <Vocabulary /> : <Navigate to="/auth" replace />} 
             />
             <Route 
               path="/auth" 

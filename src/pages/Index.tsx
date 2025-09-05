@@ -10,7 +10,7 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3 } from "lucide-react";
+import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap } from "lucide-react";
 import { t, setLocale, getLocale } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +33,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'reading' | 'session'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'vocabulary' | 'reading' | 'session'>('dashboard');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [locale, setCurrentLocale] = useState(getLocale());
   const [books, setBooks] = useState<Book[]>([]);
@@ -188,6 +188,14 @@ const Index = () => {
             >
               <Library className="w-4 h-4 mr-2" />
               {t('library')}
+            </Button>
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/vocabulary')}
+            >
+              <GraduationCap className="w-4 h-4 mr-2" />
+              Vokabeln
             </Button>
             {selectedBook && (
               <>
