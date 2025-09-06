@@ -143,19 +143,112 @@ export const translations = {
     "next": "Next",
     "previous": "Previous", 
     "loading": "Loading..."
+  },
+  
+  fr: {
+    // Navigation & General
+    "app.title": "Make Ya Mama Learn English",
+    "app.subtitle": "Parlez anglais en un rien de temps",
+    "library": "Bibliothèque",
+    "reading": "Lecture",
+    "vocabulary": "Vocabulaire",
+    "progress": "Progrès",
+    "settings": "Paramètres",
+    
+    // Library
+    "library.title": "Mes Livres",
+    "library.noBooks": "Aucun livre pour le moment",
+    "library.addBooks": "Ajouter des Livres",
+    "library.progress": "Progrès : {{percent}}%",
+    "library.wordsLearned": "{{count}} mots appris",
+    "library.continue": "Continuer la Lecture",
+    "library.start": "Commencer la Lecture",
+    
+    // Reading Session
+    "session.timer": "Temps de Lecture",
+    "session.minutes": "Minutes",
+    "session.start": "Commencer la Session",
+    "session.pause": "Pause",
+    "session.resume": "Reprendre",
+    "session.timeRemaining": "Temps restant : {{time}}",
+    "session.timeUp": "Temps écoulé !",
+    
+    // Vocabulary
+    "vocab.lookup": "Chercher",
+    "vocab.definition": "Définition",
+    "vocab.synonyms": "Synonymes",
+    "vocab.translation": "Traduction",
+    "vocab.save": "Sauvegarder",
+    "vocab.saved": "Sauvegardé !",
+    "vocab.example": "Exemple",
+    "vocab.learned": "Mots Appris",
+    "vocab.difficulty": "Difficulté",
+    
+    // Reading Controls
+    "reader.play": "Jouer",
+    "reader.pause": "Pause",
+    "reader.stop": "Arrêter",
+    "reader.speed": "Vitesse",
+    "reader.fontSize": "Taille de Police",
+    "reader.theme": "Thème",
+    
+    // Tutor/Conversation
+    "tutor.start": "Commencer la Conversation",
+    "tutor.thinking": "Réfléchit...",
+    "tutor.typeResponse": "Tapez votre réponse...",
+    "tutor.send": "Envoyer",
+    
+    // Authentication
+    "auth.title": "Se Connecter",
+    "auth.welcome": "Beaucoup de mamans ont travaillé toute leur vie dans les soins et n'ont jamais eu besoin d'apprendre l'anglais. Ces mamans sont maintenant dans l'embarras quand elles partent en vacances car elles ne comprennent rien.",
+    "auth.description": "La première application jamais créée pour les mamans qui veulent enfin partir en vacances !",
+    "auth.email": "E-mail",
+    "auth.password": "Mot de Passe",
+    "auth.confirmPassword": "Confirmer le Mot de Passe",
+    "auth.signIn": "Se Connecter",
+    "auth.signUp": "S'Inscrire",
+    "auth.signOut": "Se Déconnecter",
+    
+    // Common Actions
+    "close": "Fermer",
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement..."
   }
 };
 
 export type TranslationKey = keyof typeof translations.de;
 export type Locale = keyof typeof translations;
 
-let currentLocale: Locale = 'de';
+// Initialize locale from localStorage or default to German
+const getInitialLocale = (): Locale => {
+  if (typeof window !== 'undefined') {
+    const savedLocale = localStorage.getItem('mamaLearnsEnglish_locale') as Locale;
+    if (savedLocale && translations[savedLocale]) {
+      return savedLocale;
+    }
+  }
+  return 'de';
+};
+
+let currentLocale: Locale = getInitialLocale();
 
 export const setLocale = (locale: Locale) => {
   currentLocale = locale;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('mamaLearnsEnglish_locale', locale);
+  }
 };
 
 export const getLocale = () => currentLocale;
+
+export const getAvailableLocales = (): { code: Locale; name: string; flag: string }[] => [
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' }
+];
 
 export const t = (key: TranslationKey, params?: Record<string, string | number>): string => {
   let text = translations[currentLocale][key] || translations.de[key] || key;

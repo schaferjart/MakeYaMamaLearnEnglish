@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { BookCard } from "@/components/BookCard";
 import { ReadingSession } from "@/components/ReadingSession";
 import { ReadAlongInterface } from "@/components/ReadAlongInterface";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap } from "lucide-react";
-import { t, setLocale, getLocale } from "@/lib/i18n";
+import { BookOpen, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap } from "lucide-react";
+import { t, getLocale, type Locale } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { syncBooksFromStorage } from "@/lib/api";
@@ -130,10 +131,10 @@ const Index = () => {
     setSelectedBook(null);
   };
 
-  const toggleLocale = () => {
-    const newLocale = locale === 'de' ? 'en' : 'de';
-    setLocale(newLocale);
+  const handleLanguageChange = (newLocale: Locale) => {
     setCurrentLocale(newLocale);
+    // Force re-render by updating state that affects the UI
+    setCurrentView(currentView);
   };
 
   return (
@@ -157,10 +158,7 @@ const Index = () => {
                 <User className="w-4 h-4" />
                 {user?.email}
               </div>
-              <Button variant="ghost" size="sm" onClick={toggleLocale}>
-                <Globe className="w-4 h-4 mr-2" />
-                {locale.toUpperCase()}
-              </Button>
+              <LanguageSwitcher onLanguageChange={handleLanguageChange} />
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4" />
               </Button>

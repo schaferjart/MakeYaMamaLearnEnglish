@@ -7,7 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { t } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { t, getLocale, type Locale } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
@@ -18,6 +19,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [locale, setCurrentLocale] = useState(getLocale());
   
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
@@ -27,6 +29,10 @@ export default function Auth() {
       navigate('/');
     }
   }, [user, navigate]);
+
+  const handleLanguageChange = (newLocale: Locale) => {
+    setCurrentLocale(newLocale);
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +87,11 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Language switcher in top-right corner */}
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher onLanguageChange={handleLanguageChange} />
+        </div>
+        
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <BookOpen className="w-8 h-8 text-primary" />
