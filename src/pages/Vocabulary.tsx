@@ -108,7 +108,7 @@ const Vocabulary = () => {
                 <Library className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-primary">Vokabel-Bibliothek</h1>
+                <h1 className="text-xl font-bold text-primary">Vokabular-Bibliothek</h1>
                 <p className="text-sm text-muted-foreground">
                   {vocabulary.length} Wörter gespeichert
                 </p>

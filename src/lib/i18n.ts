@@ -1,11 +1,11 @@
 export const translations = {
   de: {
     // Navigation & General
-    "app.title": "Englisch Lernen",
-    "app.subtitle": "Durch Lesen und Sprechen",
+    "app.title": "Make Ya Mama Learn English",
+    "app.subtitle": "Natürlich mit Akzent",
     "library": "Bibliothek",
     "reading": "Lesen",
-    "vocabulary": "Vokabeln",
+    "vocabulary": "Vokabular",
     "progress": "Fortschritt",
     "settings": "Einstellungen",
      
@@ -54,8 +54,8 @@ export const translations = {
     
     // Authentication
     "auth.title": "Anmeldung",
-    "auth.welcome": "Liebe Mama, du hast ein Leben lang für andere gesorgt - jetzt ist Zeit für dich!",
-    "auth.description": "Erweitere deine Komfortzone und lerne Englisch für deine wohlverdienten Reisen",
+    "auth.welcome": "Viele Mamas haben ihr lebenslang im Haushalt geaerbeitet und deswegen nie Englisch gebraucht und gelernt. Diese Mamas sind nun gefickt wenn sie in die Feerien gehen weil sie nichts verstehen.",
+    "auth.description": "Die ersste App überhaupt für Mamas die endlich in die Ferien gehen wollen!",
     "auth.email": "E-Mail",
     "auth.password": "Passwort",
     "auth.confirmPassword": "Passwort bestätigen",
@@ -74,8 +74,8 @@ export const translations = {
   
   en: {
     // Navigation & General
-    "app.title": "Learn English",
-    "app.subtitle": "Through Reading and Speaking", 
+    "app.title": "Make Ya Mama Learn English",
+    "app.subtitle": "Speak Immigrant English in No Time", 
     "library": "Library",
     "reading": "Reading",
     "vocabulary": "Vocabulary",
