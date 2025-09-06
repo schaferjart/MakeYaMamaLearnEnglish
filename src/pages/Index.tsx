@@ -10,7 +10,7 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap } from "lucide-react";
+import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle } from "lucide-react";
 import { t, setLocale, getLocale } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,6 +163,9 @@ const Index = () => {
               </Button>
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/help')}>
+                <HelpCircle className="w-4 h-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4 mr-2" />

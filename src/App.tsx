@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import { Reader } from "./pages/Reader";
 import Vocabulary from "./pages/Vocabulary";
 import NotFound from "./pages/NotFound";
+import Onboarding from "./pages/Onboarding";
+import Help from "./pages/Help";
 import { useAuth } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -23,6 +25,16 @@ const App = () => {
     );
   }
 
+  const OnboardingGate = ({ children }: { children: JSX.Element }) => {
+    if (!user) {
+      return <Navigate to="/auth" replace />;
+    }
+    if (!user.user_metadata?.onboarding_completed) {
+      return <Navigate to="/onboarding" replace />;
+    }
+    return children;
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -32,15 +44,23 @@ const App = () => {
           <Routes>
             <Route 
               path="/" 
-              element={user ? <Index /> : <Navigate to="/auth" replace />} 
+              element={<OnboardingGate><Index /></OnboardingGate>}
             />
             <Route 
               path="/reader/:bookId" 
-              element={user ? <Reader /> : <Navigate to="/auth" replace />} 
+              element={<OnboardingGate><Reader /></OnboardingGate>}
             />
             <Route 
               path="/vocabulary" 
-              element={user ? <Vocabulary /> : <Navigate to="/auth" replace />} 
+              element={<OnboardingGate><Vocabulary /></OnboardingGate>}
+            />
+            <Route
+              path="/onboarding"
+              element={user ? <Onboarding /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/help"
+              element={user ? <Help /> : <Navigate to="/auth" replace />}
             />
             <Route 
               path="/auth" 
