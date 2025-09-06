@@ -59,25 +59,34 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
         const navigation = epubBook.navigation;
         const extractedChapters: EpubChapter[] = [];
         let allText = '';
+        const seenLabels = new Set<string>();
 
         for (const navItem of navigation.toc) {
           try {
+            const label = navItem.label.trim();
+            if (seenLabels.has(label)) {
+              console.warn(`Skipping duplicate chapter label: ${label}`);
+              continue; // Skip duplicate chapter
+            }
+
             const section = epubBook.section(navItem.href);
             if (section) {
               await section.load(epubBook.load.bind(epubBook));
               const doc = section.document;
               
-              if (doc) {
-                // Extract text content
-                const textContent = doc.body?.textContent || '';
+              if (doc && doc.body) {
+                // Extract HTML content to preserve paragraphs
+                const htmlContent = doc.body.innerHTML;
+                const textContent = doc.body.textContent || '';
                 allText += textContent + '\n\n';
 
                 extractedChapters.push({
                   id: navItem.id || navItem.href,
                   href: navItem.href,
-                  label: navItem.label || `Chapter ${extractedChapters.length + 1}`,
-                  content: textContent
+                  label: label || `Chapter ${extractedChapters.length + 1}`,
+                  content: htmlContent, // Store HTML content
                 });
+                seenLabels.add(label);
               }
             }
           } catch (err) {
@@ -89,8 +98,8 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
         if (extractedChapters.length === 0) {
           let chapterIndex = 1;
           
-          // Try to load up to 50 sections (reasonable limit for most books)
-          for (let i = 0; i < 50; i++) {
+          // Try to load up to 100 sections (reasonable limit for most books)
+          for (let i = 0; i < 100; i++) {
             try {
               const section = epubBook.section(i);
               if (!section) break; // No more sections
@@ -98,16 +107,17 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
               await section.load(epubBook.load.bind(epubBook));
               const doc = section.document;
               
-              if (doc) {
-                const textContent = doc.body?.textContent || '';
+              if (doc && doc.body) {
+                const textContent = doc.body.textContent || '';
                 if (textContent.trim()) {
+                  const htmlContent = doc.body.innerHTML;
                   allText += textContent + '\n\n';
                   
                   extractedChapters.push({
                     id: `chapter-${i}`,
                     href: section.href || `#chapter-${i}`,
                     label: `Chapter ${chapterIndex}`,
-                    content: textContent
+                    content: htmlContent, // Store HTML content
                   });
                   chapterIndex++;
                 }
