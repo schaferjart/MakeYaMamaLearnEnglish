@@ -94,39 +94,33 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
           }
         }
 
-        // If no TOC, try to extract from spine by iterating through sections
-        if (extractedChapters.length === 0) {
-          let chapterIndex = 1;
-          
-          // Try to load up to 100 sections (reasonable limit for most books)
-          for (let i = 0; i < 100; i++) {
-            try {
-              const section = epubBook.section(i);
-              if (!section) break; // No more sections
-              
-              await section.load(epubBook.load.bind(epubBook));
-              const doc = section.document;
-              
-              if (doc && doc.body) {
-                const textContent = doc.body.textContent || '';
-                if (textContent.trim()) {
-                  const htmlContent = doc.body.innerHTML;
-                  allText += textContent + '\n\n';
-                  
-                  extractedChapters.push({
-                    id: `chapter-${i}`,
-                    href: section.href || `#chapter-${i}`,
-                    label: `Chapter ${chapterIndex}`,
-                    content: htmlContent, // Store HTML content
-                  });
-                  chapterIndex++;
+        // If no TOC, try to extract from spine by iterating through all sections
+        if (extractedChapters.length === 0 && epubBook.spine.items) {
+            let chapterIndex = 1;
+            for (const section of epubBook.spine.items) {
+                try {
+                    await section.load(epubBook.load.bind(epubBook));
+                    const doc = section.document;
+
+                    if (doc && doc.body) {
+                        const textContent = doc.body.textContent || '';
+                        if (textContent.trim()) {
+                            const htmlContent = doc.body.innerHTML;
+                            allText += textContent + '\n\n';
+
+                            extractedChapters.push({
+                                id: section.idref || `chapter-${chapterIndex}`,
+                                href: section.href,
+                                label: section.idref || `Chapter ${chapterIndex}`,
+                                content: htmlContent,
+                            });
+                            chapterIndex++;
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Failed to load section ${section.href}:`, err);
                 }
-              }
-            } catch (err) {
-              // If we can't load this section, we've probably reached the end
-              break;
             }
-          }
         }
 
         setChapters(extractedChapters);
