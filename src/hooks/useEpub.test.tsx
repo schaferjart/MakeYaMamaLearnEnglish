@@ -18,48 +18,52 @@ jest.mock('@/integrations/supabase/client', () => ({
 }));
 const mockSupabase = supabase as jest.Mocked<typeof supabase>;
 
-describe('useEpub', () => {
-  it('should load all sections from the spine and use TOC for labels', async () => {
-    // 1. Arrange
-    const mockSpineItems = Array.from({ length: 5 }, (_, i) => ({
-      idref: `section-${i + 1}`,
-      href: `section-${i + 1}.xhtml`,
-      canonical: `ops/section-${i + 1}.xhtml`,
-      load: jest.fn().mockImplementation(function() {
-        this.document = {
-          body: {
-            textContent: `This is section ${i + 1}.`,
-            innerHTML: `<p>This is section ${i + 1}.</p>`,
-          },
-        };
-        return Promise.resolve();
-      }),
-      document: {
-        body: {
-            textContent: `This is section ${i + 1}.`,
-            innerHTML: `<p>This is section ${i + 1}.</p>`,
-        }
-      }
-    }));
+// Mock section loading for chapters
+const mockSection = (textContent: string) => ({
+  load: jest.fn().mockImplementation(function() {
+    this.document = {
+      body: { textContent, innerHTML: `<p>${textContent}</p>` },
+    };
+    return Promise.resolve();
+  }),
+  document: {
+    body: { textContent, innerHTML: `<p>${textContent}</p>` },
+  },
+});
 
-    const mockToc = [
-      { id: 'toc-1', href: 'section-1.xhtml', label: 'Chapter 1' },
-      { id: 'toc-3', href: 'section-3.xhtml', label: 'Chapter 3' },
+describe('useEpub with nested TOC', () => {
+  it('should correctly flatten a nested TOC and load all chapters', async () => {
+    // 1. Arrange
+    const mockNestedToc = [
+      { id: 'title', href: 'title.xhtml', label: 'Title Page' },
+      {
+        id: 'p1',
+        href: 'p1.xhtml',
+        label: 'Part 1',
+        subitems: [
+          { id: 'p1c1', href: 'p1c1.xhtml', label: 'Chapter 1' },
+          { id: 'p1c2', href: 'p1c2.xhtml', label: 'Chapter 2' },
+        ],
+      },
+      {
+        id: 'p2',
+        label: 'Part 2', // No href, should be skipped but subitems processed
+        subitems: [
+            { id: 'p2c1', href: 'p2c1.xhtml', label: 'Chapter 3' },
+        ]
+      },
+      { id: 'appendix', href: 'appendix.xhtml', label: 'Appendix' },
     ];
 
     const mockBook = {
       ready: Promise.resolve(),
       navigation: {
-        toc: mockToc,
+        toc: mockNestedToc,
       },
-      spine: {
-        items: mockSpineItems,
-      },
-      path: {
-        resolve: (href: string) => `ops/${href}`,
-      },
-      load: jest.fn(),
-      section: jest.fn(index => mockSpineItems[index]),
+      load: jest.fn(), // Mock the load property
+      section: jest.fn((href) => {
+        return mockSection(`Content of ${href}`);
+      }),
     };
     mockEpub.mockReturnValue(mockBook);
 
@@ -76,12 +80,17 @@ describe('useEpub', () => {
     // 3. Assert
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    // There are 6 items with an href, so 6 chapters should be loaded.
+    // "Part 2" itself is skipped because it has no href, but its sub-item is included.
+    expect(result.current.chapters.length).toBe(6);
     expect(result.current.error).toBeNull();
-    expect(result.current.chapters.length).toBe(5); // All 5 sections should be loaded
-    expect(result.current.chapters[0].label).toBe('Chapter 1'); // From TOC
-    expect(result.current.chapters[1].label).toBe('Chapter 2'); // Generic label
-    expect(result.current.chapters[2].label).toBe('Chapter 3'); // From TOC
-    expect(result.current.chapters[3].label).toBe('Chapter 4'); // Generic label
-    expect(result.current.chapters[4].label).toBe('Chapter 5'); // Generic label
+
+    // Check if the labels are correct and in the correct flattened order
+    expect(result.current.chapters[0].label).toBe('Title Page');
+    expect(result.current.chapters[1].label).toBe('Part 1');
+    expect(result.current.chapters[2].label).toBe('Chapter 1');
+    expect(result.current.chapters[3].label).toBe('Chapter 2');
+    expect(result.current.chapters[4].label).toBe('Chapter 3');
+    expect(result.current.chapters[5].label).toBe('Appendix');
   });
 });
