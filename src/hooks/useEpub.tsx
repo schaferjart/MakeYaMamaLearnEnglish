@@ -55,72 +55,54 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
 
         setBook(epubBook);
 
-        // Extract navigation and chapters
-        const navigation = epubBook.navigation;
-        const extractedChapters: EpubChapter[] = [];
-        let allText = '';
-        const seenLabels = new Set<string>();
-
-        for (const navItem of navigation.toc) {
-          try {
-            const label = navItem.label.trim();
-            if (seenLabels.has(label)) {
-              console.warn(`Skipping duplicate chapter label: ${label}`);
-              continue; // Skip duplicate chapter
+        // Create a map of the TOC for easy lookup
+        const tocMap = new Map<string, { label: string; id: string }>();
+        if (epubBook.navigation && epubBook.navigation.toc) {
+          epubBook.navigation.toc.forEach(item => {
+            // Normalize href to remove leading/trailing slashes and resolve relative paths
+            const key = epubBook.path.resolve(item.href);
+            if (item.label) {
+              tocMap.set(key, { label: item.label.trim(), id: item.id || item.href });
             }
-
-            const section = epubBook.section(navItem.href);
-            if (section) {
-              await section.load(epubBook.load.bind(epubBook));
-              const doc = section.document;
-              
-              if (doc && doc.body) {
-                // Extract HTML content to preserve paragraphs
-                const htmlContent = doc.body.innerHTML;
-                const textContent = doc.body.textContent || '';
-                allText += textContent + '\n\n';
-
-                extractedChapters.push({
-                  id: navItem.id || navItem.href,
-                  href: navItem.href,
-                  label: label || `Chapter ${extractedChapters.length + 1}`,
-                  content: htmlContent, // Store HTML content
-                });
-                seenLabels.add(label);
-              }
-            }
-          } catch (err) {
-            console.warn(`Failed to load chapter ${navItem.href}:`, err);
-          }
+          });
         }
 
-        // If no TOC, try to extract from spine by iterating through all sections
-        if (extractedChapters.length === 0 && epubBook.spine.items) {
-            let chapterIndex = 1;
-            for (const section of epubBook.spine.items) {
-                try {
-                    await section.load(epubBook.load.bind(epubBook));
-                    const doc = section.document;
+        const extractedChapters: EpubChapter[] = [];
+        let allText = '';
+        let chapterIndex = 1;
 
-                    if (doc && doc.body) {
-                        const textContent = doc.body.textContent || '';
-                        if (textContent.trim()) {
-                            const htmlContent = doc.body.innerHTML;
-                            allText += textContent + '\n\n';
+        if (epubBook.spine && epubBook.spine.items) {
+          for (const section of epubBook.spine.items) {
+            try {
+              await section.load(epubBook.load.bind(epubBook));
+              const doc = section.document;
 
-                            extractedChapters.push({
-                                id: section.idref || `chapter-${chapterIndex}`,
-                                href: section.href,
-                                label: section.idref || `Chapter ${chapterIndex}`,
-                                content: htmlContent,
-                            });
-                            chapterIndex++;
-                        }
-                    }
-                } catch (err) {
-                    console.warn(`Failed to load section ${section.href}:`, err);
+              if (doc && doc.body) {
+                const textContent = doc.body.textContent || '';
+                // Only include sections that have meaningful text content
+                if (textContent.trim().length > 0) {
+                  const htmlContent = doc.body.innerHTML;
+                  allText += textContent + '\n\n';
+
+                  // Find the chapter label from the TOC map
+                  const tocEntry = tocMap.get(section.canonical);
+                  const label = tocEntry ? tocEntry.label : `Chapter ${chapterIndex}`;
+                  const id = tocEntry ? tocEntry.id : section.idref || `chapter-${chapterIndex}`;
+
+                  extractedChapters.push({
+                    id,
+                    href: section.href,
+                    label,
+                    content: htmlContent,
+                  });
+
+                  chapterIndex++;
                 }
+              }
+            } catch (err) {
+              console.warn(`Failed to load section ${section.href}:`, err);
             }
+          }
         }
 
         setChapters(extractedChapters);
