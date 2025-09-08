@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { OnboardingContent } from "@/components/OnboardingContent";
+import { t } from "@/lib/i18n";
 
 const Onboarding = () => {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ const Onboarding = () => {
       <OnboardingContent />
       <div className="text-center mt-8">
         <Button size="lg" onClick={handleCompleteOnboarding}>
-          Get Started
+          {t("onboarding.getStarted")}
         </Button>
       </div>
     </div>

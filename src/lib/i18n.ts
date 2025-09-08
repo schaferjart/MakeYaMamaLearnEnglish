@@ -69,7 +69,18 @@ export const translations = {
     "cancel": "Abbrechen",
     "next": "Weiter",
     "previous": "Zurück",
-    "loading": "Lädt..."
+    "loading": "Lädt...",
+
+    // Onboarding
+    "onboarding.welcome": "Willkommen bei deinem Lese-Begleiter!",
+    "onboarding.tour": "Hier ist eine schnelle Tour durch die Anwendung.",
+    "onboarding.dashboard.title": "1. Das Dashboard",
+    "onboarding.dashboard.description": "Dein Dashboard gibt dir einen schnellen Überblick über deinen Lesefortschritt, deine letzten Aktivitäten und deine Vokabelstärke.",
+    "onboarding.reader.title": "2. Der Reader",
+    "onboarding.reader.description": "Öffne ein beliebiges Buch und beginne zu lesen. Nutze die Mitlesefunktion und klicke auf ein beliebiges Wort, um dessen Definition zu erhalten.",
+    "onboarding.vocabulary.title": "3. Vokabeltrainer",
+    "onboarding.vocabulary.description": "Alle Wörter, die du nachschlägst, werden in deiner Vokabelliste gespeichert. Du kannst sie jederzeit wiederholen und sogar Quizfragen beantworten.",
+    "onboarding.getStarted": "Loslegen"
   },
   
   en: {
@@ -142,7 +153,18 @@ export const translations = {
     "cancel": "Cancel", 
     "next": "Next",
     "previous": "Previous", 
-    "loading": "Loading..."
+    "loading": "Loading...",
+
+    // Onboarding
+    "onboarding.welcome": "Welcome to Your Reading Companion!",
+    "onboarding.tour": "Here's a quick tour of the application.",
+    "onboarding.dashboard.title": "1. The Dashboard",
+    "onboarding.dashboard.description": "Your dashboard gives you a quick overview of your reading progress, recent activity, and vocabulary strength.",
+    "onboarding.reader.title": "2. The Reader",
+    "onboarding.reader.description": "Open any book and start reading. Use the read-along feature, and click on any word to get its definition.",
+    "onboarding.vocabulary.title": "3. Vocabulary Builder",
+    "onboarding.vocabulary.description": "All the words you look up are saved in your vocabulary list. You can review them anytime and even take quizzes.",
+    "onboarding.getStarted": "Get Started"
   }
 };
 
