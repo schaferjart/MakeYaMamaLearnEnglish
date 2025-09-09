@@ -28,7 +28,7 @@ The Application uses WEB Speech API - installed on system. Meaning your Mama ned
 For Requests regarding uploading particular books, text me. 
 
 
-**https://preview--mamalearnsenglish.lovable.app/**
+**https://makeyamamalearnenglishv2.lovable.app**
 
 ---
 
