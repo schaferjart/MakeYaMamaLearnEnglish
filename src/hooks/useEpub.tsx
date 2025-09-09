@@ -55,78 +55,85 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
 
         setBook(epubBook);
 
-        // Extract navigation and chapters
+        // Helper function to recursively flatten the TOC
+        const flattenToc = (tocItems) => {
+          let flat = [];
+          for (const item of tocItems) {
+            flat.push(item);
+            if (item.subitems && item.subitems.length > 0) {
+              flat = flat.concat(flattenToc(item.subitems));
+            }
+          }
+          return flat;
+        };
+
         const navigation = epubBook.navigation;
+        const toc = navigation.toc;
+        const flatToc = flattenToc(toc);
+
         const extractedChapters: EpubChapter[] = [];
         let allText = '';
-        const seenLabels = new Set<string>();
 
-        for (const navItem of navigation.toc) {
-          try {
-            const label = navItem.label.trim();
-            if (seenLabels.has(label)) {
-              console.warn(`Skipping duplicate chapter label: ${label}`);
-              continue; // Skip duplicate chapter
-            }
-
-            const section = epubBook.section(navItem.href);
-            if (section) {
-              await section.load(epubBook.load.bind(epubBook));
-              const doc = section.document;
-              
-              if (doc && doc.body) {
-                // Extract HTML content to preserve paragraphs
-                const htmlContent = doc.body.innerHTML;
-                const textContent = doc.body.textContent || '';
-                allText += textContent + '\n\n';
-
-                extractedChapters.push({
-                  id: navItem.id || navItem.href,
-                  href: navItem.href,
-                  label: label || `Chapter ${extractedChapters.length + 1}`,
-                  content: htmlContent, // Store HTML content
-                });
-                seenLabels.add(label);
-              }
-            }
-          } catch (err) {
-            console.warn(`Failed to load chapter ${navItem.href}:`, err);
-          }
-        }
-
-        // If no TOC, try to extract from spine by iterating through sections
-        if (extractedChapters.length === 0) {
-          let chapterIndex = 1;
-          
-          // Try to load up to 100 sections (reasonable limit for most books)
-          for (let i = 0; i < 100; i++) {
-            try {
-              const section = epubBook.section(i);
-              if (!section) break; // No more sections
-              
-              await section.load(epubBook.load.bind(epubBook));
-              const doc = section.document;
-              
-              if (doc && doc.body) {
-                const textContent = doc.body.textContent || '';
-                if (textContent.trim()) {
-                  const htmlContent = doc.body.innerHTML;
-                  allText += textContent + '\n\n';
-                  
-                  extractedChapters.push({
-                    id: `chapter-${i}`,
-                    href: section.href || `#chapter-${i}`,
-                    label: `Chapter ${chapterIndex}`,
-                    content: htmlContent, // Store HTML content
-                  });
-                  chapterIndex++;
+        if (flatToc.length > 0) {
+            for (const navItem of flatToc) {
+              try {
+                // Don't process chapters with no label or href
+                if (!navItem.label || !navItem.href) {
+                    continue;
                 }
+
+                const label = navItem.label.trim();
+
+                const section = epubBook.section(navItem.href);
+                if (section) {
+                  await section.load(epubBook.load.bind(epubBook));
+                  const doc = section.document;
+
+                  if (doc && doc.body) {
+                    // Extract HTML content to preserve paragraphs
+                    const htmlContent = doc.body.innerHTML;
+                    const textContent = doc.body.textContent || '';
+                    allText += textContent + '\n\n';
+
+                    extractedChapters.push({
+                      id: navItem.id || navItem.href,
+                      href: navItem.href,
+                      label: label || `Chapter ${extractedChapters.length + 1}`,
+                      content: htmlContent, // Store HTML content
+                    });
+                  }
+                }
+              } catch (err) {
+                console.warn(`Failed to load chapter ${navItem.href}:`, err);
               }
-            } catch (err) {
-              // If we can't load this section, we've probably reached the end
-              break;
             }
-          }
+        } else if (epubBook.spine && epubBook.spine.items) {
+            // Fallback for books with no TOC: load from spine
+            let chapterIndex = 1;
+            for (const section of epubBook.spine.items) {
+                try {
+                    await section.load(epubBook.load.bind(epubBook));
+                    const doc = section.document;
+
+                    if (doc && doc.body) {
+                        const textContent = doc.body.textContent || '';
+                        if (textContent.trim().length > 0) {
+                            const htmlContent = doc.body.innerHTML;
+                            allText += textContent + '\n\n';
+
+                            extractedChapters.push({
+                                id: section.idref || `chapter-${chapterIndex}`,
+                                href: section.href,
+                                label: section.idref || `Chapter ${chapterIndex}`,
+                                content: htmlContent,
+                            });
+                            chapterIndex++;
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Failed to load section ${section.href}:`, err);
+                }
+            }
         }
 
         setChapters(extractedChapters);
