@@ -10,7 +10,9 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle } from "lucide-react";
+import { ConversationsList } from "@/components/conversations/ConversationsList";
+import { useConversations } from "@/hooks/useConversations";
+import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
 import { t, setLocale, getLocale } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,12 +35,13 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'vocabulary' | 'reading' | 'session'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'vocabulary' | 'conversations' | 'reading' | 'session'>('dashboard');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [locale, setCurrentLocale] = useState(getLocale());
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const { conversations, isLoading: conversationsLoading, refreshConversations } = useConversations();
 
   useEffect(() => {
     loadBooks();
@@ -200,6 +203,14 @@ const Index = () => {
               <GraduationCap className="w-4 h-4 mr-2" />
               Vokabular
             </Button>
+            <Button 
+              variant={currentView === 'conversations' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentView('conversations')}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Gespräche
+            </Button>
             {selectedBook && (
               <>
                 <Button 
@@ -336,6 +347,39 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {currentView === 'conversations' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Gespräche</h2>
+              <p className="text-muted-foreground">
+                Deine Unterhaltungen mit dem AI Tutor
+              </p>
+            </div>
+            
+            {conversationsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : conversations.length === 0 ? (
+              <Card className="p-12 text-center">
+                <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Noch keine Gespräche</h3>
+                <p className="text-muted-foreground mb-4">
+                  Starte eine Unterhaltung mit dem AI Tutor während des Lesens!
+                </p>
+                <Button onClick={() => setCurrentView('library')}>
+                  Zur Bibliothek
+                </Button>
+              </Card>
+            ) : (
+              <ConversationsList 
+                conversations={conversations}
+                onRefresh={refreshConversations}
+              />
+            )}
           </div>
         )}
 

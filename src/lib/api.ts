@@ -165,3 +165,26 @@ export const whisperTranscribe = async (audioBlob: Blob): Promise<WhisperSTTResu
 
   return data
 }
+
+export interface ConversationEntry {
+  id: string
+  session_id?: string | null
+  messages_jsonb?: any
+  transcript_text?: string | null
+  created_at: string | null
+}
+
+export const getUserConversations = async (bookId?: string): Promise<ConversationEntry[]> => {
+  let query = supabase
+    .from('conversations')
+    .select('id, session_id, messages_jsonb, transcript_text, created_at')
+    .order('created_at', { ascending: false })
+
+  const { data, error } = await query
+
+  if (error) {
+    throw new Error(`Failed to fetch conversations: ${error.message}`)
+  }
+
+  return data || []
+}
