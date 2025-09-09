@@ -73,7 +73,6 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
 
         const extractedChapters: EpubChapter[] = [];
         let allText = '';
-        const seenLabels = new Set<string>();
 
         if (flatToc.length > 0) {
             for (const navItem of flatToc) {
@@ -84,10 +83,6 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
                 }
 
                 const label = navItem.label.trim();
-                if (seenLabels.has(label)) {
-                  console.warn(`Skipping duplicate chapter label: ${label}`);
-                  continue; // Skip duplicate chapter
-                }
 
                 const section = epubBook.section(navItem.href);
                 if (section) {
@@ -106,7 +101,6 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
                       label: label || `Chapter ${extractedChapters.length + 1}`,
                       content: htmlContent, // Store HTML content
                     });
-                    seenLabels.add(label);
                   }
                 }
               } catch (err) {
