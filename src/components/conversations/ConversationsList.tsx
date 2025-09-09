@@ -17,9 +17,9 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
 }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  const handleDelete = async (conversationId: string) => {
-    // TODO: Implement delete functionality
-    console.log('Delete conversation:', conversationId);
+  const handleDelete = async (sessionId: string) => {
+    // TODO: Implement delete functionality for entire session
+    console.log('Delete conversation session:', sessionId);
     setDeleteConfirm(null);
     onRefresh();
   };
@@ -29,17 +29,58 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
     return text.substring(0, maxLength) + '...';
   };
 
-  const extractMessages = (messagesJsonb: any): { user: string, ai: string } => {
-    if (!messagesJsonb) return { user: '', ai: '' };
-    
-    // Try to extract messages from the JSON structure
-    if (Array.isArray(messagesJsonb)) {
-      const userMsg = messagesJsonb.find(m => m.role === 'user')?.content || '';
-      const aiMsg = messagesJsonb.find(m => m.role === 'assistant')?.content || '';
-      return { user: userMsg, ai: aiMsg };
+  // Group conversations by session_id
+  const groupedConversations = conversations.reduce((groups, conversation) => {
+    const sessionId = conversation.session_id || 'no-session';
+    if (!groups[sessionId]) {
+      groups[sessionId] = [];
     }
+    groups[sessionId].push(conversation);
+    return groups;
+  }, {} as Record<string, ConversationEntry[]>);
+
+  // Sort sessions by most recent conversation
+  const sortedSessions = Object.entries(groupedConversations).sort(([, a], [, b]) => {
+    const latestA = Math.max(...a.map(c => new Date(c.created_at || 0).getTime()));
+    const latestB = Math.max(...b.map(c => new Date(c.created_at || 0).getTime()));
+    return latestB - latestA;
+  });
+
+  const extractAllMessages = (sessionEntries: ConversationEntry[]) => {
+    const allMessages: Array<{ content: string, role: 'user' | 'ai', timestamp: string, hasTranscript?: boolean }> = [];
     
-    return { user: '', ai: '' };
+    // Sort entries by created_at
+    const sortedEntries = [...sessionEntries].sort((a, b) => 
+      new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+    );
+
+    sortedEntries.forEach(entry => {
+      // Extract messages from JSON
+      if (entry.messages_jsonb && Array.isArray(entry.messages_jsonb)) {
+        entry.messages_jsonb.forEach(msg => {
+          if (msg.role && msg.content) {
+            allMessages.push({
+              content: msg.content,
+              role: msg.role === 'user' ? 'user' : 'ai',
+              timestamp: entry.created_at || '',
+              hasTranscript: !!entry.transcript_text
+            });
+          }
+        });
+      }
+      
+      // Also add transcript if it exists and doesn't duplicate messages
+      if (entry.transcript_text && !entry.messages_jsonb) {
+        allMessages.push({
+          content: entry.transcript_text,
+          role: 'user', // Transcripts are usually user speech
+          timestamp: entry.created_at || '',
+          hasTranscript: true
+        });
+      }
+    });
+
+    return allMessages;
   };
 
   return (
@@ -50,62 +91,73 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
             <MessageCircle className="w-5 h-5 text-primary" />
             Gespräche mit dem AI Tutor
             <Badge variant="outline" className="ml-auto">
-              {conversations.length} Gespräche
+              {sortedSessions.length} Sessions
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y">
-            {conversations.map((conversation) => {
-              const messages = extractMessages(conversation.messages_jsonb);
+            {sortedSessions.map(([sessionId, sessionEntries]) => {
+              const messages = extractAllMessages(sessionEntries);
+              const latestEntry = sessionEntries.reduce((latest, current) => 
+                new Date(current.created_at || 0) > new Date(latest.created_at || 0) 
+                  ? current : latest
+              );
+              
               return (
                 <div
-                  key={conversation.id}
+                  key={sessionId}
                   className="p-4 hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
                       {/* Session Info */}
-                      {conversation.session_id && (
-                        <div className="text-xs text-muted-foreground mb-2">
-                          Session: {conversation.session_id.slice(0, 12)}...
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-xs text-muted-foreground">
+                          Session: {sessionId === 'no-session' ? 'Ohne Session' : sessionId.slice(0, 12) + '...'}
                         </div>
-                      )}
+                        <div className="text-xs text-muted-foreground">
+                          {sessionEntries.length} Nachrichten
+                        </div>
+                      </div>
 
-                      {/* Messages Preview */}
-                      {messages.user && (
-                        <div className="bg-primary/5 rounded-md p-3 border-l-4 border-primary/30">
-                          <p className="text-sm font-medium text-foreground">
-                            Du: {truncateText(messages.user)}
-                          </p>
-                        </div>
-                      )}
-
-                      {messages.ai && (
-                        <div className="bg-muted/50 rounded-md p-3 border-l-4 border-muted/60">
-                          <p className="text-sm text-muted-foreground">
-                            <span className="font-medium text-foreground">AI Tutor: </span>
-                            {truncateText(messages.ai)}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Transcript if available */}
-                      {conversation.transcript_text && (
-                        <div className="bg-accent/10 rounded-md p-3 border-l-4 border-accent/30">
-                          <p className="text-sm text-accent-foreground">
-                            <span className="font-medium">Transkript: </span>
-                            {truncateText(conversation.transcript_text)}
-                          </p>
-                        </div>
-                      )}
+                      {/* Messages Display */}
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {messages.slice(0, 6).map((message, index) => (
+                          <div
+                            key={index}
+                            className={`rounded-md p-3 border-l-4 ${
+                              message.role === 'user'
+                                ? 'bg-primary/5 border-primary/30'
+                                : 'bg-muted/50 border-muted/60'
+                            }`}
+                          >
+                            <p className="text-sm">
+                              <span className="font-medium">
+                                {message.role === 'user' ? 'Du: ' : 'AI Tutor: '}
+                              </span>
+                              {truncateText(message.content, 150)}
+                              {message.hasTranscript && (
+                                <span className="ml-2 text-xs text-accent-foreground bg-accent/20 px-1 rounded">
+                                  🎤
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        ))}
+                        {messages.length > 6 && (
+                          <div className="text-xs text-muted-foreground text-center py-2">
+                            ... und {messages.length - 6} weitere Nachrichten
+                          </div>
+                        )}
+                      </div>
 
                       {/* Metadata */}
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {conversation.created_at ? 
-                            format(new Date(conversation.created_at), 'dd.MM.yyyy HH:mm') : 
+                          {latestEntry.created_at ? 
+                            format(new Date(latestEntry.created_at), 'dd.MM.yyyy HH:mm') : 
                             'Unbekannt'
                           }
                         </div>
@@ -114,12 +166,12 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
 
                     {/* Actions */}
                     <div className="flex flex-col gap-1">
-                      {deleteConfirm === conversation.id ? (
+                      {deleteConfirm === sessionId ? (
                         <div className="flex gap-1">
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => handleDelete(conversation.id)}
+                            onClick={() => handleDelete(sessionId)}
                           >
                             Löschen
                           </Button>
@@ -135,7 +187,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setDeleteConfirm(conversation.id)}
+                          onClick={() => setDeleteConfirm(sessionId)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
