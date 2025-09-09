@@ -4,11 +4,24 @@ Some Mamas have worked all their lifes in carework.
 
 Thank you Mamas - and damn you society for this unfair setting. 
 
-But when going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it.
+But when going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it - so, my Mama told me. 
 
-So let's try and expand the comfort zone:
+When I told her to watch a series with subtitles she said, that this does not work for her because of slang and speed.
+When I gave her my phone after telling ChatGPT to be a benevolent English tutor she screamed at me to tell my phone to speak slower. 
 
-The MVP targets German speaking Mamas. 
+So I asked her what she likes and she said reading books. Maybe your Mama does too.
+So probably 20 years after the last self made present:
+
+No drawing, recipe for a spicy tomato sauce or origami birds - all stuff that lies around - but technology to move smoother around!
+
+This applications core idea is to read and engage with the content of a book, creating first and foremost comfort in speaking: 
+Reading while listening matches sound to written form and the following conversation is leading the user to use the language in a low stake setting. 
+
+The user is able to define the speed of lecture, duration of sessions, can search for a words translation and save unkown vocabulary to engage with it at a later time. 
+
+---
+
+The MVP targets German speaking Mamas.
 
 The Application uses WEB Speech API - installed on system. Meaning your Mama neds to have an English package installed on her Phone or Computer - otherwise the voice will be phonetically wrong. 
 
@@ -17,7 +30,7 @@ For Requests regarding uploading particular books, text me.
 
 **https://preview--mamalearnsenglish.lovable.app/**
 
-
+---
 
 ## Flow & User Experience
 
