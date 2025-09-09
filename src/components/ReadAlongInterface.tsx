@@ -129,9 +129,12 @@ export function ReadAlongInterface({
             }
         }
 
-        if (fragments.length > 0) {
+        if (fragments.length > 0 && textNode.parentNode) {
             // Replace the original text node with the new sentence spans
-            textNode.replaceWith(...fragments);
+            fragments.forEach(fragment => {
+              textNode.parentNode!.insertBefore(fragment, textNode);
+            });
+            textNode.parentNode.removeChild(textNode);
         }
     });
 
@@ -205,7 +208,9 @@ export function ReadAlongInterface({
 
   useEffect(() => {
     startTracking();
-    return () => stopTracking();
+    return () => {
+      stopTracking();
+    };
   }, [startTracking, stopTracking]);
 
   const cumulativeWordCounts = React.useMemo(() => {

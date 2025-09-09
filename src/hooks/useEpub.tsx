@@ -107,10 +107,10 @@ export const useEpub = (epubPath: string | null): UseEpubReturn => {
                 console.warn(`Failed to load chapter ${navItem.href}:`, err);
               }
             }
-        } else if (epubBook.spine && epubBook.spine.items) {
+        } else if (epubBook.spine && (epubBook.spine as any).spineItems) {
             // Fallback for books with no TOC: load from spine
             let chapterIndex = 1;
-            for (const section of epubBook.spine.items) {
+            for (const section of (epubBook.spine as any).spineItems) {
                 try {
                     await section.load(epubBook.load.bind(epubBook));
                     const doc = section.document;

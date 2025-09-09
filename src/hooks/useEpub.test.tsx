@@ -69,7 +69,7 @@ describe('useEpub with nested TOC', () => {
 
     // Mock file download
     const mockFileData = new Blob(['fake-epub-content']);
-    mockSupabase.storage.from('ebooks').download.mockResolvedValue({
+    (mockSupabase.storage.from('ebooks').download as jest.Mock).mockResolvedValue({
       data: mockFileData,
       error: null,
     });
