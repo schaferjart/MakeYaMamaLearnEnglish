@@ -253,6 +253,133 @@ export const translations = {
     "settings.backToDashboard": "Back to Dashboard",
     "settings.language.title": "Language",
     "settings.language.description": "Choose your preferred language for the user interface.",
+  },
+
+  fr: {
+    // Navigation & General
+    "app.title": "Make Ya Mama Learn English",
+    "app.subtitle": "Parlez l'anglais des immigrés en un rien de temps",
+    "dashboard": "Tableau de bord",
+    "library": "Bibliothèque",
+    "vocabulary": "Vocabulaire",
+    "conversations": "Conversations",
+    "reading": "Lecture",
+    "session": "Session",
+    "progress": "Progrès",
+    "settings": "Paramètres",
+    "help": "Aide",
+
+    // Dashboard
+    "dashboard.title": "Tableau de bord",
+    "dashboard.description": "Suivez vos progrès de lecture et la croissance de votre vocabulaire",
+
+    // Library
+    "library.title": "Mes livres",
+    "library.noBooks": "Aucun livre pour le moment",
+    "library.addBooks": "Ajouter des livres",
+    "library.progress": "Progrès : {{percent}}%",
+    "library.wordsLearned": "{{count}} mots appris",
+    "library.continue": "Continuer la lecture",
+    "library.start": "Commencer la lecture",
+    "library.booksAvailable": "{{count}} livres disponibles pour la lecture",
+    "library.noBooksFound": "Aucun livre trouvé. Cliquez sur synchroniser pour charger les livres depuis le stockage.",
+    "library.syncing": "Synchronisation...",
+    "library.syncBooks": "Synchroniser les livres",
+    "library.noBooksFoundTitle": "Aucun livre trouvé",
+    "library.noBooksFoundDescription": "Cliquez sur \"Synchroniser les livres\" pour charger les livres depuis votre compartiment de stockage.",
+
+    // API Status
+    "api.title": "État de l'intégration de l'API",
+    "api.description": "Pour activer toutes les fonctionnalités (tuteur IA, API de vocabulaire, TTS), configurez vos clés API dans les secrets de la fonction Supabase Edge.",
+    "api.wordnik": "API Wordnik",
+    "api.deepl": "Traduction DeepL",
+    "api.tts": "Synthèse vocale",
+    "api.progress": "Suivi des progrès",
+
+    // Conversations
+    "conversations.title": "Conversations",
+    "conversations.description": "Vos conversations avec le tuteur IA",
+    "conversations.noConversations": "Aucune conversation pour le moment",
+    "conversations.noConversationsDescription": "Commencez une conversation avec le tuteur IA pendant la lecture !",
+    "conversations.toLibrary": "À la bibliothèque",
+
+    // Toasts
+    "toast.error.loadingBooks.title": "Erreur lors du chargement des livres",
+    "toast.error.loadingBooks.description": "Veuillez réessayer plus tard.",
+    "toast.success.syncingBooks.title": "Livres synchronisés avec succès",
+    "toast.success.syncingBooks.description": "{{count}} fichiers traités",
+    "toast.error.syncingBooks.title": "Erreur lors de la synchronisation des livres",
+    "toast.error.syncingBooks.description": "Veuillez réessayer plus tard.",
+
+    // Reading Session
+    "session.timer": "Temps de lecture",
+    "session.minutes": "Minutes",
+    "session.start": "Démarrer la session",
+    "session.pause": "Pause",
+    "session.resume": "Reprendre",
+    "session.timeRemaining": "Temps restant : {{time}}",
+    "session.timeUp": "Le temps est écoulé !",
+
+    // Vocabulary
+    "vocab.lookup": "Rechercher",
+    "vocab.definition": "Définition",
+    "vocab.synonyms": "Synonymes",
+    "vocab.translation": "Traduction",
+    "vocab.save": "Enregistrer",
+    "vocab.saved": "Enregistré !",
+    "vocab.example": "Exemple",
+    "vocab.learned": "Mots appris",
+    "vocab.difficulty": "Difficulté",
+
+    // Reading Controls
+    "reader.play": "Lire",
+    "reader.pause": "Pause",
+    "reader.stop": "Arrêter",
+    "reader.speed": "Vitesse",
+    "reader.fontSize": "Taille de la police",
+    "reader.theme": "Thème",
+
+    // Tutor/Conversation
+    "tutor.start": "Démarrer la conversation",
+    "tutor.thinking": "Réflexion...",
+    "tutor.typeResponse": "Tapez votre réponse...",
+    "tutor.send": "Envoyer",
+
+    // Authentication
+    "auth.title": "Se connecter",
+    "auth.welcome": "Bienvenue sur MamaLearnEnglish",
+    "auth.description": "Améliorez votre anglais en lisant, en écoutant et en parlant",
+    "auth.email": "E-mail",
+    "auth.password": "Mot de passe",
+    "auth.confirmPassword": "Confirmer le mot de passe",
+    "auth.signIn": "Se connecter",
+    "auth.signUp": "S'inscrire",
+    "auth.signOut": "Se déconnecter",
+
+    // Common Actions
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement...",
+
+    // Onboarding
+    "onboarding.welcome": "Bienvenue dans votre compagnon de lecture !",
+    "onboarding.tour": "Voici une visite rapide de l'application.",
+    "onboarding.dashboard.title": "1. Le tableau de bord",
+    "onboarding.dashboard.description": "Votre tableau de bord vous donne un aperçu rapide de vos progrès de lecture, de votre activité récente et de la force de votre vocabulaire.",
+    "onboarding.reader.title": "2. Le lecteur",
+    "onboarding.reader.description": "Ouvrez n'importe quel livre et commencez à lire. Utilisez la fonction de lecture à voix haute et cliquez sur n'importe quel mot pour obtenir sa définition.",
+    "onboarding.vocabulary.title": "3. Constructeur de vocabulaire",
+    "onboarding.vocabulary.description": "Tous les mots que vous recherchez sont enregistrés dans votre liste de vocabulaire. Vous pouvez les réviser à tout moment et même répondre à des quiz.",
+    "onboarding.getStarted": "Commencer",
+
+    // Settings
+    "settings.title": "Paramètres",
+    "settings.backToDashboard": "Retour au tableau de bord",
+    "settings.language.title": "Langue",
+    "settings.language.description": "Choisissez votre langue préférée pour l'interface utilisateur.",
   }
 };
 

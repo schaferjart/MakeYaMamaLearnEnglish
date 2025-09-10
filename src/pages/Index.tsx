@@ -155,12 +155,14 @@ const Index = () => {
                 {user?.email}
               </div>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/settings">
-                  <Settings className="w-4 h-4" />
+                <Link to="/settings" className="flex items-center">
+                  <Settings className="w-4 h-4 mr-2" />
+                  {t('settings')}
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/help')}>
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="w-4 h-4 mr-2" />
+                {t('help')}
               </Button>
               <Button variant="outline" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4 mr-2" />

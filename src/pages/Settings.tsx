@@ -39,6 +39,12 @@ const Settings = () => {
                 >
                   Deutsch
                 </Button>
+                <Button
+                  variant={locale === 'fr' ? 'default' : 'outline'}
+                  onClick={() => setLocale('fr')}
+                >
+                  Français
+                </Button>
               </div>
             </div>
           </CardContent>
