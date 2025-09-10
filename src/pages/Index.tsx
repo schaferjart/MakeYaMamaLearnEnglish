@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ConversationsList } from "@/components/conversations/ConversationsList";
 import { useConversations } from "@/hooks/useConversations";
 import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
-import { t, setLocale, getLocale } from "@/lib/i18n";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { syncBooksFromStorage } from "@/lib/api";
@@ -35,9 +35,9 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t, locale } = useTranslation();
   const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'vocabulary' | 'conversations' | 'reading' | 'session'>('dashboard');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [locale, setCurrentLocale] = useState(getLocale());
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -87,8 +87,8 @@ const Index = () => {
     } catch (error) {
       console.error('Error loading books:', error);
       toast({
-        title: "Error loading books",
-        description: "Please try again later.",
+        title: t('toast.error.loadingBooks.title'),
+        description: t('toast.error.loadingBooks.description'),
         variant: "destructive",
       });
     } finally {
@@ -104,8 +104,8 @@ const Index = () => {
       console.log('Sync result:', result);
       
       toast({
-        title: "Books synced successfully",
-        description: `Processed ${result.results?.length || 0} files`,
+        title: t('toast.success.syncingBooks.title'),
+        description: t('toast.success.syncingBooks.description', { count: result.results?.length || 0 }),
       });
       
       // Reload books after sync
@@ -113,8 +113,8 @@ const Index = () => {
     } catch (error) {
       console.error('Error syncing books:', error);
       toast({
-        title: "Error syncing books",
-        description: "Please try again later.",
+        title: t('toast.error.syncingBooks.title'),
+        description: t('toast.error.syncingBooks.description'),
         variant: "destructive",
       });
     } finally {
@@ -131,12 +131,6 @@ const Index = () => {
   const handleSessionEnd = () => {
     setCurrentView('library');
     setSelectedBook(null);
-  };
-
-  const toggleLocale = () => {
-    const newLocale = locale === 'de' ? 'en' : 'de';
-    setLocale(newLocale);
-    setCurrentLocale(newLocale);
   };
 
   return (
@@ -160,12 +154,10 @@ const Index = () => {
                 <User className="w-4 h-4" />
                 {user?.email}
               </div>
-              <Button variant="ghost" size="sm" onClick={toggleLocale}>
-                <Globe className="w-4 h-4 mr-2" />
-                {locale.toUpperCase()}
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Settings className="w-4 h-4" />
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/settings">
+                  <Settings className="w-4 h-4" />
+                </Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/help')}>
                 <HelpCircle className="w-4 h-4" />
@@ -185,7 +177,7 @@ const Index = () => {
               onClick={() => setCurrentView('dashboard')}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              Dashboard
+              {t('dashboard')}
             </Button>
             <Button 
               variant={currentView === 'library' ? 'default' : 'ghost'}
@@ -201,7 +193,7 @@ const Index = () => {
               onClick={() => navigate('/vocabulary')}
             >
               <GraduationCap className="w-4 h-4 mr-2" />
-              Vokabular
+              {t('vocabulary')}
             </Button>
             <Button 
               variant={currentView === 'conversations' ? 'default' : 'ghost'}
@@ -209,7 +201,7 @@ const Index = () => {
               onClick={() => setCurrentView('conversations')}
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Gespräche
+              {t('conversations')}
             </Button>
             {selectedBook && (
               <>
@@ -218,7 +210,7 @@ const Index = () => {
                   size="sm"
                   onClick={() => setCurrentView('session')}
                 >
-                  Session
+                  {t('session')}
                 </Button>
                 <Button 
                   variant={currentView === 'reading' ? 'default' : 'ghost'}
@@ -238,9 +230,9 @@ const Index = () => {
         {currentView === 'dashboard' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Dashboard</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t('dashboard.title')}</h2>
               <p className="text-muted-foreground">
-                Track your reading progress and vocabulary growth
+                {t('dashboard.description')}
               </p>
             </div>
             
@@ -269,8 +261,8 @@ const Index = () => {
                 <h2 className="text-2xl font-bold text-foreground">{t('library.title')}</h2>
                 <p className="text-muted-foreground mt-1">
                   {books.length > 0 
-                    ? `${books.length} books available for reading`
-                    : 'No books found. Click sync to load books from storage.'
+                    ? t('library.booksAvailable', { count: books.length })
+                    : t('library.noBooksFound')
                   }
                 </p>
               </div>
@@ -282,7 +274,7 @@ const Index = () => {
                   size="sm"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-                  {syncing ? 'Syncing...' : 'Sync Books'}
+                  {syncing ? t('library.syncing') : t('library.syncBooks')}
                 </Button>
               </div>
             </div>
@@ -312,13 +304,13 @@ const Index = () => {
             ) : (
               <Card className="p-12 text-center">
                 <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No books found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('library.noBooksFoundTitle')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Click "Sync Books" to load books from your storage bucket.
+                  {t('library.noBooksFoundDescription')}
                 </p>
                 <Button onClick={handleSyncBooks} disabled={syncing}>
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-                  {syncing ? 'Syncing...' : 'Sync Books'}
+                  {syncing ? t('library.syncing') : t('library.syncBooks')}
                 </Button>
               </Card>
             )}
@@ -331,17 +323,16 @@ const Index = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-primary mb-2">
-                      API Integration Status
+                      {t('api.title')}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      To enable full functionality (AI tutor, vocabulary API, TTS), 
-                      configure your API keys in the Supabase Edge Function secrets.
+                      {t('api.description')}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="text-xs">Wordnik API</Badge>
-                      <Badge variant="outline" className="text-xs">DeepL Translation</Badge>
-                      <Badge variant="outline" className="text-xs">Text-to-Speech</Badge>
-                      <Badge variant="outline" className="text-xs">Progress Tracking</Badge>
+                      <Badge variant="outline" className="text-xs">{t('api.wordnik')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('api.deepl')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('api.tts')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('api.progress')}</Badge>
                     </div>
                   </div>
                 </div>
@@ -353,9 +344,9 @@ const Index = () => {
         {currentView === 'conversations' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Gespräche</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t('conversations.title')}</h2>
               <p className="text-muted-foreground">
-                Deine Unterhaltungen mit dem AI Tutor
+                {t('conversations.description')}
               </p>
             </div>
             
@@ -366,12 +357,12 @@ const Index = () => {
             ) : conversations.length === 0 ? (
               <Card className="p-12 text-center">
                 <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Noch keine Gespräche</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('conversations.noConversations')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Starte eine Unterhaltung mit dem AI Tutor während des Lesens!
+                  {t('conversations.noConversationsDescription')}
                 </p>
                 <Button onClick={() => setCurrentView('library')}>
-                  Zur Bibliothek
+                  {t('conversations.toLibrary')}
                 </Button>
               </Card>
             ) : (

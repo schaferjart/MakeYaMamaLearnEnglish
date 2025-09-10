@@ -10,12 +10,20 @@ import Vocabulary from "./pages/Vocabulary";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
 import { useAuth } from "./hooks/useAuth";
+import { initLocale } from "./lib/i18n";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      initLocale();
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -53,6 +61,10 @@ const App = () => {
             <Route 
               path="/vocabulary" 
               element={<OnboardingGate><Vocabulary /></OnboardingGate>}
+            />
+            <Route
+              path="/settings"
+              element={<OnboardingGate><Settings /></OnboardingGate>}
             />
             <Route
               path="/onboarding"

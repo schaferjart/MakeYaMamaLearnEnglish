@@ -135,6 +135,7 @@ export const invokeAiTutor = async (args: {
   bookId?: string
   readContentSummary?: string
   history?: Array<{ role: 'user' | 'ai'; content: string }>
+  language?: string
 }): Promise<AiTutorReply> => {
   const { data, error } = await supabase.functions.invoke('ai-tutor', {
     body: args

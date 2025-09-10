@@ -13,6 +13,7 @@ interface TutorRequestBody {
   bookId?: string
   readContentSummary?: string
   history?: Array<{ role: 'user' | 'ai'; content: string }>
+  language?: string
 }
 
 serve(async (req) => {
@@ -21,7 +22,7 @@ serve(async (req) => {
   }
 
   try {
-    const { sessionId, userMessage, cefrLevel, bookId, readContentSummary, history = [] }: TutorRequestBody = await req.json()
+    const { sessionId, userMessage, cefrLevel, bookId, readContentSummary, history = [], language = 'en' }: TutorRequestBody = await req.json()
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
@@ -81,17 +82,36 @@ serve(async (req) => {
     const level = cefrLevel || 'A2'
     const contentSnippet = (readContentSummary || '').slice(0, 1200)
 
-    const systemPrompt = `ABSOLUTELY CRITICAL: You MUST respond in English ONLY. NO German words allowed at all. This is mandatory.
+    const createSystemPrompt = (lang: string, lvl: string, context: string) => {
+      if (lang === 'de') {
+        return `ABSOLUTELY CRITICAL: You MUST respond in German ONLY. NO English words allowed at all. This is mandatory.
+Role: You are a patient, empathetic German tutor for English-speaking mothers.
+Level: Adapt your German to CEFR ${lvl} (very simple at A1; concise but natural at higher levels).
+Policy:
+- Reply in German by default, 1–2 sentences only.
+- Use a brief English hint (one short sentence) only if the learner is clearly stuck (e.g., asks for help twice or answers “I don’t know”).
+- Stay on-topic: Use the reading context below; if off-topic, gently steer back with one short sentence.
+- Keep continuity: Do not contradict earlier turns. If asked about previous questions, refer to the last question asked.
+- Be encouraging and supportive.
+Reading context: "${context}"
+`
+      }
+
+      // Default to English
+      return `ABSOLUTELY CRITICAL: You MUST respond in English ONLY. NO German words allowed at all. This is mandatory.
 Role: You are a patient, empathetic English tutor for German-speaking mothers.
-Level: Adapt your English to CEFR ${level} (very simple at A1; concise but natural at higher levels).
+Level: Adapt your English to CEFR ${lvl} (very simple at A1; concise but natural at higher levels).
 Policy:
 - Reply in English by default, 1–2 sentences only.
 - Use a brief German hint (one short sentence) only if the learner is clearly stuck (e.g., asks for help twice or answers “I don’t know”).
 - Stay on-topic: Use the reading context below; if off-topic, gently steer back with one short sentence.
 - Keep continuity: Do not contradict earlier turns. If asked about previous questions, refer to the last question asked.
 - Be encouraging and supportive.
-Reading context: "${contentSnippet}"
+Reading context: "${context}"
 `
+    }
+
+    const systemPrompt = createSystemPrompt(language, level, contentSnippet);
 
     // Build messages for OpenAI
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
