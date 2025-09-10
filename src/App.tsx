@@ -20,9 +20,12 @@ const App = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      initLocale();
-    }
+    const loadLocale = async () => {
+      if (user) {
+        await initLocale();
+      }
+    };
+    loadLocale();
   }, [user]);
 
   if (loading) {
