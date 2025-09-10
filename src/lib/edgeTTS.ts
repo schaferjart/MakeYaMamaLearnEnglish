@@ -55,7 +55,7 @@ const EDGE_TTS_VOICES = {
     'en-GB-SoniaNeural',
     'en-GB-ThomasNeural',
   ],
-  'en-HK': ['en-HK-SamNeural', 'en-HK-YanNeural'],
+  'en-HK': ['en-HK-.tsamNeural', 'en-HK-YanNeural'],
   'en-IE': ['en-IE-ConnorNeural', 'en-IE-EmilyNeural'],
   'en-IN': ['en-IN-NeerjaExpressiveNeural', 'en-IN-NeerjaNeural', 'en-IN-PrabhatNeural'],
   'en-KE': ['en-KE-AsiliaNeural', 'en-KE-ChilembaNeural'],
@@ -286,7 +286,8 @@ export class EdgeSpeechTTS {
         }
       });
 
-      ws.addEventListener('error', ().ts
+      ws.addEventListener('error', (event) => {
+        console.error('WebSocket error:', event);
         ws.close();
         reject(new Error('WebSocket error occurred.'));
       });

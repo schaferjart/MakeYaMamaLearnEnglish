@@ -3,8 +3,7 @@ import { iso6392 } from 'iso-639-2';
 import { iso6393To1 } from 'iso-639-3';
 
 export const isCJKStr = (str: string) => {
-  return /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}
-]/u.test(str ?? '');
+  return /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(str ?? '');
 };
 
 export const isCJKLang = (lang: string | null | undefined): boolean => {
