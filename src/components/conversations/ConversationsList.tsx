@@ -163,7 +163,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                               <span className="font-medium">
                                 {message.role === 'user' ? 'Du: ' : 'AI Tutor: '}
                               </span>
-                              {truncateText(message.content, 150)}
+                              {truncateText(message.content, 500)}
                               {message.hasTranscript && (
                                 <span className="ml-2 text-xs text-accent-foreground bg-accent/20 px-1 rounded">
                                   🎤
