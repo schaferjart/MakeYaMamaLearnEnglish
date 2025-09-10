@@ -10,6 +10,10 @@ import { t } from '@/lib/i18n';
 import { ConversationTutor } from '@/components/ConversationTutor';
 import { useEpub } from '@/hooks/useEpub';
 import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { TextToSpeechButton } from '@/components/TextToSpeechButton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface Book {
   id: string;
@@ -42,6 +46,7 @@ export const Reader = () => {
     loadChapter,
     getFullText 
   } = useEpub(book?.epub_path);
+  const { voices, currentVoice, setVoice, isPlaying, isLoading: ttsLoading, speak, stop } = useTextToSpeech();
 
   useEffect(() => {
     if (!bookId || !user) return;
@@ -302,7 +307,22 @@ export const Reader = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Session controls removed - handled internally by ReadAlongInterface */}
+            <TextToSpeechButton
+              text={content}
+              disabled={ttsLoading}
+            />
+            <Select value={currentVoice} onValueChange={setVoice}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a voice" />
+              </SelectTrigger>
+              <SelectContent>
+                {voices.map(voice => (
+                  <SelectItem key={voice.id} value={voice.id}>
+                    {voice.name} ({voice.lang})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </header>

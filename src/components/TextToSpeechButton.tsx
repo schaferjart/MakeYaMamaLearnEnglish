@@ -4,7 +4,6 @@ import { useTextToSpeech } from "@/hooks/useTextToSpeech"
 
 interface TextToSpeechButtonProps {
   text: string
-  voice?: string
   variant?: "default" | "outline" | "ghost" | "secondary"
   size?: "default" | "sm" | "lg" | "icon"
   disabled?: boolean
@@ -13,13 +12,12 @@ interface TextToSpeechButtonProps {
 
 export const TextToSpeechButton = ({ 
   text, 
-  voice = "Aria",
   variant = "outline",
   size = "sm",
   disabled = false,
   className = ""
 }: TextToSpeechButtonProps) => {
-  const { speak, stop, isLoading, isPlaying } = useTextToSpeech({ voice })
+  const { speak, stop, isLoading, isPlaying } = useTextToSpeech()
 
   const handleClick = () => {
     if (isPlaying) {
