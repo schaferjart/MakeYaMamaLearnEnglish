@@ -172,12 +172,15 @@ export interface ConversationEntry {
   messages_jsonb?: any
   transcript_text?: string | null
   created_at: string | null
+  sessions: {
+    book_id: string | null
+  } | null
 }
 
 export const getUserConversations = async (bookId?: string): Promise<ConversationEntry[]> => {
   let query = supabase
     .from('conversations')
-    .select('id, session_id, messages_jsonb, transcript_text, created_at')
+    .select('id, session_id, messages_jsonb, transcript_text, created_at, sessions(book_id)')
     .order('created_at', { ascending: false })
 
   const { data, error } = await query
