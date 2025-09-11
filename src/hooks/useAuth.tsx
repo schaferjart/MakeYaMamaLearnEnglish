@@ -22,10 +22,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // If a token refresh fails, sign out gracefully (router will handle navigation)
+  if ((event as any) === 'TOKEN_REFRESH_FAILED') {
+          try {
+            await supabase.auth.signOut();
+          } catch (_) {}
+        }
       }
     );
 
@@ -64,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/auth';
+    // No hard reload; router will send unauthenticated users to /auth
   };
 
   return (

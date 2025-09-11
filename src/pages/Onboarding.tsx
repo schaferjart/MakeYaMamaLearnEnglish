@@ -11,14 +11,16 @@ const Onboarding = () => {
 
   const handleCompleteOnboarding = async () => {
     if (user) {
-      const { error } = await supabase.auth.updateUser({
-        data: { onboarding_completed: true },
-      });
-      if (error) {
-        console.error("Error updating user metadata:", error);
-      } else {
-        navigate("/dashboard");
+      // Only update if not already complete to avoid 429s
+      if (!user.user_metadata?.onboarding_completed) {
+        const { error } = await supabase.auth.updateUser({
+          data: { onboarding_completed: true },
+        });
+        if (error) {
+          console.error("Error updating user metadata:", error);
+        }
       }
+      navigate("/dashboard");
     }
   };
 

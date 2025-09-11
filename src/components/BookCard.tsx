@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Book, Clock, BookOpen } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { DetailedProgress } from "@/lib/types";
 
 interface BookCardProps {
   id: string;
@@ -13,8 +14,21 @@ interface BookCardProps {
   coverUrl?: string;
   progress?: number;
   wordsLearned?: number;
+  detailedProgress?: DetailedProgress;
   onStartReading: (id: string) => void;
 }
+
+const formatProgress = (progress: DetailedProgress) => {
+  const parts = [`${progress.percentage}%`];
+  if (progress.currentPart) {
+    parts.push(progress.currentPart);
+  }
+  if (progress.currentChapter) {
+    parts.push(progress.currentChapter);
+  }
+  parts.push(`Sentence ${progress.currentSentence}/${progress.totalSentences}`);
+  return parts.join(', ');
+};
 
 export const BookCard = ({
   id,
@@ -24,6 +38,7 @@ export const BookCard = ({
   coverUrl,
   progress = 0,
   wordsLearned = 0,
+  detailedProgress,
   onStartReading
 }: BookCardProps) => {
   const isStarted = progress > 0;
@@ -69,7 +84,11 @@ export const BookCard = ({
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
-                  <span>{t('library.progress', { percent: Math.round(progress) })}</span>
+                  {detailedProgress ? (
+                    <span title={formatProgress(detailedProgress)}>{formatProgress(detailedProgress)}</span>
+                  ) : (
+                    <span>{t('library.progress', { percent: Math.round(progress) })}</span>
+                  )}
                 </div>
                 {wordsLearned > 0 && (
                   <div className="flex items-center gap-1">
