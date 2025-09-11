@@ -71,6 +71,7 @@ export function ReadAlongInterface({
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [voicesReady, setVoicesReady] = useState(false);
   
   const { toast } = useToast();
   
@@ -79,6 +80,7 @@ export function ReadAlongInterface({
   const isWaitingForTtsRef = useRef(false);
   const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const readingContainerRef = useRef<HTMLDivElement>(null);
+  const pendingUtteranceRef = useRef<{ text: string; index: number } | null>(null);
 
   const isTtsActive = isPlaying && utteranceRef.current !== null;
 
@@ -142,6 +144,8 @@ export function ReadAlongInterface({
     setCurrentSentence(0); // Reset on new content
 
   }, [content]);
+
+  // voices load effect inserted later after speak definition
 
   // Effect to highlight the current sentence
   useEffect(() => {
@@ -306,20 +310,33 @@ export function ReadAlongInterface({
     }
   }, [shouldEndSession, isWaitingForTtsCompletion, toast, onSessionEnd]);
 
-  const speak = useCallback((text: string, sentenceIndex: number) => {
+  const speak = useCallback((text: string, sentenceIndex: number, options?: { force?: boolean }) => {
     if (!text.trim()) return;
-    window.speechSynthesis.cancel();
+    if (!('speechSynthesis' in window)) return;
+
+    const synth = window.speechSynthesis;
+
+    // If voices not ready yet, queue and wait unless forced
+    if (!voicesReady && !options?.force) {
+      pendingUtteranceRef.current = { text, index: sentenceIndex };
+      console.log('[TTS] Voices not ready, queuing utterance');
+      // Kick a voices fetch attempt (some browsers require this)
+      synth.getVoices();
+      return;
+    }
+
+    synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = speechRate;
     utterance.volume = volume;
 
     if (!selectedVoiceRef.current) {
-        const voices = window.speechSynthesis.getVoices();
-        const preferredVoices = ['Samantha (en-US)', 'Alex (en-US)', 'Victoria (en-US)', 'Daniel (en-GB)', 'Karen (en-AU)'];
-        let selected = voices.find(v => preferredVoices.includes(`${v.name} (${v.lang})`));
-        if (!selected) selected = voices.find(v => v.lang.startsWith('en'));
-        selectedVoiceRef.current = selected;
+      const voices = synth.getVoices();
+      const preferredVoices = ['Samantha (en-US)', 'Alex (en-US)', 'Victoria (en-US)', 'Daniel (en-GB)', 'Karen (en-AU)'];
+      let selected = voices.find(v => preferredVoices.includes(`${v.name} (${v.lang})`));
+      if (!selected) selected = voices.find(v => v.lang?.startsWith('en')) || null;
+      selectedVoiceRef.current = selected;
     }
     if (selectedVoiceRef.current) utterance.voice = selectedVoiceRef.current;
 
@@ -327,11 +344,13 @@ export function ReadAlongInterface({
       setIsPlaying(true);
       setIsLoading(false);
       startTimer();
+      console.log('[TTS] onstart sentence', sentenceIndex);
     };
 
     utterance.onend = () => {
       setIsPlaying(false);
       utteranceRef.current = null;
+      console.log('[TTS] onend sentence', sentenceIndex);
       if (isWaitingForTtsRef.current) {
         setIsWaitingForTtsCompletion(false);
         isWaitingForTtsRef.current = false;
@@ -360,9 +379,10 @@ export function ReadAlongInterface({
     };
 
     setIsLoading(true);
-    window.speechSynthesis.speak(utterance);
+    console.log('[TTS] speak start sentence', sentenceIndex, 'chars', text.length, 'voice', selectedVoiceRef.current?.name);
+    synth.speak(utterance);
     utteranceRef.current = utterance;
-  }, [speechRate, volume, startTimer, stopTimer, toast, isAutoAdvancing, sentences.length, sessionEnded]);
+  }, [speechRate, volume, startTimer, stopTimer, toast, isAutoAdvancing, sentences.length, sessionEnded, voicesReady]);
 
   useEffect(() => {
     if (sessionEnded) return;
@@ -374,7 +394,39 @@ export function ReadAlongInterface({
   const handlePlay = () => {
     if (sessionEnded || sentences.length === 0) return;
     setIsAutoAdvancing(true);
+    // Proactively start speaking instead of waiting for effect (reduces race conditions)
+    if (!isPlaying && !isLoading && sentences[currentSentence]) {
+      speak(sentences[currentSentence], currentSentence);
+    }
   };
+
+  // Load voices and retry any queued utterance (placed after speak is defined)
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    const synth = window.speechSynthesis;
+    const handleVoicesChanged = () => {
+      const voices = synth.getVoices();
+      if (voices.length > 0) {
+        setVoicesReady(true);
+        if (!selectedVoiceRef.current) {
+          const preferredVoices = ['Samantha (en-US)', 'Alex (en-US)', 'Victoria (en-US)', 'Daniel (en-GB)', 'Karen (en-AU)'];
+          let selected = voices.find(v => preferredVoices.includes(`${v.name} (${v.lang})`));
+          if (!selected) selected = voices.find(v => v.lang?.startsWith('en')) || null;
+          selectedVoiceRef.current = selected || null;
+        }
+        if (pendingUtteranceRef.current) {
+          const { text, index } = pendingUtteranceRef.current;
+          pendingUtteranceRef.current = null;
+          console.log('[TTS] Retrying pending utterance after voices load');
+          speak(text, index, { force: true });
+        }
+      }
+    };
+    const initialVoices = synth.getVoices();
+    if (initialVoices.length > 0) handleVoicesChanged();
+    synth.addEventListener('voiceschanged', handleVoicesChanged);
+    return () => synth.removeEventListener('voiceschanged', handleVoicesChanged);
+  }, [speak]);
 
   const handlePause = () => {
     setIsAutoAdvancing(false);
