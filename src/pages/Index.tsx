@@ -51,7 +51,8 @@ const Index = () => {
         (booksData || []).map(async (book) => {
           const { data: progressData } = await supabase
             .from('reading_progress')
-            .select('progress_percentage, last_sentence_index')
+            // Only select columns that are guaranteed to exist to avoid 400s on dev DBs
+            .select('progress_percentage, last_read_at')
             .eq('book_id', book.id)
             .eq('user_id', user?.id)
             .order('last_read_at', { ascending: false })
@@ -80,7 +81,11 @@ const Index = () => {
           if (progressData && resumeData && book.epub_path) {
             try {
               const epub = await parseEpub(book.epub_path);
+              // Validate chapter exists; if not, skip detailed progress to avoid console spam
               const chapterTitle = await epub.getChapterTitle(resumeData.chapterId);
+              if (!chapterTitle) {
+                throw new Error('Chapter not found in EPUB TOC');
+              }
               const sentences = await epub.getChapterSentences(resumeData.chapterId);
               const parentChapter = await epub.getParentChapter(resumeData.chapterId);
 
@@ -92,7 +97,7 @@ const Index = () => {
                 totalSentences: sentences.length
               };
             } catch (e) {
-              console.error(`Could not parse epub ${book.title}`, e)
+              console.warn(`Skipping detailed progress for ${book.title}:`, e);
             }
           }
 

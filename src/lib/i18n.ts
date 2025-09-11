@@ -840,11 +840,16 @@ export const setLocale = async (locale: Locale) => {
   // Persist locale to user profile
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    await supabase.auth.updateUser({
-      data: {
-        language: locale,
-      },
-    });
+    // Only update if the value actually changes to avoid 429 rate limits
+    const currentLang = user.user_metadata?.language;
+    if (currentLang !== locale) {
+      try {
+        await supabase.auth.updateUser({ data: { language: locale } });
+      } catch (e) {
+        // Best-effort: ignore rate-limit errors
+        console.warn('Skipping locale update (possibly rate-limited):', e);
+      }
+    }
   }
 };
 

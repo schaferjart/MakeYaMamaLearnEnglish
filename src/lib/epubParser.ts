@@ -75,7 +75,13 @@ export const parseEpub = async (epubPath: string): Promise<{
       return chapter;
     },
     getChapterSentences: async (chapterId: string) => {
-      const chapter = await this.getChapter(chapterId);
+      // Can't use `this` in returned object; call internal function directly
+      const chapter = await (async () => {
+        const c = getChapterById(chapterId);
+        if (!c) return null;
+        await loadChapterContent(c);
+        return c;
+      })();
       if (!chapter || !chapter.content) return [];
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = chapter.content;

@@ -91,13 +91,11 @@ export const useReadingProgress = ({
           };
           setProgress(dbProgress);
           progressRef.current = dbProgress;
-          onProgressUpdate?.(dbProgress);
           console.log('Merged progress (DB + LS):', dbProgress);
         } else if (loadedProgress) {
           // Pure localStorage if DB fails
           setProgress(loadedProgress);
           progressRef.current = loadedProgress;
-          onProgressUpdate?.(loadedProgress);
         }
       } catch (error) {
         console.error('Error loading reading progress:', error);
@@ -108,7 +106,6 @@ export const useReadingProgress = ({
           const parsed = JSON.parse(localProgress);
           setProgress(parsed);
           progressRef.current = parsed;
-          onProgressUpdate?.(parsed);
         }
       }
     };
@@ -172,12 +169,16 @@ export const useReadingProgress = ({
       // Update ref for save operations
       progressRef.current = updatedProgress;
       
-      // Trigger callback
-      onProgressUpdate?.(updatedProgress);
-      
       return updatedProgress;
     });
   }, [isTracking, totalWords, onProgressUpdate]);
+
+  // Notify listeners when progress changes (outside of render and state updaters)
+  useEffect(() => {
+    if (onProgressUpdate) {
+      onProgressUpdate(progressRef.current);
+    }
+  }, [progress, onProgressUpdate]);
 
   // Save progress to database (throttled), always save to localStorage
   const saveProgress = useCallback(async (progressData: ReadingProgress) => {
