@@ -272,10 +272,10 @@ export const Reader = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Book not found</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('reader.bookNotFound')}</h1>
           <Button onClick={() => navigate('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Library
+            {t('library.title')}
           </Button>
         </div>
       </div>
@@ -294,10 +294,10 @@ export const Reader = () => {
               onClick={() => navigate('/')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {t('back')}
             </Button>
             <div className="text-sm text-muted-foreground">
-              {book.title} by {book.author}
+              {t('vocab.book.titleAndAuthor', { title: book.title, author: book.author })}
             </div>
           </div>
           

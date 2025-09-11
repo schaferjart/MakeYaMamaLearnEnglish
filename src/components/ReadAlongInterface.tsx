@@ -14,6 +14,7 @@ import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
 import { useAuth } from '@/hooks/useAuth';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ResumeData {
   chapterId: string;
@@ -54,6 +55,7 @@ export function ReadAlongInterface({
   resumeData,
   isReturningFromConversation
 }: ReadAlongInterfaceProps) {
+  const { t } = useTranslation();
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
   const [currentSentence, setCurrentSentence] = useState(0);
@@ -440,11 +442,11 @@ export function ReadAlongInterface({
             <CardContent>
               <div className="flex items-center justify-between border-b border-border py-3 mb-4">
                 <Button variant="outline" size="sm" onClick={onPreviousChapter} disabled={!canGoPrevious}>
-                  <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                  <ChevronLeft className="h-4 w-4 mr-2" /> {t('previous')}
                 </Button>
                 {currentChapter && <span className="text-sm text-muted-foreground text-center px-2 truncate">{currentChapter.label}</span>}
                 <Button variant="outline" size="sm" onClick={onNextChapter} disabled={!canGoNext}>
-                  Next <ChevronRight className="h-4 w-4 ml-2" />
+                  {t('next')} <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
 
@@ -458,7 +460,7 @@ export function ReadAlongInterface({
               
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Reading Progress</span>
+                  <span>{t('reader.progress.title')}</span>
                   <span>{Math.round(readingProgress)}%</span>
                 </div>
                 <Progress value={readingProgress} className="h-2" />
@@ -470,11 +472,11 @@ export function ReadAlongInterface({
         {/* Controls Panel */}
         <div className="space-y-4">
           <Card className="shadow-md border-border">
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-lg"><Timer className="w-5 h-5 text-primary" />Session Timer</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-lg"><Timer className="w-5 h-5 text-primary" />{t('reader.sessionTimer.title')}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
                 <div className={`text-3xl font-bold ${remainingTime < 300 ? 'text-destructive' : 'text-primary'}`}>{formatTime(remainingTime)}</div>
-                <p className="text-sm text-muted-foreground">remaining</p>
+                <p className="text-sm text-muted-foreground">{t('reader.sessionTimer.remaining')}</p>
               </div>
               <Progress value={progressPercentage} className="h-3" />
               <div className="grid grid-cols-3 gap-2">
@@ -488,7 +490,7 @@ export function ReadAlongInterface({
           </Card>
 
           <Card className="shadow-md border-border">
-            <CardHeader className="pb-3"><CardTitle className="text-lg">Playback Controls</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-lg">{t('reader.playback.title')}</CardTitle></CardHeader>
             <CardContent className="space-y-6">
               <div className="flex justify-center gap-2">
                 <Button variant="outline" size="icon" onClick={handlePrevious}><SkipBack className="w-4 h-4" /></Button>
@@ -504,15 +506,15 @@ export function ReadAlongInterface({
               </div>
               {isPlaying && (
                 <div className="text-center p-3 bg-audio-sync/20 rounded-lg border border-audio-sync/30">
-                  <p className="text-xs text-muted-foreground">Sentence {currentSentence + 1} of {sentences.length}</p>
+                  <p className="text-xs text-muted-foreground">{t('reader.sentenceProgress', { current: currentSentence + 1, total: sentences.length })}</p>
                 </div>
               )}
               <div className="space-y-2">
-                <div className="flex justify-between items-center"><label className="text-sm font-medium">Speed</label><span className="text-sm text-muted-foreground">{speechRate}x</span></div>
+                <div className="flex justify-between items-center"><label className="text-sm font-medium">{t('reader.speed')}</label><span className="text-sm text-muted-foreground">{speechRate}x</span></div>
                 <Slider value={[speechRate]} onValueChange={(v) => setSpeechRate(v[0])} min={0.5} max={2.0} step={0.1} />
               </div>
               <div className="space-y-2">
-                <div className="flex justify-between items-center"><div className="flex items-center gap-1"><Volume2 className="w-4 h-4" /><label className="text-sm font-medium">Volume</label></div><span className="text-sm text-muted-foreground">{Math.round(volume * 100)}%</span></div>
+                <div className="flex justify-between items-center"><div className="flex items-center gap-1"><Volume2 className="w-4 h-4" /><label className="text-sm font-medium">{t('reader.playback.volume')}</label></div><span className="text-sm text-muted-foreground">{Math.round(volume * 100)}%</span></div>
                 <Slider value={[volume]} onValueChange={(v) => setVolume(v[0])} min={0} max={1} step={0.1} />
               </div>
             </CardContent>

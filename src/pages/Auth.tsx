@@ -93,9 +93,9 @@ export default function Auth() {
           </p>
           {/* Language quick selector (works unauthenticated) */}
           <div className="flex items-center justify-center gap-2 mt-4">
-            <Button variant={locale === 'en' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('en')}>English</Button>
-            <Button variant={locale === 'de' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('de')}>Deutsch</Button>
-            <Button variant={locale === 'fr' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('fr')}>Français</Button>
+            <Button variant={locale === 'en' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('en')}>{t('auth.language.en')}</Button>
+            <Button variant={locale === 'de' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('de')}>{t('auth.language.de')}</Button>
+            <Button variant={locale === 'fr' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('fr')}>{t('auth.language.fr')}</Button>
           </div>
         </div>
 

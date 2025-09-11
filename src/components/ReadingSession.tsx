@@ -203,7 +203,7 @@ export const ReadingSession = ({
                     {t('session.timeUp')}
                   </Badge>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Zeit für ein kurzes Gespräch über das Gelesene!
+                    {t('session.timeUpPrompt')}
                   </p>
                 </div>
               )}
@@ -216,7 +216,7 @@ export const ReadingSession = ({
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Text-to-Speech</span>
+            <span className="text-sm font-medium">{t('reader.tts.title')}</span>
             <div className="flex gap-2">
               <Button 
                 variant={ttsPlaying ? "default" : "secondary"} 
@@ -227,17 +227,17 @@ export const ReadingSession = ({
                 {ttsLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
+                    {t('loading')}...
                   </>
                 ) : ttsPlaying ? (
                   <>
                     <VolumeX className="w-4 h-4 mr-2" />
-                    Stop Reading
+                    {t('reader.stop')}
                   </>
                 ) : (
                   <>
                     <Volume2 className="w-4 h-4 mr-2" />
-                    Start Reading
+                    {t('library.start')}
                   </>
                 )}
               </Button>
@@ -256,13 +256,13 @@ export const ReadingSession = ({
           {ttsPlaying && (
             <div className="mt-2 text-xs text-muted-foreground flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-              Reading aloud with browser voice
+              {t('reader.tts.readingAloud')}
             </div>
           )}
           
           {ttsLoading && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Generating speech with browser...
+              {t('reader.tts.generating')}
             </div>
           )}
           

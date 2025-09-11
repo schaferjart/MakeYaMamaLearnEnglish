@@ -6,6 +6,7 @@ import { BookOpen, Clock, Brain, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ActivityItem {
   type: 'reading' | 'vocabulary' | 'session';
@@ -24,6 +25,7 @@ interface RecentActivityProps {
 
 export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,10 +94,10 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
           const vocabBookMap = new Map(vocabBooksData?.map(book => [book.id, book.title]) || []);
 
           vocabData.forEach(vocab => {
-            const bookTitle = vocab.book_id ? vocabBookMap.get(vocab.book_id) : 'Unknown Book';
+            const bookTitle = vocab.book_id ? vocabBookMap.get(vocab.book_id) : t('vocab.unknownBook');
             activities.push({
               type: 'vocabulary',
-              bookTitle: bookTitle || 'Unknown Book',
+              bookTitle: bookTitle || t('vocab.unknownBook'),
               bookId: vocab.book_id,
               vocabularyWord: vocab.headword,
               timestamp: vocab.created_at
@@ -130,11 +132,11 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
     switch (activity.type) {
       case 'reading':
         const minutes = Math.round((activity.timeSpent || 0) / 60);
-        return `Read ${activity.wordsRead || 0} words in ${minutes} min`;
+        return t('dashboard.recentActivity.readingActivity', { words: activity.wordsRead || 0, minutes });
       case 'vocabulary':
-        return `Learned "${activity.vocabularyWord}"`;
+        return t('dashboard.recentActivity.vocabularyActivity', { word: activity.vocabularyWord });
       case 'session':
-        return 'Completed reading session';
+        return t('dashboard.recentActivity.sessionCompleted');
     }
   };
 
@@ -142,7 +144,7 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>{t('dashboard.recentActivity.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -165,9 +167,9 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          Recent Activity
+          {t('dashboard.recentActivity.title')}
           <Badge variant="secondary" className="text-xs">
-            {activities.length} items
+            {t('dashboard.recentActivity.itemCount', { count: activities.length })}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -175,8 +177,8 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
         {activities.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No recent activity</p>
-            <p className="text-sm">Start reading to see your progress here</p>
+            <p>{t('dashboard.recentActivity.noActivity')}</p>
+            <p className="text-sm">{t('dashboard.recentActivity.startReadingPrompt')}</p>
           </div>
         ) : (
           <div className="space-y-4">
