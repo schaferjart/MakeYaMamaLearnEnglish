@@ -17,18 +17,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { syncBooksFromStorage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  year?: number;
-  epub_path?: string;
-  cover_url?: string;
-  progress?: number;
-  wordsLearned?: number;
-  content?: string;
-}
+import { parseEpub } from '@/lib/epubParser';
+import { Book, DetailedProgress } from '@/lib/types';
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -60,11 +50,17 @@ const Index = () => {
       const booksWithProgress = await Promise.all(
         (booksData || []).map(async (book) => {
           const { data: progressData } = await supabase
-            .from('book_progress')
-            .select('percent')
+            .from('reading_progress')
+            .select('progress_percentage, last_sentence_index')
             .eq('book_id', book.id)
             .eq('user_id', user?.id)
+            .order('last_read_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
+
+          const localStorageKey = `resume_${user?.id}_${book.id}`;
+          const localProgress = localStorage.getItem(localStorageKey);
+          const resumeData = localProgress ? JSON.parse(localProgress) : null;
 
           // Get vocabulary count for words learned
           const { count: wordsCount } = await supabase
@@ -73,14 +69,44 @@ const Index = () => {
             .eq('book_id', book.id)
             .eq('user_id', user?.id);
 
-          return {
+          const bookWithProgress: Book = {
             ...book,
             coverUrl: book.cover_url, // Map cover_url to coverUrl for component compatibility
-            progress: progressData?.percent ? Math.round(progressData.percent) : 0,
+            progress: progressData?.progress_percentage ? Math.round(progressData.progress_percentage) : 0,
             wordsLearned: wordsCount || 0,
-            content: ""          };
+            content: ""
+          };
+
+          if (progressData && resumeData && book.epub_path) {
+            try {
+              const epub = await parseEpub(book.epub_path);
+              const chapterTitle = await epub.getChapterTitle(resumeData.chapterId);
+              const sentences = await epub.getChapterSentences(resumeData.chapterId);
+              const parentChapter = await epub.getParentChapter(resumeData.chapterId);
+
+              bookWithProgress.detailedProgress = {
+                percentage: Math.round(progressData.progress_percentage),
+                currentPart: parentChapter ? parentChapter.label : '',
+                currentChapter: chapterTitle,
+                currentSentence: resumeData.sentenceIndex,
+                totalSentences: sentences.length
+              };
+            } catch (e) {
+              console.error(`Could not parse epub ${book.title}`, e)
+            }
+          }
+
+          return bookWithProgress;
         })
       );
+
+      booksWithProgress.sort((a, b) => {
+        const aStarted = a.progress ?? 0 > 0;
+        const bStarted = b.progress ?? 0 > 0;
+        if (aStarted && !bStarted) return -1;
+        if (!aStarted && bStarted) return 1;
+        return 0;
+      });
 
       setBooks(booksWithProgress);
     } catch (error) {
