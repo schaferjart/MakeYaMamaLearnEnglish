@@ -1,17 +1,17 @@
 export const translations = {
   de: {
-    // Navigation & General
-    "app.title": "Make Ya Mama Learn English",
-    "app.subtitle": "Natürlich mit Akzent",
-    "library": "Bibliothek",
-    "reading": "Lesen",
-    "vocabulary": "Vokabular",
-    "progress": "Fortschritt",
-    "settings": "Einstellungen",
+  // Navigation & General
+  "app.title": "Make Ya Mama Learn English",
+  "app.subtitle": "Natürlich mit Akzent",
+  "library": "Bibliothek",
+  "reading": "Lesen",
+  "vocabulary": "Vokabular",
+  "progress": "Fortschritt",
+  "settings": "Einstellungen",
      
     // Library
     "library.title": "Meine Bücher",
-    "library.noBooks": "Noch keine Bücher vorhanden",
+  "library.noBooks": "Noch keine Bücher vorhanden",
     "library.addBooks": "Bücher hinzufügen",
     "library.progress": "Fortschritt: {{percent}}%",
     "library.wordsLearned": "{{count}} Wörter gelernt",
@@ -19,9 +19,9 @@ export const translations = {
     "library.start": "Beginnen",
     
     // Reading Session  
-    "session.timer": "Lesezeit",
+  "session.timer": "Lesezeit",
     "session.minutes": "Minuten",
-    "session.start": "Session beginnen",
+  "session.start": "Session beginnen",
     "session.pause": "Pausieren",
     "session.resume": "Fortsetzen",
     "session.timeRemaining": "Verbleibende Zeit: {{time}}",
@@ -54,8 +54,8 @@ export const translations = {
     
     // Authentication
     "auth.title": "Anmeldung",
-    "auth.welcome": "Viele Mamas haben ihr lebenslang im Haushalt geaerbeitet und deswegen nie Englisch gebraucht und gelernt. Diese Mamas sind nun gefickt wenn sie in die Feerien gehen weil sie nichts verstehen.",
-    "auth.description": "Die ersste App überhaupt für Mamas die endlich in die Ferien gehen wollen!",
+  "auth.welcome": "Viele Mamas haben ihr lebenslang im Haushalt geaerbeitet und deswegen nie Englisch gebraucht und gelernt. Diese Mamas sind nun gefickt wenn sie in die Feerien gehen weil sie nichts verstehen.",
+  "auth.description": "Die ersste App überhaupt für Mamas die endlich in die Ferien gehen wollen!",
     "auth.email": "E-Mail",
     "auth.password": "Passwort",
     "auth.confirmPassword": "Passwort bestätigen",
@@ -85,8 +85,8 @@ export const translations = {
   
   en: {
     // Navigation & General
-    "app.title": "Make Ya Mama Learn English",
-    "app.subtitle": "Speak Immigrant English in No Time", 
+  "app.title": "Make Ya Mama Learn English",
+  "app.subtitle": "Speak Immigrant English in No Time", 
     "library": "Library",
     "reading": "Reading",
     "vocabulary": "Vocabulary",
@@ -138,7 +138,7 @@ export const translations = {
     
     // Authentication
     "auth.title": "Sign In",
-    "auth.welcome": "Welcome to MamaLearnEnglish",
+  "auth.welcome": "Welcome to MamaLearnEnglish",
     "auth.description": "Improve your English through reading, listening and speaking",
     "auth.email": "Email",
     "auth.password": "Password", 
