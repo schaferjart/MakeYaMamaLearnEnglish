@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { ReadAlongInterface } from "@/components/ReadAlongInterface";
 import { VocabularyPanel } from "@/components/VocabularyPanel";
 import { ConversationTutor } from "@/components/ConversationTutor";
+import { useTranslation } from "@/hooks/useTranslation";
+import { setLocale, getLocale, Locale } from "@/lib/i18n";
 
 // Real sample content from Crime and Punishment for demo
 const sampleContent = `<p>"Good heavens!" exclaimed Raskolnikov, drawing the door towards him again. "If you have no room, what do you want me for? Are you making fun of me?"</p>
@@ -13,6 +15,7 @@ const sampleContent = `<p>"Good heavens!" exclaimed Raskolnikov, drawing the doo
 <p>The room was very small, with a low ceiling, and crowded with furniture. There was a sofa, a round table, chairs, and a chest of drawers. Everything was old and worn, but clean and tidy.</p>`;
 
 export default function Landing() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [demoMode, setDemoMode] = useState<'reading' | 'vocabulary' | 'conversation' | null>(null);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
@@ -35,16 +38,16 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-20 text-center relative z-10">
           <div className="flex items-center justify-center gap-2 mb-6">
             <BookOpen className="w-12 h-12 text-primary" />
-            <h1 className="text-5xl font-bold text-primary">MamaLearnEnglish</h1>
+            <h1 className="text-5xl font-bold text-primary">{t('landing.title')}</h1>
           </div>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Master English through interactive reading, vocabulary building, and AI-powered conversations with real books.
+            {t('landing.subtitle')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" className="text-lg px-8 py-4" onClick={() => navigate('/auth')}>
-              Start Learning
+              {t('landing.startLearning')}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
@@ -57,7 +60,7 @@ export default function Landing() {
               className="flex items-center gap-2"
             >
               <BookOpen className="w-4 h-4" />
-              Try Reading
+              {t('landing.tryReading')}
             </Button>
             <Button 
               variant="outline" 
@@ -65,7 +68,7 @@ export default function Landing() {
               className="flex items-center gap-2"
             >
               <Volume2 className="w-4 h-4" />
-              Try Vocabulary
+              {t('landing.tryVocabulary')}
             </Button>
             <Button 
               variant="outline" 
@@ -73,7 +76,7 @@ export default function Landing() {
               className="flex items-center gap-2"
             >
               <MessageSquare className="w-4 h-4" />
-              Try AI Tutor
+              {t('landing.tryAITutor')}
             </Button>
           </div>
         </div>
@@ -85,17 +88,17 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-4">
-                {demoMode === 'reading' && 'Interactive Reading Experience'}
-                {demoMode === 'vocabulary' && 'Smart Vocabulary Assistant'}
-                {demoMode === 'conversation' && 'AI Conversation Tutor'}
+                {demoMode === 'reading' && t('landing.demo.reading.title')}
+                {demoMode === 'vocabulary' && t('landing.demo.vocabulary.title')}
+                {demoMode === 'conversation' && t('landing.demo.conversation.title')}
               </h2>
               <p className="text-muted-foreground mb-4">
-                {demoMode === 'reading' && 'Click on sentences to hear them read aloud and select words to save to your vocabulary.'}
-                {demoMode === 'vocabulary' && 'Get instant definitions, translations, and examples for any word.'}
-                {demoMode === 'conversation' && 'Practice speaking and ask questions about what you\'ve read.'}
+                {demoMode === 'reading' && t('landing.demo.reading.description')}
+                {demoMode === 'vocabulary' && t('landing.demo.vocabulary.description')}
+                {demoMode === 'conversation' && t('landing.demo.conversation.description')}
               </p>
               <Button variant="outline" onClick={closeDemos}>
-                Close Demo
+                {t('landing.demo.close')}
               </Button>
             </div>
 
@@ -145,10 +148,10 @@ export default function Landing() {
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            How It Works
+            {t('landing.features.title')}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Learn English naturally through interactive reading experiences
+            {t('landing.features.subtitle')}
           </p>
         </div>
 
@@ -157,12 +160,12 @@ export default function Landing() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-primary" />
-                Read Real Books
+                {t('landing.feature.reading.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Experience classic literature with sentence-by-sentence audio playback and instant word lookup.
+                {t('landing.feature.reading.description')}
               </p>
             </CardContent>
           </Card>
@@ -171,12 +174,12 @@ export default function Landing() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Volume2 className="w-6 h-6 text-accent" />
-                Build Vocabulary
+                {t('landing.feature.vocabulary.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Save words as you read with definitions, translations, and examples automatically provided.
+                {t('landing.feature.vocabulary.description')}
               </p>
             </CardContent>
           </Card>
@@ -185,12 +188,12 @@ export default function Landing() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="w-6 h-6 text-success" />
-                Practice Conversations
+                {t('landing.feature.conversation.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Discuss what you've read with an AI tutor that adapts to your English level.
+                {t('landing.feature.conversation.description')}
               </p>
             </CardContent>
           </Card>
@@ -201,13 +204,13 @@ export default function Landing() {
       <section className="bg-primary/5 border-y">
         <div className="container mx-auto px-4 py-16 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Ready to Start Learning?
+            {t('landing.cta.title')}
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join our interactive English learning platform and improve your skills with real books and AI assistance.
+            {t('landing.cta.subtitle')}
           </p>
           <Button size="lg" className="text-lg px-8 py-4" onClick={() => navigate('/auth')}>
-            Get Started
+            {t('landing.cta.getStarted')}
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
@@ -218,11 +221,16 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <BookOpen className="w-6 h-6 text-primary" />
-            <span className="font-bold text-foreground">MamaLearnEnglish</span>
+            <span className="font-bold text-foreground">{t('landing.title')}</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 MamaLearnEnglish. Interactive English learning through real books.
+            {t('landing.footer.text')}
           </p>
+          <div className="flex justify-center gap-4 mt-4">
+            <Button variant={getLocale() === 'en' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLocale('en')}>English</Button>
+            <Button variant={getLocale() === 'de' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLocale('de')}>Deutsch</Button>
+            <Button variant={getLocale() === 'fr' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLocale('fr')}>Français</Button>
+          </div>
         </div>
       </footer>
     </div>
