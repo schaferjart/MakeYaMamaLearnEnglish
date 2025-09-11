@@ -6,6 +6,7 @@ import { ConversationEntry } from "@/lib/api";
 import { MessageCircle, Calendar, Trash2 } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { format } from 'date-fns';
+import { VocabularyPanel } from '@/components/VocabularyPanel';
 
 interface ConversationsListProps {
   conversations: ConversationEntry[];
@@ -17,12 +18,36 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   onRefresh
 }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [selectedText, setSelectedText] = useState("");
+  const [showVocabulary, setShowVocabulary] = useState(false);
+  const [currentBookId, setCurrentBookId] = useState<string | undefined>(undefined);
 
   const handleDelete = async (sessionId: string) => {
     // TODO: Implement delete functionality for entire session
     console.log('Delete conversation session:', sessionId);
     setDeleteConfirm(null);
     onRefresh();
+  };
+
+  const handleTextSelection = (event: React.MouseEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    const selectedString = selection?.toString().trim();
+
+    if (selection && selectedString && selectedString.length > 0 && selectedString.length < 300) {
+      // Find the session container to get the book_id
+      const sessionElement = (event.target as HTMLElement).closest('[data-book-id]');
+      const bookId = sessionElement?.getAttribute('data-book-id') || undefined;
+
+      setSelectedText(selectedString);
+      setCurrentBookId(bookId);
+      setShowVocabulary(true);
+    }
+  };
+
+  const handleCloseVocabulary = () => {
+    setShowVocabulary(false);
+    setSelectedText("");
+    setCurrentBookId(undefined);
   };
 
   const truncateText = (text: string, maxLength: number = 100): string => {
@@ -104,11 +129,13 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                 new Date(current.created_at || 0) > new Date(latest.created_at || 0) 
                   ? current : latest
               );
-              
+              const bookId = sessionEntries[0]?.sessions?.book_id || undefined;
+
               return (
                 <div
                   key={sessionId}
                   className="p-4 hover:bg-muted/30 transition-colors"
+                  data-book-id={bookId}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
@@ -123,7 +150,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                       </div>
 
                       {/* Messages Display */}
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                      <div className="space-y-2 max-h-64 overflow-y-auto" onMouseUp={handleTextSelection}>
                         {messages.slice(0, 6).map((message, index) => (
                           <div
                             key={index}
@@ -137,7 +164,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                               <span className="font-medium">
                                 {message.role === 'user' ? `${t('conversations.you')}: ` : `${t('conversations.aiTutor')}: `}
                               </span>
-                              {truncateText(message.content, 150)}
+                              {truncateText(message.content, 500)}
                               {message.hasTranscript && (
                                 <span className="ml-2 text-xs text-accent-foreground bg-accent/20 px-1 rounded">
                                   🎤
@@ -201,6 +228,15 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
           </div>
         </CardContent>
       </Card>
+      {showVocabulary && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <VocabularyPanel
+            selectedText={selectedText}
+            bookId={currentBookId}
+            onClose={handleCloseVocabulary}
+          />
+        </div>
+      )}
     </div>
   );
 };

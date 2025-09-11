@@ -17,7 +17,7 @@ const Onboarding = () => {
       if (error) {
         console.error("Error updating user metadata:", error);
       } else {
-        navigate("/");
+        navigate("/dashboard");
       }
     }
   };

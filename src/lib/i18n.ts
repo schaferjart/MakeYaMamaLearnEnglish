@@ -55,7 +55,7 @@ export const translations = {
      
     // Library
     "library.title": "Meine Bücher",
-    "library.noBooks": "Noch keine Bücher vorhanden",
+  "library.noBooks": "Noch keine Bücher vorhanden",
     "library.addBooks": "Bücher hinzufügen",
     "library.progress": "Fortschritt: {{percent}}%",
     "library.wordsLearned": "{{count}} Wörter gelernt",
@@ -101,9 +101,9 @@ export const translations = {
     "toast.error.syncingBooks.description": "Bitte versuchen Sie es später noch einmal.",
     
     // Reading Session  
-    "session.timer": "Lesezeit",
+  "session.timer": "Lesezeit",
     "session.minutes": "Minuten",
-    "session.start": "Session beginnen",
+  "session.start": "Session beginnen",
     "session.pause": "Pausieren",
     "session.resume": "Fortsetzen",
     "session.timeRemaining": "Verbleibende Zeit: {{time}}",
