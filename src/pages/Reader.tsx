@@ -31,7 +31,7 @@ export const Reader = () => {
   const [isReturningFromConversation, setIsReturningFromConversation] = useState(false);
   
   // Use localStorage for temporary resume functionality
-  const { initialResumeData, resumeData, saveResumeData, refreshResumeData } = useLocalStorageResume(bookId || '', user?.id || '');
+  const { resumeData, saveResumeData, refreshResumeData } = useLocalStorageResume(bookId || '', user?.id || '');
   
   // EPUB parsing
   const { 
@@ -329,7 +329,8 @@ export const Reader = () => {
             canGoNext={canGoNext}
             onProgressUpdate={setReadingProgress}
             onSessionEnd={handleSessionEnd}
-            resumeData={resumeData} // Direct passing
+            resumeData={resumeData}
+            saveResumeData={saveResumeData}
             isReturningFromConversation={isReturningFromConversation}
           />
         )}

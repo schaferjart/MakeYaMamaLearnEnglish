@@ -10,8 +10,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
-import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
-import { useAuth } from '@/hooks/useAuth';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -36,6 +34,7 @@ interface ReadAlongInterfaceProps {
   onProgressUpdate?: (progress: any) => void;
   onSessionEnd?: () => void;
   resumeData?: ResumeData | null;
+  saveResumeData?: (chapterId: string, sentenceIndex: number) => void; // provided by parent to avoid duplicate hook
   isReturningFromConversation?: boolean;
 }
 
@@ -53,6 +52,7 @@ export function ReadAlongInterface({
   onProgressUpdate,
   onSessionEnd,
   resumeData,
+  saveResumeData,
   isReturningFromConversation
 }: ReadAlongInterfaceProps) {
   const { t } = useTranslation();
@@ -73,7 +73,6 @@ export function ReadAlongInterface({
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
-  const { user } = useAuth();
   
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -83,7 +82,6 @@ export function ReadAlongInterface({
 
   const isTtsActive = isPlaying && utteranceRef.current !== null;
 
-  const { saveResumeData } = useLocalStorageResume(bookId, user?.id || '');
   const lastSavedSentence = useRef<number>(-1);
 
   const currentText = sentences[currentSentence]?.trim() || '';
@@ -235,12 +233,14 @@ export function ReadAlongInterface({
   }, [currentSentence, isTracking, updatePosition, cumulativeWordCounts]);
 
   useEffect(() => {
+    if (!saveResumeData) return; // No-op if parent didn't provide
     if (currentChapter?.id && currentSentence > 0 && isTracking && currentSentence !== lastSavedSentence.current) {
-      const timeoutId = setTimeout(() => {
-        saveResumeData(currentChapter.id, currentSentence);
+      // Defer to microtask to avoid blocking render
+      const handle = requestAnimationFrame(() => {
+        saveResumeData(currentChapter.id!, currentSentence);
         lastSavedSentence.current = currentSentence;
-      }, 0);
-      return () => clearTimeout(timeoutId);
+      });
+      return () => cancelAnimationFrame(handle);
     }
   }, [currentSentence, currentChapter?.id, isTracking, saveResumeData]);
 
