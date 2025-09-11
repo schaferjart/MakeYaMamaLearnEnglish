@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Landing from "./pages/Landing";
 import { Reader } from "./pages/Reader";
 import Vocabulary from "./pages/Vocabulary";
 import NotFound from "./pages/NotFound";
@@ -55,10 +54,6 @@ const App = () => {
           <Routes>
             <Route 
               path="/" 
-              element={!user ? <Landing /> : <Navigate to="/dashboard" replace />}
-            />
-            <Route 
-              path="/dashboard" 
               element={<OnboardingGate><Index /></OnboardingGate>}
             />
             <Route 
@@ -83,7 +78,7 @@ const App = () => {
             />
             <Route 
               path="/auth" 
-              element={!user ? <Auth /> : <Navigate to="/dashboard" replace />} 
+              element={!user ? <Auth /> : <Navigate to="/" replace />}
             />
             <Route path="*" element={<NotFound />} />
           </Routes>

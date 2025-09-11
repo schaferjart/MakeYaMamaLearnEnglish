@@ -8,6 +8,7 @@ import { ReadingSession } from "@/components/ReadingSession";
 import { ReadAlongInterface } from "@/components/ReadAlongInterface";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ConversationsList } from "@/components/conversations/ConversationsList";
 import { useConversations } from "@/hooks/useConversations";
@@ -241,7 +242,7 @@ const Index = () => {
             
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <RecentActivity onContinueReading={handleStartReading} />
+                <VocabularyProgress />
               </div>
               <div className="space-y-6">
                 <QuickActions
@@ -249,6 +250,7 @@ const Index = () => {
                   onSyncBooks={handleSyncBooks}
                   syncing={syncing}
                 />
+                <RecentActivity onContinueReading={handleStartReading} />
               </div>
             </div>
           </div>

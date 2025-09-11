@@ -55,7 +55,7 @@ export const translations = {
      
     // Library
     "library.title": "Meine Bücher",
-  "library.noBooks": "Noch keine Bücher vorhanden",
+    "library.noBooks": "Noch keine Bücher vorhanden",
     "library.addBooks": "Bücher hinzufügen",
     "library.progress": "Fortschritt: {{percent}}%",
     "library.wordsLearned": "{{count}} Wörter gelernt",
@@ -101,9 +101,9 @@ export const translations = {
     "toast.error.syncingBooks.description": "Bitte versuchen Sie es später noch einmal.",
     
     // Reading Session  
-  "session.timer": "Lesezeit",
+    "session.timer": "Lesezeit",
     "session.minutes": "Minuten",
-  "session.start": "Session beginnen",
+    "session.start": "Session beginnen",
     "session.pause": "Pausieren",
     "session.resume": "Fortsetzen",
     "session.timeRemaining": "Verbleibende Zeit: {{time}}",
@@ -863,19 +863,37 @@ export const t = (key: TranslationKey, params?: Record<string, string | number>)
 };
 
 export const initLocale = async () => {
+  // 1. Check for authenticated user's preference
   const { data: { user } } = await supabase.auth.getUser();
   const userLang = user?.user_metadata?.language;
-
   if (userLang && translations[userLang as Locale]) {
     await setLocale(userLang as Locale);
     return;
   }
 
-  // Fallback: load from localStorage for unauthenticated users
+  // 2. Fallback to localStorage
   try {
     const stored = localStorage.getItem('locale') as Locale | null;
     if (stored && translations[stored]) {
       await setLocale(stored);
+      return;
     }
   } catch {}
+
+  // 3. Fallback to browser language
+  try {
+    const browserLanguages = [...(navigator.languages || []), navigator.language];
+    for (const lang of browserLanguages) {
+      if (lang) {
+        const baseLang = lang.split('-')[0] as Locale;
+        if (translations[baseLang]) {
+          await setLocale(baseLang);
+          return;
+        }
+      }
+    }
+  } catch {}
+
+  // 4. Default to English
+  await setLocale('en');
 };

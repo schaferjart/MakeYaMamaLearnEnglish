@@ -10,7 +10,6 @@ const Help = () => {
       <OnboardingContent />
       <div className="text-center mt-8">
         <Button size="lg" asChild>
-          <Link to="/dashboard">Back to Dashboard</Link>
           <Link to="/">{t('settings.backToDashboard')}</Link>
         </Button>
       </div>
