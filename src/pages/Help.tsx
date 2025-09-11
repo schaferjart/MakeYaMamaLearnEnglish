@@ -9,8 +9,8 @@ const Help = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
       <OnboardingContent />
       <div className="text-center mt-8">
+        {/* Ensure only a single child when using asChild with Button (Radix Slot) */}
         <Button size="lg" asChild>
-          <Link to="/dashboard">Back to Dashboard</Link>
           <Link to="/">{t('settings.backToDashboard')}</Link>
         </Button>
       </div>
