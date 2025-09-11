@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,9 +22,7 @@ const App = () => {
 
   useEffect(() => {
     const loadLocale = async () => {
-      if (user) {
-        await initLocale();
-      }
+      await initLocale();
     };
     loadLocale();
   }, [user]);

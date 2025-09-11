@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConversationEntry } from "@/lib/api";
 import { MessageCircle, Calendar, Trash2 } from "lucide-react";
+import { t } from "@/lib/i18n";
 import { format } from 'date-fns';
 
 interface ConversationsListProps {
@@ -89,9 +90,9 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
         <CardHeader className="bg-muted/50">
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageCircle className="w-5 h-5 text-primary" />
-            Gespräche mit dem AI Tutor
+            {t('conversations.headerTitle')}
             <Badge variant="outline" className="ml-auto">
-              {sortedSessions.length} Sessions
+              {t('conversations.sessions', { count: sortedSessions.length })}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -114,10 +115,10 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                       {/* Session Info */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xs text-muted-foreground">
-                          Session: {sessionId === 'no-session' ? 'Ohne Session' : sessionId.slice(0, 12) + '...'}
+                          {t('conversations.session')}: {sessionId === 'no-session' ? t('conversations.noSession') : sessionId.slice(0, 12) + '...'}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {sessionEntries.length} Nachrichten
+                          {t('conversations.messages', { count: sessionEntries.length })}
                         </div>
                       </div>
 
@@ -134,7 +135,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                           >
                             <p className="text-sm">
                               <span className="font-medium">
-                                {message.role === 'user' ? 'Du: ' : 'AI Tutor: '}
+                                {message.role === 'user' ? `${t('conversations.you')}: ` : `${t('conversations.aiTutor')}: `}
                               </span>
                               {truncateText(message.content, 150)}
                               {message.hasTranscript && (
@@ -147,7 +148,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                         ))}
                         {messages.length > 6 && (
                           <div className="text-xs text-muted-foreground text-center py-2">
-                            ... und {messages.length - 6} weitere Nachrichten
+                            {t('conversations.moreMessages', { count: messages.length - 6 })}
                           </div>
                         )}
                       </div>
@@ -158,7 +159,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                           <Calendar className="w-3 h-3" />
                           {latestEntry.created_at ? 
                             format(new Date(latestEntry.created_at), 'dd.MM.yyyy HH:mm') : 
-                            'Unbekannt'
+                            t('conversations.unknown')
                           }
                         </div>
                       </div>
@@ -173,14 +174,14 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                             variant="destructive"
                             onClick={() => handleDelete(sessionId)}
                           >
-                            Löschen
+                            {t('delete')}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setDeleteConfirm(null)}
                           >
-                            Abbrechen
+                            {t('cancel')}
                           </Button>
                         </div>
                       ) : (

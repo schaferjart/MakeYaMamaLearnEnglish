@@ -9,6 +9,7 @@ import { BookOpen, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,7 @@ export default function Auth() {
   
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+  const { locale, setLocale } = useTranslation();
 
   useEffect(() => {
     if (user) {
@@ -62,7 +64,7 @@ export default function Auth() {
     setMessage("");
 
     if (password !== confirmPassword) {
-      setError("Passwörter stimmen nicht überein");
+      setError(t('auth.passwordMismatch'));
       setLoading(false);
       return;
     }
@@ -72,7 +74,7 @@ export default function Auth() {
     if (error) {
       setError(error.message);
     } else {
-      setMessage("Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.");
+      setMessage(t('auth.signupSuccess'));
     }
     
     setLoading(false);
@@ -84,11 +86,17 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <BookOpen className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-primary">MamaLearnEnglish</h1>
+            <h1 className="text-3xl font-bold text-primary">{t('app.title')}</h1>
           </div>
-          <p className="text-muted-foreground">
-            {t('auth.welcome')}
+          <p className="text-muted-foreground whitespace-pre-line">
+            {t('auth.welcome', { app: t('app.title') })}
           </p>
+          {/* Language quick selector (works unauthenticated) */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Button variant={locale === 'en' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('en')}>English</Button>
+            <Button variant={locale === 'de' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('de')}>Deutsch</Button>
+            <Button variant={locale === 'fr' ? 'default' : 'outline'} size="sm" onClick={() => setLocale('fr')}>Français</Button>
+          </div>
         </div>
 
         <Card className="shadow-[var(--shadow-elegant)]">
@@ -116,7 +124,7 @@ export default function Auth() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
-                        placeholder="ihre@email.de"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                       />
                     </div>
@@ -167,7 +175,7 @@ export default function Auth() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
-                        placeholder="ihre@email.de"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                       />
                     </div>
@@ -236,7 +244,7 @@ export default function Auth() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Oder
+                  {t('auth.or')}
                 </span>
               </div>
             </div>
@@ -253,7 +261,7 @@ export default function Auth() {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              {googleLoading ? "Anmelden..." : "Mit Google anmelden"}
+              {googleLoading ? t('auth.googleSigningIn') : t('auth.googleSignIn')}
             </Button>
           </CardContent>
         </Card>

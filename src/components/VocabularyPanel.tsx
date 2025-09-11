@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BookOpen, Volume2, Save, X, Loader2 } from "lucide-react";
 import { lookupWord, translateText, saveVocabulary } from "@/lib/api";
-import { t } from "@/lib/i18n";
+import { t, getLocale } from "@/lib/i18n";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -42,10 +42,15 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
       setError(null);
 
       try {
+        // Determine DeepL target language from current UI locale
+        const locale = getLocale();
+        const targetLang = locale === 'fr' ? 'FR' : locale === 'de' ? 'DE' : 'EN';
+
         // Get word lookup and translation in parallel
         const [wordData, translationData] = await Promise.all([
           lookupWord(selectedText.toLowerCase()),
-          translateText(selectedText, 'DE', 'EN')
+          // Source text is English; translate into selected locale
+          translateText(selectedText, targetLang, 'EN')
         ]);
 
         const data: VocabularyData = {
@@ -187,7 +192,7 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
 
             <div>
               <h4 className="font-medium text-sm text-primary mb-2">
-                {t('vocab.translation')} (Deutsch)
+                {t('vocab.translation')} ({getLocale() === 'fr' ? 'Français' : getLocale() === 'de' ? 'Deutsch' : 'English'})
               </h4>
               <p className="text-sm text-foreground bg-secondary/50 p-2 rounded">
                 {vocabularyData.translation}

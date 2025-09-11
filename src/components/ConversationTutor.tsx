@@ -127,16 +127,16 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           console.log('Speaking AI reply:', reply)
           speak(reply)
         } else {
-          const fallbackMessage = 'I am ready to talk about what you have read.'
+          const fallbackMessage = t('tutor.ready')
           setMessages([{ role: 'ai', content: fallbackMessage }])
           console.log('Speaking fallback message:', fallbackMessage)
           speak(fallbackMessage)
         }
       } catch (e) {
-        const fallbackMessage = 'I am ready to talk about what you have read.'
+        const fallbackMessage = t('tutor.ready')
         setMessages([{ role: 'ai', content: fallbackMessage }])
         speak(fallbackMessage)
-        toast({ title: 'Error', description: 'The tutor is temporarily unavailable.' })
+        toast({ title: t('tutor.error.title'), description: t('tutor.unavailable') })
       }
     }
     kickOff()
@@ -513,7 +513,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         
         {/* Timer duration options */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Duration:</span>
+          <span className="text-xs text-muted-foreground">{t('tutor.duration')}</span>
           <div className="flex gap-1">
             {[1, 2, 3, 4, .1].map((minutes) => (
               <Button
@@ -545,7 +545,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           ))}
         </div>
         <div className="flex gap-2 flex-wrap">
-          {['I don\'t know', 'Hint, please', 'Next question'].map((q) => (
+          {[t('tutor.quick.dontKnow'), t('tutor.quick.hintPlease'), t('tutor.quick.nextQuestion')].map((q) => (
             <Button key={q} variant="outline" size="sm" onClick={() => { setInput(''); setMessages((prev)=>[...prev, { role: 'user', content: q }]); setTimeout(()=>handleSend(), 0) }}>
               {q}
             </Button>
@@ -572,12 +572,12 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
               }
             }}
             disabled={isThinking || sending}
-            title={(isRecording || isRecordingAudio) ? "Click to stop recording" : "Click to start recording"}
+            title={(isRecording || isRecordingAudio) ? t('tutor.record.stopHint') : t('tutor.record.startHint')}
           >
-            {(isRecordingAudio || isRecording) ? 'Stop Recording' : '🎤 Record'}
+            {(isRecordingAudio || isRecording) ? t('tutor.record.stop') : t('tutor.record.start')}
           </Button>
           <Button variant="outline" onClick={() => { cancelTokenRef.current++; setIsThinking(false); }} disabled={!isThinking}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleSend} disabled={sending || !input.trim()}>
             {t('tutor.send')}

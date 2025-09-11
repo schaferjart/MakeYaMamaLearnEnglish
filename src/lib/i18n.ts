@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const translations = {
   de: {
     // Navigation & General
-    "app.title": "Make Ya Mama Learn English",
+  "app.title": "MakeYaMamaLearnEnglish",
     "app.subtitle": "Natürlich mit Akzent",
     "dashboard": "Dashboard",
     "library": "Bibliothek",
@@ -48,6 +48,15 @@ export const translations = {
     "conversations.noConversations": "Noch keine Gespräche",
     "conversations.noConversationsDescription": "Starte eine Unterhaltung mit dem AI Tutor während des Lesens!",
     "conversations.toLibrary": "Zur Bibliothek",
+  "conversations.headerTitle": "Gespräche mit dem AI Tutor",
+  "conversations.sessions": "{{count}} Sessions",
+  "conversations.session": "Session",
+  "conversations.noSession": "Ohne Session",
+  "conversations.messages": "{{count}} Nachrichten",
+  "conversations.moreMessages": "... und {{count}} weitere Nachrichten",
+  "conversations.you": "Du",
+  "conversations.aiTutor": "AI Tutor",
+  "conversations.unknown": "Unbekannt",
 
     // Toasts
     "toast.error.loadingBooks.title": "Fehler beim Laden der Bücher",
@@ -89,11 +98,22 @@ export const translations = {
     "tutor.start": "Gespräch beginnen",
     "tutor.thinking": "Denkt nach...",
     "tutor.typeResponse": "Ihre Antwort eingeben...",
-    "tutor.send": "Senden",
+  "tutor.send": "Senden",
+  "tutor.ready": "Ich bin bereit, über das Gelesene zu sprechen.",
+  "tutor.duration": "Dauer:",
+  "tutor.quick.dontKnow": "Ich weiß es nicht",
+  "tutor.quick.hintPlease": "Hinweis bitte",
+  "tutor.quick.nextQuestion": "Nächste Frage",
+  "tutor.record.start": "🎤 Aufnehmen",
+  "tutor.record.stop": "Aufnahme stoppen",
+  "tutor.record.startHint": "Zum Starten der Aufnahme klicken",
+  "tutor.record.stopHint": "Zum Stoppen der Aufnahme klicken",
+  "tutor.error.title": "Fehler",
+  "tutor.unavailable": "Der Tutor ist vorübergehend nicht verfügbar.",
     
     // Authentication
     "auth.title": "Anmeldung",
-    "auth.welcome": "Viele Mamas haben ihr lebenslang im Haushalt geaerbeitet und deswegen nie Englisch gebraucht und gelernt. Diese Mamas sind nun gefickt wenn sie in die Feerien gehen weil sie nichts verstehen.",
+  "auth.welcome": "Willkommen bei {{app}}",
     "auth.description": "Die ersste App überhaupt für Mamas die endlich in die Ferien gehen wollen!",
     "auth.email": "E-Mail",
     "auth.password": "Passwort",
@@ -101,6 +121,12 @@ export const translations = {
     "auth.signIn": "Anmelden",
     "auth.signUp": "Registrieren",
     "auth.signOut": "Abmelden",
+  "auth.or": "Oder",
+  "auth.emailPlaceholder": "ihre@email.de",
+  "auth.passwordMismatch": "Passwörter stimmen nicht überein",
+  "auth.signupSuccess": "Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.",
+  "auth.googleSignIn": "Mit Google anmelden",
+  "auth.googleSigningIn": "Anmelden...",
     
     // Common Actions
     "close": "Schließen",
@@ -126,11 +152,63 @@ export const translations = {
     "settings.backToDashboard": "Zurück zum Dashboard",
     "settings.language.title": "Sprache",
     "settings.language.description": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche.",
+    
+  // Vocabulary Pages & Components
+  "vocab.page.title": "Vokabular-Bibliothek",
+  "vocab.page.count": "{{count}} Wörter gespeichert",
+  "vocab.searchPlaceholder": "Wörter suchen...",
+  "vocab.modes.library": "Bibliothek",
+  "vocab.modes.cards": "Lernkarten",
+  "vocab.modes.quiz": "Quiz",
+  "vocab.empty.title": "Noch keine Wörter gelernt",
+  "vocab.empty.description": "Starte mit dem Lesen und speichere deine ersten Wörter!",
+  "vocab.unknownBook": "Unbekanntes Buch",
+  "vocab.book.titleAndAuthor": "{{title}} von {{author}}",
+  "vocab.book.untitledWithId": "Buch {{id}}...",
+  "vocab.wordCount": "{{count}} Wörter",
+  "vocab.synonymLabel": "Synonym",
+  "vocab.savedLabel": "Gespeichert",
+  "vocab.noTranslation": "Keine Übersetzung",
+    
+  // Quiz
+  "vocab.quiz.notEnoughTitle": "Nicht genug Wörter für Quiz",
+  "vocab.quiz.notEnoughDescription": "Du benötigst mindestens 4 Wörter für ein Quiz. Lerne mehr Wörter und komm zurück!",
+  "vocab.quiz.completeTitle": "Quiz abgeschlossen!",
+  "vocab.quiz.nextQuestion": "Nächste Frage",
+  "vocab.quiz.showResults": "Ergebnis anzeigen",
+  "vocab.quiz.translateQuestion": "Was bedeutet dieses Wort?",
+  "vocab.quiz.definitionQuestion": "Welches Wort passt zu dieser Definition?",
+  "vocab.quiz.progressLabel": "Fortschritt",
+  "vocab.quiz.questionCount": "{{current}} von {{total}} Fragen",
+  "vocab.quiz.points": "Punkte: {{score}}/{{max}}",
+  "vocab.quiz.score.excellent": "Hervorragend! Du kennst deine Wörter sehr gut!",
+  "vocab.quiz.score.good": "Gut gemacht! Weiter so!",
+  "vocab.quiz.score.okay": "Nicht schlecht, aber es gibt Raum für Verbesserungen.",
+  "vocab.quiz.score.try": "Übe weiter! Die Wörter werden sich einprägen.",
+    
+  // Cards
+  "vocab.cards.emptyTitle": "Keine Wörter zum Lernen",
+  "vocab.cards.emptyDescription": "Füge erst Wörter zu deinem Vokabular hinzu!",
+  "vocab.cards.completeTitle": "Lernkarten abgeschlossen!",
+  "vocab.cards.known": "Bekannt",
+  "vocab.cards.unknown": "Unbekannt",
+  "vocab.cards.skipped": "Übersprungen",
+  "vocab.cards.clickToFlip": "Klicken zum Umdrehen",
+  "vocab.cards.skip": "Überspringen",
+  "vocab.cards.unknownBtn": "Nicht gewusst",
+  "vocab.cards.knownBtn": "Gewusst",
+  "vocab.cards.flipHint": "Klicke auf die Karte, um die Übersetzung zu sehen",
+  "vocab.cards.rateHint": "Bewerte dein Wissen über dieses Wort",
+    
+  // Common extra
+  "delete": "Löschen",
+  "back": "Zurück",
+  "retry": "Wiederholen",
   },
   
   en: {
     // Navigation & General
-    "app.title": "Make Ya Mama Learn English",
+  "app.title": "MakeYaMamaLearnEnglish",
     "app.subtitle": "Speak Immigrant English in No Time", 
     "dashboard": "Dashboard",
     "library": "Library",
@@ -175,6 +253,15 @@ export const translations = {
     "conversations.noConversations": "No conversations yet",
     "conversations.noConversationsDescription": "Start a conversation with the AI Tutor while reading!",
     "conversations.toLibrary": "To the library",
+  "conversations.headerTitle": "Conversations with the AI Tutor",
+  "conversations.sessions": "{{count}} sessions",
+  "conversations.session": "Session",
+  "conversations.noSession": "No session",
+  "conversations.messages": "{{count}} messages",
+  "conversations.moreMessages": "... and {{count}} more messages",
+  "conversations.you": "You",
+  "conversations.aiTutor": "AI Tutor",
+  "conversations.unknown": "Unknown",
 
     // Toasts
     "toast.error.loadingBooks.title": "Error loading books",
@@ -216,11 +303,22 @@ export const translations = {
     "tutor.start": "Start Conversation",
     "tutor.thinking": "Thinking...",
     "tutor.typeResponse": "Type your response...",
-    "tutor.send": "Send",
+  "tutor.send": "Send",
+  "tutor.ready": "I am ready to talk about what you have read.",
+  "tutor.duration": "Duration:",
+  "tutor.quick.dontKnow": "I don't know",
+  "tutor.quick.hintPlease": "Hint, please",
+  "tutor.quick.nextQuestion": "Next question",
+  "tutor.record.start": "🎤 Record",
+  "tutor.record.stop": "Stop Recording",
+  "tutor.record.startHint": "Click to start recording",
+  "tutor.record.stopHint": "Click to stop recording",
+  "tutor.error.title": "Error",
+  "tutor.unavailable": "The tutor is temporarily unavailable.",
     
     // Authentication
     "auth.title": "Sign In",
-    "auth.welcome": "Welcome to MamaLearnEnglish",
+  "auth.welcome": "Welcome to {{app}}",
     "auth.description": "Improve your English through reading, listening and speaking",
     "auth.email": "Email",
     "auth.password": "Password", 
@@ -228,6 +326,12 @@ export const translations = {
     "auth.signIn": "Sign In",
     "auth.signUp": "Sign Up",
     "auth.signOut": "Sign Out",
+  "auth.or": "Or",
+  "auth.emailPlaceholder": "your@email.com",
+  "auth.passwordMismatch": "Passwords do not match",
+  "auth.signupSuccess": "Registration successful! Please check your email to confirm.",
+  "auth.googleSignIn": "Sign in with Google",
+  "auth.googleSigningIn": "Signing in...",
     
     // Common Actions
     "close": "Close",
@@ -253,12 +357,64 @@ export const translations = {
     "settings.backToDashboard": "Back to Dashboard",
     "settings.language.title": "Language",
     "settings.language.description": "Choose your preferred language for the user interface.",
+    
+  // Vocabulary Pages & Components
+  "vocab.page.title": "Vocabulary Library",
+  "vocab.page.count": "{{count}} words saved",
+  "vocab.searchPlaceholder": "Search words...",
+  "vocab.modes.library": "Library",
+  "vocab.modes.cards": "Flashcards",
+  "vocab.modes.quiz": "Quiz",
+  "vocab.empty.title": "No words learned yet",
+  "vocab.empty.description": "Start reading and save your first words!",
+  "vocab.unknownBook": "Unknown book",
+  "vocab.book.titleAndAuthor": "{{title}} by {{author}}",
+  "vocab.book.untitledWithId": "Book {{id}}...",
+  "vocab.wordCount": "{{count}} words",
+  "vocab.synonymLabel": "Synonym",
+  "vocab.savedLabel": "Saved",
+  "vocab.noTranslation": "No translation",
+    
+  // Quiz
+  "vocab.quiz.notEnoughTitle": "Not enough words for a quiz",
+  "vocab.quiz.notEnoughDescription": "You need at least 4 words for a quiz. Learn more words and come back!",
+  "vocab.quiz.completeTitle": "Quiz complete!",
+  "vocab.quiz.nextQuestion": "Next question",
+  "vocab.quiz.showResults": "Show results",
+  "vocab.quiz.translateQuestion": "What does this word mean?",
+  "vocab.quiz.definitionQuestion": "Which word matches this definition?",
+  "vocab.quiz.progressLabel": "Progress",
+  "vocab.quiz.questionCount": "{{current}} of {{total}} questions",
+  "vocab.quiz.points": "Points: {{score}}/{{max}}",
+  "vocab.quiz.score.excellent": "Excellent! You know your words very well!",
+  "vocab.quiz.score.good": "Well done! Keep it up!",
+  "vocab.quiz.score.okay": "Not bad, but there's room for improvement.",
+  "vocab.quiz.score.try": "Keep practicing! The words will stick.",
+    
+  // Cards
+  "vocab.cards.emptyTitle": "No words to study",
+  "vocab.cards.emptyDescription": "Add words to your vocabulary first!",
+  "vocab.cards.completeTitle": "Flashcards complete!",
+  "vocab.cards.known": "Known",
+  "vocab.cards.unknown": "Unknown",
+  "vocab.cards.skipped": "Skipped",
+  "vocab.cards.clickToFlip": "Click to flip",
+  "vocab.cards.skip": "Skip",
+  "vocab.cards.unknownBtn": "Didn't know",
+  "vocab.cards.knownBtn": "Knew it",
+  "vocab.cards.flipHint": "Click the card to see the translation",
+  "vocab.cards.rateHint": "Rate your knowledge of this word",
+    
+  // Common extra
+  "delete": "Delete",
+  "back": "Back",
+  "retry": "Retry",
   },
 
   fr: {
     // Navigation & General
-    "app.title": "Make Ya Mama Learn English",
-    "app.subtitle": "Parlez l'anglais des immigrés en un rien de temps",
+  "app.title": "Make Steve and Ya Mama Learn English",
+  "app.subtitle": `Parler l'anglais des immigré en un rien de temps`,
     "dashboard": "Tableau de bord",
     "library": "Bibliothèque",
     "vocabulary": "Vocabulaire",
@@ -302,6 +458,15 @@ export const translations = {
     "conversations.noConversations": "Aucune conversation pour le moment",
     "conversations.noConversationsDescription": "Commencez une conversation avec le tuteur IA pendant la lecture !",
     "conversations.toLibrary": "À la bibliothèque",
+  "conversations.headerTitle": "Conversations avec le tuteur IA",
+  "conversations.sessions": "{{count}} sessions",
+  "conversations.session": "Session",
+  "conversations.noSession": "Sans session",
+  "conversations.messages": "{{count}} messages",
+  "conversations.moreMessages": "... et {{count}} messages supplémentaires",
+  "conversations.you": "Vous",
+  "conversations.aiTutor": "Tuteur IA",
+  "conversations.unknown": "Inconnu",
 
     // Toasts
     "toast.error.loadingBooks.title": "Erreur lors du chargement des livres",
@@ -343,18 +508,40 @@ export const translations = {
     "tutor.start": "Démarrer la conversation",
     "tutor.thinking": "Réflexion...",
     "tutor.typeResponse": "Tapez votre réponse...",
-    "tutor.send": "Envoyer",
+  "tutor.send": "Envoyer",
+  "tutor.ready": "Je suis prêt à parler de ce que vous avez lu.",
+  "tutor.duration": "Durée :",
+  "tutor.quick.dontKnow": "Je ne sais pas",
+  "tutor.quick.hintPlease": "Indice, s'il vous plaît",
+  "tutor.quick.nextQuestion": "Question suivante",
+  "tutor.record.start": "🎤 Enregistrer",
+  "tutor.record.stop": "Arrêter l'enregistrement",
+  "tutor.record.startHint": "Cliquez pour commencer l'enregistrement",
+  "tutor.record.stopHint": "Cliquez pour arrêter l'enregistrement",
+  "tutor.error.title": "Erreur",
+  "tutor.unavailable": "Le tuteur est temporairement indisponible.",
 
     // Authentication
     "auth.title": "Se connecter",
-    "auth.welcome": "Bienvenue sur MamaLearnEnglish",
-    "auth.description": "Améliorez votre anglais en lisant, en écoutant et en parlant",
+  "auth.welcome": `Pour ceux qui bougent
+Pas pour ceux qui s'chient dessus
+Qui s’tapent, même quand les plus grands s’font marcher dessus
+Pour nos mères qui paniquent dès que ça dit "How you do ?"
+Wesh wesh cousin,
+avec l’appli, ellent répondent cash : "Fine thanks, and you?"`,
+    "auth.description": "UN VERRE UN CHAPITRE ET ON Y VA",
     "auth.email": "E-mail",
     "auth.password": "Mot de passe",
     "auth.confirmPassword": "Confirmer le mot de passe",
     "auth.signIn": "Se connecter",
     "auth.signUp": "S'inscrire",
     "auth.signOut": "Se déconnecter",
+  "auth.or": "Ou",
+  "auth.emailPlaceholder": "votre@email.fr",
+  "auth.passwordMismatch": "Les mots de passe ne correspondent pas",
+  "auth.signupSuccess": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer.",
+  "auth.googleSignIn": "Se connecter avec Google",
+  "auth.googleSigningIn": "Connexion...",
 
     // Common Actions
     "close": "Fermer",
@@ -380,6 +567,58 @@ export const translations = {
     "settings.backToDashboard": "Retour au tableau de bord",
     "settings.language.title": "Langue",
     "settings.language.description": "Choisissez votre langue préférée pour l'interface utilisateur.",
+    
+  // Vocabulary Pages & Components
+  "vocab.page.title": "Bibliothèque de vocabulaire",
+  "vocab.page.count": "{{count}} mots enregistrés",
+  "vocab.searchPlaceholder": "Rechercher des mots...",
+  "vocab.modes.library": "Bibliothèque",
+  "vocab.modes.cards": "Cartes",
+  "vocab.modes.quiz": "Quiz",
+  "vocab.empty.title": "Aucun mot appris pour le moment",
+  "vocab.empty.description": "Commencez à lire et enregistrez vos premiers mots !",
+  "vocab.unknownBook": "Livre inconnu",
+  "vocab.book.titleAndAuthor": "{{title}} par {{author}}",
+  "vocab.book.untitledWithId": "Livre {{id}}...",
+  "vocab.wordCount": "{{count}} mots",
+  "vocab.synonymLabel": "Synonyme",
+  "vocab.savedLabel": "Enregistré",
+  "vocab.noTranslation": "Pas de traduction",
+    
+  // Quiz
+  "vocab.quiz.notEnoughTitle": "Pas assez de mots pour un quiz",
+  "vocab.quiz.notEnoughDescription": "Vous avez besoin d'au moins 4 mots pour un quiz. Apprenez plus de mots et revenez !",
+  "vocab.quiz.completeTitle": "Quiz terminé !",
+  "vocab.quiz.nextQuestion": "Question suivante",
+  "vocab.quiz.showResults": "Afficher les résultats",
+  "vocab.quiz.translateQuestion": "Que signifie ce mot ?",
+  "vocab.quiz.definitionQuestion": "Quel mot correspond à cette définition ?",
+  "vocab.quiz.progressLabel": "Progrès",
+  "vocab.quiz.questionCount": "{{current}} sur {{total}} questions",
+  "vocab.quiz.points": "Points : {{score}}/{{max}}",
+  "vocab.quiz.score.excellent": "Excellent ! Vous connaissez très bien vos mots !",
+  "vocab.quiz.score.good": "Bien joué ! Continuez !",
+  "vocab.quiz.score.okay": "Pas mal, mais il y a place à l'amélioration.",
+  "vocab.quiz.score.try": "Continuez à pratiquer ! Les mots finiront par s'ancrer.",
+    
+  // Cards
+  "vocab.cards.emptyTitle": "Aucun mot à étudier",
+  "vocab.cards.emptyDescription": "Ajoutez d'abord des mots à votre vocabulaire !",
+  "vocab.cards.completeTitle": "Cartes terminées !",
+  "vocab.cards.known": "Connu",
+  "vocab.cards.unknown": "Inconnu",
+  "vocab.cards.skipped": "Ignoré",
+  "vocab.cards.clickToFlip": "Cliquez pour retourner",
+  "vocab.cards.skip": "Ignorer",
+  "vocab.cards.unknownBtn": "Je ne savais pas",
+  "vocab.cards.knownBtn": "Je savais",
+  "vocab.cards.flipHint": "Cliquez sur la carte pour voir la traduction",
+  "vocab.cards.rateHint": "Évaluez vos connaissances sur ce mot",
+    
+  // Common extra
+  "delete": "Supprimer",
+  "back": "Retour",
+  "retry": "Réessayer",
   }
 };
 
@@ -394,6 +633,11 @@ const localeChangeEvent = new Event('localeChanged');
 export const setLocale = async (locale: Locale) => {
   currentLocale = locale;
   window.dispatchEvent(localeChangeEvent);
+
+  // Persist locale locally for unauthenticated users
+  try {
+    localStorage.setItem('locale', locale);
+  } catch {}
 
   // Persist locale to user profile
   const { data: { user } } = await supabase.auth.getUser();
@@ -426,5 +670,14 @@ export const initLocale = async () => {
 
   if (userLang && translations[userLang as Locale]) {
     await setLocale(userLang as Locale);
+    return;
   }
+
+  // Fallback: load from localStorage for unauthenticated users
+  try {
+    const stored = localStorage.getItem('locale') as Locale | null;
+    if (stored && translations[stored]) {
+      await setLocale(stored);
+    }
+  } catch {}
 };

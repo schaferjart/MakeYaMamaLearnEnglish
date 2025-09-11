@@ -50,12 +50,12 @@ const Vocabulary = () => {
       return (
         <Card className="p-12 text-center">
           <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Noch keine Wörter gelernt</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('vocab.empty.title')}</h3>
           <p className="text-muted-foreground mb-4">
-            Starte mit dem Lesen und speichere deine ersten Wörter!
+            {t('vocab.empty.description')}
           </p>
           <Button onClick={handleBackToHome}>
-            Zur Bibliothek
+            {t('conversations.toLibrary')}
           </Button>
         </Card>
       );
@@ -102,15 +102,15 @@ const Vocabulary = () => {
                 className="mr-2"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Zurück
+                {t('back')}
               </Button>
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Library className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-primary">Vokabular-Bibliothek</h1>
+                <h1 className="text-xl font-bold text-primary">{t('vocab.page.title')}</h1>
                 <p className="text-sm text-muted-foreground">
-                  {vocabulary.length} Wörter gespeichert
+                  {t('vocab.page.count', { count: vocabulary.length })}
                 </p>
               </div>
             </div>
@@ -120,7 +120,7 @@ const Vocabulary = () => {
               <div className="flex items-center gap-2 max-w-sm">
                 <Search className="w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Wörter suchen..."
+                  placeholder={t('vocab.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-48"
@@ -138,7 +138,7 @@ const Vocabulary = () => {
                 onClick={() => setViewMode('library')}
               >
                 <Library className="w-4 h-4 mr-2" />
-                Bibliothek
+                {t('vocab.modes.library')}
               </Button>
               <Button
                 variant={viewMode === 'cards' ? 'default' : 'ghost'}
@@ -146,7 +146,7 @@ const Vocabulary = () => {
                 onClick={() => setViewMode('cards')}
               >
                 <Brain className="w-4 h-4 mr-2" />
-                Lernkarten
+                {t('vocab.modes.cards')}
               </Button>
               <Button
                 variant={viewMode === 'quiz' ? 'default' : 'ghost'}
@@ -154,7 +154,7 @@ const Vocabulary = () => {
                 onClick={() => setViewMode('quiz')}
               >
                 <GraduationCap className="w-4 h-4 mr-2" />
-                Quiz
+                {t('vocab.modes.quiz')}
               </Button>
             </nav>
           )}
