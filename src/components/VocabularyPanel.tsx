@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { BookOpen, Volume2, Save, X, Loader2 } from "lucide-react";
 import { lookupWord, translateText, saveVocabulary } from "@/lib/api";
 import { t } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -29,6 +30,7 @@ interface VocabularyData {
 
 export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: VocabularyPanelProps) => {
   const { user } = useAuth();
+  const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [vocabularyData, setVocabularyData] = useState<VocabularyData | null>(null);
@@ -43,9 +45,12 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
 
       try {
         // Get word lookup and translation in parallel
+        // Map app locale to DeepL target language codes
+        const targetMap: Record<string, string> = { de: 'DE', en: 'EN-GB', fr: 'FR' };
+        const targetLang = targetMap[locale] || 'DE';
         const [wordData, translationData] = await Promise.all([
           lookupWord(selectedText.toLowerCase()),
-          translateText(selectedText, 'DE', 'EN')
+          translateText(selectedText, targetLang, 'EN')
         ]);
 
         const data: VocabularyData = {
@@ -187,7 +192,10 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
 
             <div>
               <h4 className="font-medium text-sm text-primary mb-2">
-                {t('vocab.translation')} (Deutsch)
+                {t('vocab.translation')} ({
+                  locale === 'de' ? t('language.german') :
+                  locale === 'fr' ? t('language.french') : t('language.english')
+                })
               </h4>
               <p className="text-sm text-foreground bg-secondary/50 p-2 rounded">
                 {vocabularyData.translation}
