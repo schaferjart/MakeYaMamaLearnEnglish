@@ -74,6 +74,8 @@ export interface VocabularyEntry {
   example?: string
   synonym?: string
   translation_de?: string
+  translation_en?: string
+  translation_fr?: string
   book_id?: string
   cfi?: string
   user_id?: string
@@ -90,6 +92,8 @@ export const saveVocabulary = async (vocabularyData: VocabularyEntry): Promise<V
       example: vocabularyData.example,
       synonym: vocabularyData.synonym,
       translation_de: vocabularyData.translation_de,
+  translation_en: vocabularyData.translation_en,
+  translation_fr: vocabularyData.translation_fr,
       
       book_id: vocabularyData.book_id,
       cfi: vocabularyData.cfi,

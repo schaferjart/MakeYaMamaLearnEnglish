@@ -27,7 +27,7 @@ export const ReadingSession = ({
   const [timeRemaining, setTimeRemaining] = useState(1); // seconds (testing)
   
   // Sample reading text for TTS demo
-  const [sampleText] = useState("Welcome to your reading session. This text-to-speech feature will help you listen to the content as you read along. You can pause, resume, or stop the audio at any time during your session.");
+  const [sampleText] = useState(t('tts.readingWithBrowser'));
 
   // Text-to-speech integration
   const { 
@@ -203,7 +203,7 @@ export const ReadingSession = ({
                     {t('session.timeUp')}
                   </Badge>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Zeit für ein kurzes Gespräch über das Gelesene!
+                    {t('session.conversationPrompt')}
                   </p>
                 </div>
               )}
@@ -216,7 +216,7 @@ export const ReadingSession = ({
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Text-to-Speech</span>
+            <span className="text-sm font-medium">{t('tts.title')}</span>
             <div className="flex gap-2">
               <Button 
                 variant={ttsPlaying ? "default" : "secondary"} 
@@ -227,17 +227,17 @@ export const ReadingSession = ({
                 {ttsLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
+                    {t('tts.generating')}
                   </>
                 ) : ttsPlaying ? (
                   <>
                     <VolumeX className="w-4 h-4 mr-2" />
-                    Stop Reading
+                    {t('tts.stopReading')}
                   </>
                 ) : (
                   <>
                     <Volume2 className="w-4 h-4 mr-2" />
-                    Start Reading
+                    {t('tts.startReading')}
                   </>
                 )}
               </Button>
@@ -256,13 +256,13 @@ export const ReadingSession = ({
           {ttsPlaying && (
             <div className="mt-2 text-xs text-muted-foreground flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-              Reading aloud with browser voice
+              {t('tts.readingWithBrowser')}
             </div>
           )}
           
           {ttsLoading && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Generating speech with browser...
+              {t('tts.generatingBrowser')}
             </div>
           )}
           

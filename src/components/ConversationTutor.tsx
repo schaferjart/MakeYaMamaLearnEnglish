@@ -127,16 +127,16 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           console.log('Speaking AI reply:', reply)
           speak(reply)
         } else {
-          const fallbackMessage = 'I am ready to talk about what you have read.'
+          const fallbackMessage = t('tutor.idk')
           setMessages([{ role: 'ai', content: fallbackMessage }])
           console.log('Speaking fallback message:', fallbackMessage)
           speak(fallbackMessage)
         }
       } catch (e) {
-        const fallbackMessage = 'I am ready to talk about what you have read.'
+        const fallbackMessage = t('tutor.idk')
         setMessages([{ role: 'ai', content: fallbackMessage }])
         speak(fallbackMessage)
-        toast({ title: 'Error', description: 'The tutor is temporarily unavailable.' })
+        toast({ title: 'Error', description: t('tutor.networkError') })
       }
     }
     kickOff()
@@ -218,13 +218,13 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
 
   const startRecording = async () => {
     if (!supportsSTT()) {
-      toast({ title: 'Error', description: 'Speech recognition not supported in this browser.' })
+      toast({ title: 'Error', description: t('tutor.networkError') })
       return
     }
     
     // Check if online
     if (!navigator.onLine) {
-      toast({ title: 'Error', description: 'Internet connection required for speech recognition.' })
+      toast({ title: 'Error', description: t('tutor.networkError') })
       return
     }
 
@@ -233,7 +233,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch (error) {
       console.error('Microphone permission error:', error)
-      toast({ title: 'Mic Access Needed', description: 'Please allow microphone in browser prompt.' })
+      toast({ title: t('tutor.permissionDenied'), description: t('tutor.recordStartTooltip') })
       return
     }
     
@@ -256,7 +256,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       console.log('Web Speech API transcription:', transcript)
       setSpeechRetryCount(0)
       setInput((prev) => prev ? `${prev} ${transcript.trim()}` : transcript.trim())
-      toast({ title: 'Success', description: 'Speech recognized successfully!' })
+  toast({ title: 'Success', description: t('tutor.speechRecognized') })
       
       setTimeout(() => setIsProcessingTranscript(false), 1000)
     };
@@ -267,7 +267,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       
       if (event.error === 'network') {
         if (!navigator.onLine) {
-          toast({ title: 'Network Error', description: 'No internet connection. Please check and try again.' })
+          toast({ title: t('tutor.networkError'), description: t('tutor.retryFailed') })
           return // Don't retry
         }
         setSpeechRetryCount(prev => {
@@ -277,7 +277,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
             setTimeout(startRecording, 2000 * newCount) // Exponential backoff: 2s, 4s, 6s
             return newCount
           } else {
-            toast({ title: 'Speech Recognition Failed', description: 'Max retries reached. Please use text input.' })
+            toast({ title: 'Error', description: t('tutor.retryFailed') })
             return 0 // Reset counter
           }
         })
@@ -288,13 +288,13 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       setSpeechRetryCount(0)
       
       if (event.error === 'no-speech') {
-        toast({ title: 'Info', description: 'No speech detected. Please try again.' })
+        toast({ title: 'Info', description: t('tutor.noSpeech') })
       } else if (event.error === 'not-allowed') {
-        toast({ title: 'Permission Denied', description: 'Microphone access is required. Please enable in browser settings.' })
+        toast({ title: t('tutor.permissionDenied'), description: t('tutor.recordStartTooltip') })
       } else if (event.error === 'audio-capture') {
-        toast({ title: 'Audio Error', description: 'Microphone not available. Please check device settings.' })
+        toast({ title: 'Error', description: t('tutor.networkError') })
       } else {
-        toast({ title: 'Error', description: 'Speech recognition failed. Please try again.' })
+        toast({ title: 'Error', description: t('tutor.retryFailed') })
       }
     }
     
@@ -314,7 +314,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
     } catch (e) {
       console.error('Failed to start Web Speech API:', e)
       setIsRecording(false)
-      toast({ title: 'Error', description: 'Could not start speech recognition.' })
+  toast({ title: 'Error', description: t('tutor.retryFailed') })
     }
   }
 
@@ -328,7 +328,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
 
   const startAudioRecording = async () => {
     if (!isAudioRecordingSupported()) {
-      toast({ title: 'Error', description: 'Audio recording not supported in this browser.' })
+      toast({ title: 'Error', description: t('tutor.networkError') })
       return
     }
 
@@ -363,12 +363,12 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       recorder.onstop = async () => {
         const duration = Date.now() - recordingStartTimeRef.current
         if (duration < 500) {
-          toast({ title: 'Recording too short', description: 'Please record for at least 0.5 seconds.' })
+          toast({ title: 'Error', description: t('tutor.retryFailed') })
           return
         }
         
         if (mediaChunksRef.current.length === 0) {
-          toast({ title: 'No audio recorded', description: 'Please check your microphone.' })
+          toast({ title: 'Error', description: t('tutor.noSpeech') })
           return
         }
         
@@ -376,7 +376,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         console.log('Audio blob size:', audioBlob.size, 'bytes', 'type:', audioBlob.type)
         
         if (audioBlob.size === 0) {
-          toast({ title: 'Empty recording', description: 'No audio data captured.' })
+          toast({ title: 'Error', description: t('tutor.noSpeech') })
           return
         }
         
@@ -393,25 +393,14 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           
           if (result && result.text && result.text.trim()) {
             setInput(result.text.trim())
-            toast({
-              title: 'Speech recognized!',
-              description: 'Audio transcribed successfully.',
-            })
+            toast({ title: 'Success', description: t('tutor.speechRecognized') })
           } else {
-            toast({
-              title: 'No speech detected',
-              description: 'Please try speaking more clearly or use typing.',
-              variant: "destructive"
-            })
+            toast({ title: t('tutor.noSpeech'), description: t('tutor.retryFailed'), variant: 'destructive' })
           }
         } catch (error) {
           console.error('Transcription error:', error)
-          const errorMessage = error instanceof Error ? error.message : 'Please try again or use typing.'
-          toast({
-            title: 'Transcription failed',
-            description: errorMessage,
-            variant: "destructive"
-          })
+          const errorMessage = error instanceof Error ? error.message : t('tutor.retryFailed')
+          toast({ title: 'Error', description: errorMessage, variant: 'destructive' })
         }        
         // Cleanup
         if (mediaStreamRef.current) {
@@ -425,7 +414,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       
     } catch (error) {
       console.error('Microphone access error:', error)
-      toast({ title: 'Microphone Error', description: 'Please allow microphone access.' })
+      toast({ title: t('tutor.permissionDenied'), description: t('tutor.recordStartTooltip') })
     }
   }
 
@@ -484,16 +473,16 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           setMessages((prev) => [...prev, { role: 'ai', content: reply }])
           speak(reply)
         } catch {
-          const errorMessage = 'Sorry, please try again.'
+          const errorMessage = t('tutor.retryFailed')
           setMessages((prev) => [...prev, { role: 'ai', content: errorMessage }])
           speak(errorMessage)
-          toast({ title: 'Error', description: 'Please try again later.' })
+          toast({ title: 'Error', description: t('tutor.retryFailed') })
         }
       } else {
-        const errorMessage = 'Sorry, please try again.'
+        const errorMessage = t('tutor.retryFailed')
         setMessages((prev) => [...prev, { role: 'ai', content: errorMessage }])
         speak(errorMessage)
-        toast({ title: 'Error', description: 'Please try again later.' })
+        toast({ title: 'Error', description: t('tutor.retryFailed') })
       }
     } finally {
       setSending(false)
@@ -513,7 +502,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         
         {/* Timer duration options */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Duration:</span>
+          <span className="text-xs text-muted-foreground">{t('tutor.duration')}:</span>
           <div className="flex gap-1">
             {[1, 2, 3, 4, .1].map((minutes) => (
               <Button
@@ -545,7 +534,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
           ))}
         </div>
         <div className="flex gap-2 flex-wrap">
-          {['I don\'t know', 'Hint, please', 'Next question'].map((q) => (
+          {[t('tutor.idk'), t('tutor.hint'), t('tutor.nextQuestion')].map((q) => (
             <Button key={q} variant="outline" size="sm" onClick={() => { setInput(''); setMessages((prev)=>[...prev, { role: 'user', content: q }]); setTimeout(()=>handleSend(), 0) }}>
               {q}
             </Button>
@@ -572,18 +561,18 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
               }
             }}
             disabled={isThinking || sending}
-            title={(isRecording || isRecordingAudio) ? "Click to stop recording" : "Click to start recording"}
+            title={(isRecording || isRecordingAudio) ? t('tutor.recordStopTooltip') : t('tutor.recordStartTooltip')}
           >
-            {(isRecordingAudio || isRecording) ? 'Stop Recording' : '🎤 Record'}
+            {(isRecordingAudio || isRecording) ? t('tutor.stopRecording') : `🎤 ${t('tutor.record')}`}
           </Button>
           <Button variant="outline" onClick={() => { cancelTokenRef.current++; setIsThinking(false); }} disabled={!isThinking}>
-            Cancel
+            {t('tutor.cancel')}
           </Button>
           <Button onClick={handleSend} disabled={sending || !input.trim()}>
             {t('tutor.send')}
           </Button>
           <Button variant="outline" onClick={() => { if (isPlaying) stop(); void finalizeAndEnd(); }}>
-            {t('close')}
+            {t('tutor.close')}
           </Button>
         </div>
       </CardContent>

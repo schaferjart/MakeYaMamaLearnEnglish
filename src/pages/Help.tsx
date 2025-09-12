@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { OnboardingContent } from "@/components/OnboardingContent";
 import { Link } from "react-router-dom";
+import { t } from "@/lib/i18n";
 
 const Help = () => {
   return (
@@ -8,7 +9,9 @@ const Help = () => {
       <OnboardingContent />
       <div className="text-center mt-8">
         <Button size="lg" asChild>
-          <Link to="/">Back to Dashboard</Link>
+          <Link to="/">
+            {t("onboarding.getBack")}
+          </Link>
         </Button>
       </div>
     </div>

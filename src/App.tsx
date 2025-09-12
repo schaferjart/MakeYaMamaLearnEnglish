@@ -11,11 +11,13 @@ import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Help from "./pages/Help";
 import { useAuth } from "./hooks/useAuth";
+import { useLocale } from "./lib/locale";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const { user, loading } = useAuth();
+  const { locale } = useLocale();
 
   if (loading) {
     return (
@@ -40,7 +42,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+  <BrowserRouter key={locale}>
           <Routes>
             <Route 
               path="/" 

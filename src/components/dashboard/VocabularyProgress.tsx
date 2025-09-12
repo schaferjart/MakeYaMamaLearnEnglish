@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useLocale } from '@/lib/locale';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, TrendingUp, BookOpen, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { t } from "@/lib/i18n";
 
 interface VocabularyStats {
   totalWords: number;
@@ -28,6 +30,7 @@ interface VocabularyStats {
 
 export const VocabularyProgress = () => {
   const { user } = useAuth();
+  const { locale } = useLocale();
   const [stats, setStats] = useState<VocabularyStats>({
     totalWords: 0,
     weeklyWords: 0,
@@ -41,7 +44,7 @@ export const VocabularyProgress = () => {
     if (user) {
       fetchVocabularyStats();
     }
-  }, [user]);
+  }, [user, locale]);
 
   const fetchVocabularyStats = async () => {
     try {
@@ -81,7 +84,7 @@ export const VocabularyProgress = () => {
 
       // Group by book
       const bookCounts = vocabularyData.reduce((acc, word) => {
-        const bookTitle = word.books?.title || 'Unknown Book';
+  const bookTitle = word.books?.title || 'Unknown Book';
         acc[bookTitle] = (acc[bookTitle] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -91,13 +94,24 @@ export const VocabularyProgress = () => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5); // Top 5 books
 
-      // Recent words (last 5)
-      const recentWords = vocabularyData.slice(0, 5).map(word => ({
-        word: word.headword,
-        translation: word.translation_de || word.sense || 'No translation',
-        bookTitle: word.books?.title || 'Unknown Book',
-        date: word.created_at
-      }));
+      // Recent words (last 5) with locale-aware translation fallback
+      const recentWords = vocabularyData.slice(0, 5).map(word => {
+        const order = [
+          locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
+          'translation_de', 'translation_en', 'translation_fr'
+        ];
+        let translation = '';
+        for (const k of order) {
+          const val = (word as any)[k];
+          if (typeof val === 'string' && val.trim()) { translation = val; break; }
+        }
+        return {
+          word: word.headword,
+          translation: translation || word.sense || '—',
+          bookTitle: word.books?.title || 'Unknown Book',
+          date: word.created_at
+        };
+      });
 
       setStats({
         totalWords,
@@ -123,9 +137,9 @@ export const VocabularyProgress = () => {
 
   const getDifficultyLabel = (level: 'easy' | 'medium' | 'hard') => {
     switch (level) {
-      case 'easy': return 'Easy (1-2)';
-      case 'medium': return 'Medium (3-4)';
-      case 'hard': return 'Hard (5+)';
+  case 'easy': return t('dashboard.vocab.difficulty.easy');
+  case 'medium': return t('dashboard.vocab.difficulty.medium');
+  case 'hard': return t('dashboard.vocab.difficulty.hard');
     }
   };
 
@@ -157,7 +171,7 @@ export const VocabularyProgress = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-accent" />
-            Vocabulary Overview
+            {t('dashboard.vocab.overview')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -165,13 +179,13 @@ export const VocabularyProgress = () => {
             <span className="text-2xl font-bold">{stats.totalWords}</span>
             <Badge variant="secondary" className="gap-1">
               <TrendingUp className="w-3 h-3" />
-              +{stats.weeklyWords} this week
+              {t('dashboard.vocab.weeklyGain', { count: stats.weeklyWords })}
             </Badge>
           </div>
 
           {totalDifficultyWords > 0 && (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">Words by difficulty:</p>
+              <p className="text-sm text-muted-foreground">{t('dashboard.vocab.wordsByDifficulty')}</p>
               
               {(['easy', 'medium', 'hard'] as const).map((difficulty) => {
                 const count = stats.byDifficulty[difficulty];
@@ -200,14 +214,14 @@ export const VocabularyProgress = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-primary" />
-            Words by Book
+            {t('dashboard.vocab.wordsByBook')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {stats.byBook.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
-              <p className="text-sm">No vocabulary saved yet</p>
-              <p className="text-xs">Start reading and save words to see progress</p>
+              <p className="text-sm">{t('dashboard.vocab.noneSaved')}</p>
+              <p className="text-xs">{t('dashboard.vocab.startReading')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -232,7 +246,7 @@ export const VocabularyProgress = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-muted-foreground" />
-              Recent Words
+              {t('dashboard.vocab.recentWords')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -244,7 +258,7 @@ export const VocabularyProgress = () => {
                     {word.translation}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    from {word.bookTitle}
+                    {t('dashboard.vocab.fromBook', { title: word.bookTitle })}
                   </div>
                 </div>
               ))}

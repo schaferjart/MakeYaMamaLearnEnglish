@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, Clock, Target, Brain, TrendingUp, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { t } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardStatsData {
@@ -160,13 +161,13 @@ export const DashboardStats = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-primary">
             <Target className="w-5 h-5" />
-            Today's Progress
+            {t('dashboard.today.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
-              Words read: {stats.todayProgress.wordsRead} / {stats.todayProgress.goal}
+              {t('dashboard.today.wordsRead', { read: stats.todayProgress.wordsRead, goal: stats.todayProgress.goal })}
             </span>
             <span className="text-sm font-medium">
               {Math.round(progressPercentage)}%
@@ -174,8 +175,8 @@ export const DashboardStats = () => {
           </div>
           <Progress value={progressPercentage} className="h-2" />
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{stats.todayProgress.timeMinutes} min reading</span>
-            <span>{stats.streakDays} day streak 🔥</span>
+            <span>{t('dashboard.today.minutes', { minutes: stats.todayProgress.timeMinutes })}</span>
+            <span>{t('dashboard.today.streak', { days: stats.streakDays })}</span>
           </div>
         </CardContent>
       </Card>
@@ -184,54 +185,54 @@ export const DashboardStats = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Books Started</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.booksStarted')}</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBooksStarted}</div>
             <p className="text-xs text-muted-foreground">
-              Reading journey
+              {t('dashboard.stats.booksStarted.caption')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Words Read</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.wordsRead')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalWordsRead.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              Total progress
+              {t('dashboard.stats.wordsRead.caption')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reading Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.readingTime')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(stats.totalTimeMinutes / 60)}h {stats.totalTimeMinutes % 60}m
+              {t('dashboard.stats.readingTime.format', { hours: Math.floor(stats.totalTimeMinutes / 60), minutes: stats.totalTimeMinutes % 60 })}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.averageSpeedWpm} WPM avg
+              {t('dashboard.stats.readingTime.caption', { wpm: stats.averageSpeedWpm })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vocabulary</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.vocabulary')}</CardTitle>
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.vocabularyCount}</div>
             <p className="text-xs text-muted-foreground">
-              Words learned
+              {t('dashboard.stats.vocabulary.caption')}
             </p>
           </CardContent>
         </Card>

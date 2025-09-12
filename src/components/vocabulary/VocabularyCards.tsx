@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocale } from '@/lib/locale';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
   Brain,
   Trophy
 } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 // Utility function to clean XML tags from text
 const cleanXmlTags = (text: string): string => {
@@ -30,6 +32,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
   onComplete
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { locale } = useLocale();
   const [isFlipped, setIsFlipped] = useState(false);
   const [knownCards, setKnownCards] = useState<Set<number>>(new Set());
   const [unknownCards, setUnknownCards] = useState<Set<number>>(new Set());
@@ -77,9 +80,9 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
     return (
       <Card className="p-12 text-center">
         <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Keine Wörter zum Lernen</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('vocab.cards.empty.title')}</h3>
         <p className="text-muted-foreground">
-          Füge erst Wörter zu deinem Vokabular hinzu!
+          {t('vocab.cards.empty.description')}
         </p>
       </Card>
     );
@@ -95,31 +98,31 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
         <Card className="text-center p-8">
           <CardHeader>
             <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <CardTitle className="text-2xl">Lernkarten abgeschlossen!</CardTitle>
+      <CardTitle className="text-2xl">{t('vocab.cards.completed.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold text-green-600">{knownCount}</div>
-                <div className="text-sm text-muted-foreground">Bekannt</div>
+        <div className="text-sm text-muted-foreground">{t('vocab.cards.stats.known')}</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-red-600">{unknownCount}</div>
-                <div className="text-sm text-muted-foreground">Unbekannt</div>
+        <div className="text-sm text-muted-foreground">{t('vocab.cards.stats.unknown')}</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-gray-600">{skippedCount}</div>
-                <div className="text-sm text-muted-foreground">Übersprungen</div>
+        <div className="text-sm text-muted-foreground">{t('vocab.cards.stats.skipped')}</div>
               </div>
             </div>
             
             <div className="flex gap-3 justify-center">
               <Button onClick={resetSession} variant="outline">
                 <RotateCcw className="w-4 h-4 mr-2" />
-                Wiederholen
+        {t('vocab.cards.button.retry')}
               </Button>
               <Button onClick={onComplete}>
-                Zur Bibliothek
+        {t('vocab.cards.button.toLibrary')}
               </Button>
             </div>
           </CardContent>
@@ -133,8 +136,8 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
       {/* Progress */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Fortschritt</span>
-          <span>{currentIndex + 1} von {vocabulary.length}</span>
+          <span>{t('vocab.cards.progress.label')}</span>
+          <span>{t('vocab.cards.progress.counter', { current: currentIndex + 1, total: vocabulary.length })}</span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
@@ -167,20 +170,30 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
               )}
               
               <p className="text-muted-foreground mt-8">
-                Klicken zum Umdrehen
+                {t('vocab.cards.prompt.flip')}
               </p>
             </div>
           ) : (
             /* Back of card - German translation and details */
             <div className="space-y-4 w-full">
               <h2 className="text-3xl font-bold text-primary mb-6">
-                {currentCard.translation_de || 'Keine Übersetzung'}
+                {(() => {
+                  const order: string[] = [
+                    locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
+                    'translation_de','translation_en','translation_fr'
+                  ];
+                  for (const key of order) {
+                    const val = (currentCard as any)[key];
+                    if (typeof val === 'string' && val.trim()) return val;
+                  }
+                  return t('vocab.fallback.noTranslation');
+                })()}
               </h2>
               
               {currentCard.sense && (
                 <div className="bg-muted/50 rounded-lg p-4 text-left">
                   <h4 className="font-semibold text-sm text-muted-foreground mb-2">
-                    Definition:
+                    {t('vocab.cards.section.definition')}
                   </h4>
                   <p className="text-foreground">{cleanXmlTags(currentCard.sense)}</p>
                 </div>
@@ -189,7 +202,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
               {currentCard.example && (
                 <div className="bg-muted/50 rounded-lg p-4 text-left">
                   <h4 className="font-semibold text-sm text-muted-foreground mb-2">
-                    Beispiel:
+                    {t('vocab.cards.section.example')}
                   </h4>
                   <p className="text-foreground italic">
                     "{cleanXmlTags(currentCard.example)}"
@@ -200,7 +213,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
               {currentCard.synonym && (
                 <div className="bg-muted/50 rounded-lg p-4 text-left">
                   <h4 className="font-semibold text-sm text-muted-foreground mb-2">
-                    Synonym:
+                    {t('vocab.cards.section.synonym')}
                   </h4>
                   <p className="text-foreground">{currentCard.synonym}</p>
                 </div>
@@ -218,7 +231,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
           disabled={!isFlipped}
         >
           <SkipForward className="w-4 h-4 mr-2" />
-          Überspringen
+          {t('vocab.cards.button.skip')}
         </Button>
         <Button
           variant="destructive"
@@ -226,7 +239,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
           disabled={!isFlipped}
         >
           <XCircle className="w-4 h-4 mr-2" />
-          Nicht gewusst
+          {t('vocab.cards.button.unknown')}
         </Button>
         <Button
           variant="default"
@@ -235,14 +248,14 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
           className="bg-green-600 hover:bg-green-700"
         >
           <CheckCircle className="w-4 h-4 mr-2" />
-          Gewusst
+          {t('vocab.cards.button.known')}
         </Button>
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
         {!isFlipped 
-          ? "Klicke auf die Karte, um die Übersetzung zu sehen" 
-          : "Bewerte dein Wissen über dieses Wort"
+          ? t('vocab.cards.prompt.reveal') 
+          : t('vocab.cards.prompt.rate')
         }
       </p>
     </div>

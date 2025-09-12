@@ -6,6 +6,7 @@ import { BookOpen, Clock, Brain, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { t } from "@/lib/i18n";
 
 interface ActivityItem {
   type: 'reading' | 'vocabulary' | 'session';
@@ -130,11 +131,11 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
     switch (activity.type) {
       case 'reading':
         const minutes = Math.round((activity.timeSpent || 0) / 60);
-        return `Read ${activity.wordsRead || 0} words in ${minutes} min`;
+  return t('dashboard.activity.reading', { words: activity.wordsRead || 0, minutes });
       case 'vocabulary':
-        return `Learned "${activity.vocabularyWord}"`;
+  return t('dashboard.activity.vocabulary', { word: activity.vocabularyWord || '' });
       case 'session':
-        return 'Completed reading session';
+  return t('dashboard.activity.session');
     }
   };
 
@@ -142,7 +143,7 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>{t('dashboard.activity.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -165,9 +166,9 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          Recent Activity
+          {t('dashboard.activity.title')}
           <Badge variant="secondary" className="text-xs">
-            {activities.length} items
+            {t('dashboard.activity.items', { count: activities.length })}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -175,8 +176,8 @@ export const RecentActivity = ({ onContinueReading }: RecentActivityProps) => {
         {activities.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No recent activity</p>
-            <p className="text-sm">Start reading to see your progress here</p>
+            <p>{t('dashboard.activity.none')}</p>
+            <p className="text-sm">{t('dashboard.activity.startReading')}</p>
           </div>
         ) : (
           <div className="space-y-4">

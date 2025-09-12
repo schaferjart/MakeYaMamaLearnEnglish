@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocale } from '@/lib/locale';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { VocabularyEntry } from "@/lib/api";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
 import { BookOpen, Calendar, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { t } from "@/lib/i18n";
 
 interface VocabularyListProps {
   vocabulary: VocabularyEntry[];
@@ -29,6 +31,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
   onRefresh
 }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const { locale } = useLocale();
   const [books, setBooks] = useState<Record<string, BookInfo>>({});
 
   // Fetch book information for all unique book IDs
@@ -92,9 +95,9 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
   }, {} as Record<string, VocabularyEntry[]>);
 
   const getBookTitle = (bookId: string): string => {
-    if (bookId === 'unknown') return 'Unbekanntes Buch';
+  if (bookId === 'unknown') return t('reader.book.unknown');
     const book = books[bookId];
-    return book ? `${book.title} von ${book.author}` : `Buch ${bookId.slice(0, 8)}...`;
+  return book ? t('vocab.list.byAuthor', { title: book.title, author: book.author }) : t('vocab.list.bookIdFallback', { id: bookId.slice(0, 8) });
   };
 
   return (
@@ -106,7 +109,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
               <BookOpen className="w-5 h-5 text-primary" />
               {getBookTitle(bookId)}
               <Badge variant="outline" className="ml-auto">
-                {words.length} Wörter
+                {t('vocab.list.wordsCount', { count: words.length })}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -140,11 +143,19 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                       </div>
 
                       {/* Translation */}
-                      {word.translation_de && (
-                        <p className="text-primary font-medium">
-                          → {word.translation_de}
-                        </p>
-                      )}
+                      {(() => {
+                        const order: string[] = [
+                          locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
+                          'translation_de','translation_en','translation_fr'
+                        ];
+                        for (const key of order) {
+                          const val = (word as any)[key];
+                          if (typeof val === 'string' && val.trim()) {
+                            return <p className="text-primary font-medium">→ {val}</p>;
+                          }
+                        }
+                        return null;
+                      })()}
 
                       {/* Definition */}
                       {word.sense && (
@@ -165,7 +176,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                       {/* Synonym */}
                       {word.synonym && (
                         <p className="text-sm">
-                          <span className="text-muted-foreground">Synonym: </span>
+                          <span className="text-muted-foreground">{t('vocab.list.label.synonym')} </span>
                           <span className="text-foreground font-medium">{word.synonym}</span>
                         </p>
                       )}
@@ -174,7 +185,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          Gespeichert
+                          {t('vocab.list.label.saved')}
                         </div>
                       </div>
                     </div>
@@ -188,14 +199,14 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                             variant="destructive"
                             onClick={() => handleDelete(word.id!)}
                           >
-                            Löschen
+                            {t('vocab.list.action.delete')}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setDeleteConfirm(null)}
                           >
-                            Abbrechen
+                            {t('vocab.list.action.cancel')}
                           </Button>
                         </div>
                       ) : (
