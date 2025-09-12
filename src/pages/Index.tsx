@@ -185,7 +185,7 @@ const Index = () => {
               onClick={() => setCurrentView('dashboard')}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              Dashboard
+              {t('nav.dashboard')}
             </Button>
             <Button 
               variant={currentView === 'library' ? 'default' : 'ghost'}
@@ -201,7 +201,7 @@ const Index = () => {
               onClick={() => navigate('/vocabulary')}
             >
               <GraduationCap className="w-4 h-4 mr-2" />
-              Vokabular
+              {t('nav.vocabulary')}
             </Button>
             <Button 
               variant={currentView === 'conversations' ? 'default' : 'ghost'}
@@ -209,7 +209,7 @@ const Index = () => {
               onClick={() => setCurrentView('conversations')}
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Gespräche
+              {t('nav.conversations')}
             </Button>
             {selectedBook && (
               <>
@@ -218,7 +218,7 @@ const Index = () => {
                   size="sm"
                   onClick={() => setCurrentView('session')}
                 >
-                  Session
+                  {t('nav.session')}
                 </Button>
                 <Button 
                   variant={currentView === 'reading' ? 'default' : 'ghost'}
@@ -238,9 +238,9 @@ const Index = () => {
         {currentView === 'dashboard' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Dashboard</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t('nav.dashboard')}</h2>
               <p className="text-muted-foreground">
-                Track your reading progress and vocabulary growth
+                {t('dashboard.description')}
               </p>
             </div>
             
@@ -269,8 +269,8 @@ const Index = () => {
                 <h2 className="text-2xl font-bold text-foreground">{t('library.title')}</h2>
                 <p className="text-muted-foreground mt-1">
                   {books.length > 0 
-                    ? `${books.length} books available for reading`
-                    : 'No books found. Click sync to load books from storage.'
+                    ? t('library.availableCount', { count: books.length })
+                    : t('library.empty.description')
                   }
                 </p>
               </div>
@@ -282,7 +282,7 @@ const Index = () => {
                   size="sm"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-                  {syncing ? 'Syncing...' : 'Sync Books'}
+                  {syncing ? t('library.syncing') : t('library.sync')}
                 </Button>
               </div>
             </div>
@@ -312,13 +312,13 @@ const Index = () => {
             ) : (
               <Card className="p-12 text-center">
                 <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No books found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('library.empty.title')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Click "Sync Books" to load books from your storage bucket.
+                  {t('library.empty.ctaDescription')}
                 </p>
                 <Button onClick={handleSyncBooks} disabled={syncing}>
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-                  {syncing ? 'Syncing...' : 'Sync Books'}
+                  {syncing ? t('library.syncing') : t('library.sync')}
                 </Button>
               </Card>
             )}
@@ -331,17 +331,16 @@ const Index = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-primary mb-2">
-                      API Integration Status
+                      {t('integrations.status.title')}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      To enable full functionality (AI tutor, vocabulary API, TTS), 
-                      configure your API keys in the Supabase Edge Function secrets.
+                      {t('integrations.status.description')}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="text-xs">Wordnik API</Badge>
-                      <Badge variant="outline" className="text-xs">DeepL Translation</Badge>
-                      <Badge variant="outline" className="text-xs">Text-to-Speech</Badge>
-                      <Badge variant="outline" className="text-xs">Progress Tracking</Badge>
+                      <Badge variant="outline" className="text-xs">{t('integration.badge.wordnik')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('integration.badge.deepl')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('integration.badge.tts')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('integration.badge.progress')}</Badge>
                     </div>
                   </div>
                 </div>
@@ -353,9 +352,9 @@ const Index = () => {
         {currentView === 'conversations' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Gespräche</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t('conversations.title')}</h2>
               <p className="text-muted-foreground">
-                Deine Unterhaltungen mit dem AI Tutor
+                {t('conversations.description')}
               </p>
             </div>
             
@@ -366,12 +365,12 @@ const Index = () => {
             ) : conversations.length === 0 ? (
               <Card className="p-12 text-center">
                 <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Noch keine Gespräche</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('conversations.empty.title')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Starte eine Unterhaltung mit dem AI Tutor während des Lesens!
+                  {t('conversations.empty.description')}
                 </p>
                 <Button onClick={() => setCurrentView('library')}>
-                  Zur Bibliothek
+                  {t('common.toLibrary')}
                 </Button>
               </Card>
             ) : (

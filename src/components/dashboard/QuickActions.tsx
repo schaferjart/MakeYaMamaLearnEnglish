@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Brain, BarChart3, Target, RefreshCw, Settings } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 interface QuickActionsProps {
   onContinueReading?: () => void;
@@ -24,7 +25,7 @@ export const QuickActions = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+  <CardTitle>{t('dashboard.quick.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 md:grid-cols-2">
@@ -35,7 +36,7 @@ export const QuickActions = ({
               variant="default"
             >
               <BookOpen className="w-4 h-4" />
-              Continue Reading
+              {t('dashboard.quick.continue')}
             </Button>
           )}
 
@@ -46,7 +47,7 @@ export const QuickActions = ({
               className="justify-start gap-2"
             >
               <BookOpen className="w-4 h-4" />
-              Browse Library
+              {t('dashboard.quick.browseLibrary')}
             </Button>
           )}
 
@@ -57,7 +58,7 @@ export const QuickActions = ({
               className="justify-start gap-2"
             >
               <Brain className="w-4 h-4" />
-              Review Vocabulary
+              {t('dashboard.quick.reviewVocabulary')}
             </Button>
           )}
 
@@ -68,7 +69,7 @@ export const QuickActions = ({
               className="justify-start gap-2"
             >
               <BarChart3 className="w-4 h-4" />
-              View Statistics
+              {t('dashboard.quick.viewStatistics')}
             </Button>
           )}
 
@@ -80,7 +81,7 @@ export const QuickActions = ({
               disabled={syncing}
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Syncing...' : 'Sync Books'}
+              {syncing ? t('dashboard.quick.syncing') : t('dashboard.quick.syncBooks')}
             </Button>
           )}
 
@@ -91,7 +92,7 @@ export const QuickActions = ({
               className="justify-start gap-2"
             >
               <Settings className="w-4 h-4" />
-              Settings
+              {t('dashboard.quick.settings')}
             </Button>
           )}
         </div>

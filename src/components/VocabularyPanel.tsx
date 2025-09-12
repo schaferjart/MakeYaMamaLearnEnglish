@@ -50,25 +50,25 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
 
         const data: VocabularyData = {
           word: wordData.word,
-          definition: wordData.sense || wordData.definitions[0]?.text || "No definition available",
+          definition: wordData.sense || wordData.definitions[0]?.text || t('vocab.fallback.noDefinition'),
           synonyms: [], // Could be extracted from definitions
           translation: translationData.translation,
-          example: wordData.example || wordData.examples[0] || `"${selectedText}" - example not available`,
+          example: wordData.example || wordData.examples[0] || t('vocab.fallback.noExample', { word: selectedText }),
           pos: wordData.pos
         };
 
         setVocabularyData(data);
       } catch (err) {
         console.error('Error fetching word data:', err);
-        setError('Failed to fetch word information. Please try again.');
+  setError(t('vocab.error.fetchFailed'));
         
         // Fallback data
         setVocabularyData({
           word: selectedText.toLowerCase(),
-          definition: "Definition temporarily unavailable",
+          definition: t('vocab.fallback.definitionTempUnavailable'),
           synonyms: [],
-          translation: "Translation temporarily unavailable",
-          example: `"${selectedText}" - example not available`,
+          translation: t('vocab.fallback.translationTempUnavailable'),
+          example: t('vocab.fallback.noExample', { word: selectedText }),
         });
       } finally {
         setIsLoading(false);
@@ -100,8 +100,8 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
       onSave?.(vocabularyData);
       
       toast({
-        title: "Vocabulary saved!",
-        description: `"${vocabularyData.word}" has been added to your vocabulary.`,
+        title: t('vocab.toast.savedTitle'),
+        description: t('vocab.toast.savedDescription', { word: vocabularyData.word }),
       });
       
       setTimeout(() => {
@@ -111,8 +111,8 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
     } catch (error) {
       console.error('Error saving vocabulary:', error);
       toast({
-        title: "Save failed",
-        description: "Could not save vocabulary. Please try again.",
+        title: t('vocab.toast.saveFailedTitle'),
+        description: t('vocab.toast.saveFailedDescription'),
         variant: "destructive"
       });
     } finally {
@@ -162,7 +162,7 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
           <div className="text-center py-4 text-destructive">
             <p className="text-sm">{error}</p>
             <Button variant="outline" size="sm" onClick={onClose} className="mt-2">
-              Close
+              {t('close')}
             </Button>
           </div>
         ) : vocabularyData ? (

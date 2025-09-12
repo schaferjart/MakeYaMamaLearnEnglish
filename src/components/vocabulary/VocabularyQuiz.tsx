@@ -12,6 +12,7 @@ import {
   RotateCcw,
   GraduationCap
 } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 // Utility function to clean XML tags from text
 const cleanXmlTags = (text: string): string => {
@@ -150,9 +151,9 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
     return (
       <Card className="p-12 text-center">
         <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Nicht genug Wörter für Quiz</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('vocab.quiz.notEnough.title')}</h3>
         <p className="text-muted-foreground">
-          Du benötigst mindestens 4 Wörter für ein Quiz. Lerne mehr Wörter und komm zurück!
+          {t('vocab.quiz.notEnough.description')}
         </p>
       </Card>
     );
@@ -186,15 +187,15 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
         <Card className="text-center p-8">
           <CardHeader>
             <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <CardTitle className="text-2xl">Quiz abgeschlossen!</CardTitle>
+            <CardTitle className="text-2xl">{t('vocab.quiz.completed.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <div className={`text-6xl font-bold ${getScoreColor()}`}>
-                {score}/{questions.length}
+                {t('vocab.quiz.result.score', { score, total: questions.length })}
               </div>
               <div className={`text-2xl font-semibold ${getScoreColor()}`}>
-                {percentage}%
+                {t('vocab.quiz.result.percent', { percent: percentage })}
               </div>
               <p className="text-lg text-muted-foreground">
                 {getScoreMessage()}
@@ -204,10 +205,10 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
             <div className="flex gap-3 justify-center">
               <Button onClick={resetQuiz} variant="outline">
                 <RotateCcw className="w-4 h-4 mr-2" />
-                Wiederholen
+                {t('vocab.quiz.button.retry')}
               </Button>
               <Button onClick={onComplete}>
-                Zur Bibliothek
+                {t('vocab.quiz.button.toLibrary')}
               </Button>
             </div>
           </CardContent>
@@ -221,12 +222,12 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
       {/* Progress */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Fortschritt</span>
-          <span>{currentQuestionIndex + 1} von {questions.length} Fragen</span>
+          <span>{t('vocab.quiz.progress.label')}</span>
+          <span>{t('vocab.quiz.progress.counter', { current: currentQuestionIndex + 1, total: questions.length })}</span>
         </div>
         <Progress value={progress} className="h-2" />
         <div className="text-center text-sm text-muted-foreground">
-          Punkte: {score}/{currentQuestionIndex + (showResult ? 1 : 0)}
+          {t('vocab.quiz.points', { score, answered: currentQuestionIndex + (showResult ? 1 : 0) })}
         </div>
       </div>
 
@@ -235,8 +236,8 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
         <CardHeader className="text-center">
           <CardTitle className="text-lg">
             {currentQuestion.type === 'translation' 
-              ? 'Was bedeutet dieses Wort auf Deutsch?' 
-              : 'Welches Wort passt zu dieser Definition?'
+              ? t('vocab.quiz.question.translation') 
+              : t('vocab.quiz.question.definition')
             }
           </CardTitle>
         </CardHeader>
@@ -309,7 +310,7 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
           {showResult && (
             <div className="text-center pt-4">
               <Button onClick={handleNextQuestion}>
-                {currentQuestionIndex < questions.length - 1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}
+                {currentQuestionIndex < questions.length - 1 ? t('vocab.quiz.button.next') : t('vocab.quiz.button.showResults')}
               </Button>
             </div>
           )}
