@@ -8,9 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
+  // Subscribe to locale so this component re-renders when language changes
+  const { locale } = useLocale(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -79,7 +83,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center p-4 relative">
+      {/* Language Switcher positioned top-right on auth page */}
+      <div className="absolute top-4 right-4 z-10">
+        <LocaleSwitcher />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

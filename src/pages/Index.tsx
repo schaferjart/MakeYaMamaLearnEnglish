@@ -13,7 +13,9 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ConversationsList } from "@/components/conversations/ConversationsList";
 import { useConversations } from "@/hooks/useConversations";
 import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
-import { t, setLocale, getLocale } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
+import { useLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { syncBooksFromStorage } from "@/lib/api";
@@ -37,7 +39,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'dashboard' | 'library' | 'vocabulary' | 'conversations' | 'reading' | 'session'>('dashboard');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [locale, setCurrentLocale] = useState(getLocale());
+  const { locale } = useLocale();
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -133,11 +135,7 @@ const Index = () => {
     setSelectedBook(null);
   };
 
-  const toggleLocale = () => {
-    const newLocale = locale === 'de' ? 'en' : 'de';
-    setLocale(newLocale);
-    setCurrentLocale(newLocale);
-  };
+  // Locale switching handled by LocaleSwitcher component
 
   return (
     <div className="min-h-screen bg-background">
@@ -160,10 +158,10 @@ const Index = () => {
                 <User className="w-4 h-4" />
                 {user?.email}
               </div>
-              <Button variant="ghost" size="sm" onClick={toggleLocale}>
-                <Globe className="w-4 h-4 mr-2" />
-                {locale.toUpperCase()}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-muted-foreground" />
+                <LocaleSwitcher />
+              </div>
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4" />
               </Button>

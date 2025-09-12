@@ -97,6 +97,7 @@ export const translations = {
   "common.toLibrary": "Zur Bibliothek",
   "language.german": "Deutsch",
   "language.english": "Englisch",
+  "language.french": "Französisch",
 
   // Vocabulary page/library
   "vocab.empty.title": "Noch keine Wörter gelernt",
@@ -408,6 +409,7 @@ export const translations = {
     "common.toLibrary": "Back to Library",
     "language.german": "German",
     "language.english": "English",
+  "language.french": "French",
 
     // Vocabulary page/library
     "vocab.empty.title": "No words learned yet",
@@ -622,7 +624,315 @@ export const translations = {
   }
   ,
   fr: {
-    // Intentionally left empty for future French translations
+    // Navigation & General
+    "app.title": "Fais Apprendre l'Anglais à Ta Maman",
+    "app.subtitle": "Avec un accent, bien sûr !",
+    "library": "Bibliothèque",
+    "reading": "Lecture",
+    "vocabulary": "Vocabulaire",
+    "progress": "Progrès",
+    "settings": "Paramètres",
+    
+    // Library
+    "library.title": "Mes Livres",
+    "library.noBooks": "Aucun livre pour l'instant",
+    "library.addBooks": "Ajouter des livres",
+    "library.progress": "Progrès : {{percent}}%",
+    "library.wordsLearned": "{{count}} mots appris", // Note: Needs plural helper for "1 mot" vs. "2 mots"
+    "library.continue": "Continuer la lecture",
+    "library.start": "Commencer à lire",
+    
+    // Reading Session
+    "session.timer": "Temps de lecture",
+    "session.minutes": "Minutes",
+    "session.start": "Démarrer la session",
+    "session.pause": "Pause",
+    "session.resume": "Reprendre",
+    "session.timeRemaining": "Temps restant : {{time}}",
+    "session.timeUp": "Temps écoulé !",
+    
+    // Vocabulary
+    "vocab.lookup": "Rechercher",
+    "vocab.definition": "Définition",
+    "vocab.synonyms": "Synonymes",
+    "vocab.translation": "Traduction",
+    "vocab.save": "Enregistrer",
+    "vocab.saved": "Enregistré !",
+    "vocab.example": "Exemple",
+    "vocab.learned": "Mots appris",
+    "vocab.difficulty": "Difficulté",
+    
+    // Reading Controls
+    "reader.play": "Lire",
+    "reader.pause": "Pause",
+    "reader.stop": "Arrêter",
+    "reader.speed": "Vitesse",
+    "reader.fontSize": "Taille de police",
+    "reader.theme": "Thème",
+    
+    // Tutor/Conversation
+    "tutor.start": "Démarrer une conversation",
+    "tutor.thinking": "En réflexion...",
+    "tutor.typeResponse": "Tapez votre réponse...",
+    "tutor.send": "Envoyer",
+    
+    // Authentication
+    "auth.title": "Connexion",
+    "auth.welcome": "Beaucoup de mamans ont passé leur vie à s'occuper du foyer et n'ont jamais eu besoin d'apprendre l'anglais. Ces mamans sont perdues en vacances car elles ne comprennent rien !", // TODO: Review tone for brand fit
+    "auth.description": "La première appli pour les mamans qui veulent enfin profiter des vacances en comprenant tout !",
+    "auth.email": "E-mail",
+    "auth.password": "Mot de passe",
+    "auth.confirmPassword": "Confirmer le mot de passe",
+    "auth.signIn": "Se connecter",
+    "auth.signUp": "S'inscrire",
+    "auth.signOut": "Se déconnecter",
+    
+    // Common Actions
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement...",
+    
+    // Onboarding
+    "onboarding.welcome": "Bienvenue dans votre compagnon de lecture !",
+    "onboarding.tour": "Voici une visite rapide de l'application.",
+    "onboarding.dashboard.title": "1. Le Tableau de bord",
+    "onboarding.dashboard.description": "Votre tableau de bord vous donne un aperçu rapide de votre progression de lecture, de vos activités récentes et de votre maîtrise du vocabulaire.",
+    "onboarding.reader.title": "2. Le Lecteur",
+    "onboarding.reader.description": "Ouvrez n'importe quel livre et commencez à lire. Utilisez la fonction de lecture accompagnée et cliquez sur un mot pour obtenir sa définition.",
+    "onboarding.vocabulary.title": "3. Entraîneur de vocabulaire",
+    "onboarding.vocabulary.description": "Tous les mots que vous recherchez sont enregistrés dans votre liste de vocabulaire. Vous pouvez les revoir à tout moment et même répondre à des quiz.",
+    "onboarding.getStarted": "Démarrer",
+    "onboarding.getBack": "Retour au tableau de bord",
+    
+    // Auth additional
+    "auth.error.passwordMismatch": "Les mots de passe ne correspondent pas",
+    "auth.success.checkEmail": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmation.",
+    "auth.or": "Ou",
+    "auth.google.signIn": "Se connecter avec Google",
+    "auth.google.loading": "Connexion en cours...",
+    "auth.placeholder.email": "votre@email.fr",
+    "app.brand": "MamaLearnEnglish",
+    
+    // Common additions
+    "common.back": "Retour",
+    "common.toLibrary": "Retour à la bibliothèque",
+  "language.german": "Allemand",
+  "language.english": "Anglais",
+  "language.french": "Français",
+    
+    // Vocabulary page/library
+    "vocab.empty.title": "Aucun mot appris encore",
+    "vocab.empty.description": "Commencez à lire et enregistrez vos premiers mots !",
+    "vocab.action.toLibrary": "Retour à la bibliothèque",
+    "vocab.library.title": "Bibliothèque de vocabulaire",
+    "vocab.library.count": "{{count}} mots enregistrés", // Note: Needs plural helper
+    "vocab.search.placeholder": "Rechercher des mots...",
+    "vocab.nav.list": "Bibliothèque",
+    "vocab.nav.cards": "Cartes mémoire",
+    "vocab.nav.quiz": "Quiz",
+    
+    // Vocabulary fallback / errors / toast
+    "vocab.fallback.noDefinition": "Aucune définition disponible",
+    "vocab.fallback.noExample": "\"{{word}}\" - exemple non disponible",
+    "vocab.error.fetchFailed": "Échec de la récupération des informations du mot. Veuillez réessayer.",
+    "vocab.fallback.definitionTempUnavailable": "Définition temporairement indisponible",
+    "vocab.fallback.translationTempUnavailable": "Traduction temporairement indisponible",
+    "vocab.toast.savedTitle": "Vocabulaire enregistré !",
+    "vocab.toast.savedDescription": "\"{{word}}\" a été ajouté à votre vocabulaire.",
+    "vocab.toast.saveFailedTitle": "Échec de l'enregistrement",
+    "vocab.toast.saveFailedDescription": "Impossible d'enregistrer le vocabulaire. Veuillez réessayer.",
+    
+    // Navigation / dashboard / library / conversations
+    "nav.dashboard": "Tableau de bord",
+    "nav.conversations": "Conversations",
+    "nav.session": "Session",
+    "nav.vocabulary": "Vocabulaire",
+    "dashboard.description": "Suivez votre progression de lecture et votre croissance de vocabulaire",
+    "library.availableCount": "{{count}} livres disponibles pour la lecture",
+    "library.empty.title": "Aucun livre trouvé",
+    "library.empty.description": "Aucun livre trouvé. Cliquez sur synchroniser pour charger les livres depuis le stockage.",
+    "library.empty.ctaDescription": "Cliquez sur \"Synchroniser les livres\" pour charger les livres depuis votre espace de stockage.",
+    "library.sync": "Synchroniser les livres",
+    "library.syncing": "Synchronisation...",
+    "integrations.status.title": "État des intégrations API",
+    "integrations.status.description": "Pour une fonctionnalité complète (tutorat IA, API de vocabulaire, TTS), configurez vos clés API dans les secrets des fonctions Edge de Supabase.",
+    "integration.badge.wordnik": "API Wordnik",
+    "integration.badge.deepl": "Traduction DeepL",
+    "integration.badge.tts": "Text-to-Speech",
+    "integration.badge.progress": "Suivi de progression",
+    "conversations.title": "Conversations",
+    "conversations.description": "Vos conversations avec le tuteur IA",
+    "conversations.empty.title": "Aucune conversation pour l'instant",
+    "conversations.empty.description": "Démarrez une conversation avec le tuteur IA pendant la lecture !",
+    
+    // Dashboard stats
+    "dashboard.today.title": "Progrès d'aujourd'hui",
+    "dashboard.today.wordsRead": "Mots lus : {{read}} / {{goal}}",
+    "dashboard.today.minutes": "{{minutes}} min de lecture",
+    "dashboard.today.streak": "Série de {{days}} jours 🔥",
+    "dashboard.stats.booksStarted": "Livres commencés",
+    "dashboard.stats.booksStarted.caption": "Voyage de lecture",
+    "dashboard.stats.wordsRead": "Mots lus",
+    "dashboard.stats.wordsRead.caption": "Progrès total",
+    "dashboard.stats.readingTime": "Temps de lecture",
+    "dashboard.stats.readingTime.caption": "{{wpm}} MPM en moyenne",
+    "dashboard.stats.vocabulary": "Vocabulaire",
+    "dashboard.stats.vocabulary.caption": "Mots appris",
+    "dashboard.stats.readingTime.format": "{{hours}}h {{minutes}}m",
+    
+    // Dashboard vocabulary progress
+    "dashboard.vocab.overview": "Aperçu du vocabulaire",
+    "dashboard.vocab.weeklyGain": "+{{count}} cette semaine",
+    "dashboard.vocab.wordsByDifficulty": "Mots par difficulté :",
+    "dashboard.vocab.difficulty.easy": "Facile (1-2)",
+    "dashboard.vocab.difficulty.medium": "Moyen (3-4)",
+    "dashboard.vocab.difficulty.hard": "Difficile (5+)",
+    "dashboard.vocab.wordsByBook": "Mots par livre",
+    "dashboard.vocab.noneSaved": "Aucun vocabulaire enregistré pour l'instant",
+    "dashboard.vocab.startReading": "Commencez à lire et enregistrez des mots pour voir votre progression",
+    "dashboard.vocab.recentWords": "Mots récents",
+    "dashboard.vocab.fromBook": "de {{title}}",
+    
+    // Quick actions
+    "dashboard.quick.title": "Actions rapides",
+    "dashboard.quick.continue": "Continuer la lecture",
+    "dashboard.quick.browseLibrary": "Parcourir la bibliothèque",
+    "dashboard.quick.reviewVocabulary": "Revoir le vocabulaire",
+    "dashboard.quick.viewStatistics": "Voir les statistiques",
+    "dashboard.quick.syncBooks": "Synchroniser les livres",
+    "dashboard.quick.syncing": "Synchronisation...",
+    "dashboard.quick.settings": "Paramètres",
+    
+    // Recent activity
+    "dashboard.activity.title": "Activités récentes",
+    "dashboard.activity.items": "{{count}} éléments",
+    "dashboard.activity.none": "Aucune activité récente",
+    "dashboard.activity.startReading": "Commencez à lire pour voir votre progression ici",
+    "dashboard.activity.reading": "{{words}} mots lus en {{minutes}} min",
+    "dashboard.activity.vocabulary": "\"{{word}}\" appris",
+    "dashboard.activity.session": "Session de lecture terminée",
+    
+    // Reader / TTS / Session additions
+    "reader.previous": "Précédent",
+    "reader.next": "Suivant",
+    "reader.readingProgress": "Progrès de lecture",
+    "reader.sessionTimer": "Minuteur de session",
+    "reader.remaining": "restant",
+    "reader.playbackControls": "Contrôles de lecture",
+    "reader.volume": "Volume",
+    "reader.sentenceProgress": "Phrase {{current}} sur {{total}}",
+    "reader.chapterComplete": "Chapitre terminé !",
+    "reader.sessionEnded.title": "Session de lecture terminée",
+    "reader.sessionEnded.afterSentence": "Session terminée après la phrase actuelle",
+    "reader.sessionEnded.expired": "Temps de la session écoulé",
+    "reader.book.unknown": "Livre inconnu",
+    "reader.timer.sessionEnded": "Session de lecture terminée",
+    "reader.timer.completedAfterSentence": "Session terminée après la phrase actuelle",
+    "reader.timer.timeExpired": "Temps de la session écoulé",
+    "tts.title": "Texte à parole",
+    "tts.generating": "Génération...",
+    "tts.generatingBrowser": "Génération de la parole avec le navigateur...",
+    "tts.stopReading": "Arrêter la lecture",
+    "tts.startReading": "Démarrer la lecture",
+    "tts.readingWithBrowser": "Lecture à voix haute avec la voix du navigateur",
+    "session.conversationPrompt": "Temps pour une petite discussion sur ce que vous avez lu !",
+    "common.minuteShort": "min",
+    
+    // Tutor conversation additions
+    "tutor.duration": "Durée",
+    "tutor.idk": "Je ne sais pas",
+    "tutor.hint": "Un indice, s'il vous plaît",
+    "tutor.nextQuestion": "Question suivante",
+    "tutor.record": "Enregistrer",
+    "tutor.stopRecording": "Arrêter l'enregistrement",
+    "tutor.cancel": "Annuler",
+    "tutor.close": "Fermer",
+    "tutor.recordStartTooltip": "Cliquez pour démarrer l'enregistrement",
+    "tutor.recordStopTooltip": "Cliquez pour arrêter l'enregistrement",
+    "tutor.speechRecognized": "Parole reconnue !",
+    "tutor.noSpeech": "Aucune parole détectée",
+    "tutor.permissionDenied": "Accès au micro refusé",
+    "tutor.networkError": "Erreur réseau",
+    "tutor.retryFailed": "Nombre maximum de tentatives atteint",
+    
+    // Reading progress bar
+    "reading.progress.title": "Progrès de lecture",
+    "reading.progress.tracking": "Suivi",
+    "reading.progress.completePercent": "{{percent}}% Terminé",
+    "reading.progress.words": "{{current}} / {{total}} mots",
+    "reading.progress.timeRead": "Temps lu",
+    "reading.progress.speed": "Vitesse",
+    "reading.progress.wordsRead": "Mots lus",
+    "reading.progress.timeLeft": "Temps restant",
+    "reading.progress.calculating": "Calcul en cours...",
+    "reading.progress.lessThanMinute": "Moins d'une minute",
+    "reading.progress.minutes": "{{count}} minutes",
+    "reading.progress.hours": "{{count}} heures",
+    "reading.progress.days": "{{count}} jours",
+    "reading.progress.badge.quarter": "📚 Quart atteint",
+    "reading.progress.badge.half": "🎯 À mi-chemin",
+    "reading.progress.badge.almost": "🚀 Presque fini",
+    "reading.progress.badge.done": "🏆 Terminé !",
+    "reading.progress.lastRead": "Dernière lecture : {{date}} à {{time}}",
+    
+    // Vocabulary Quiz
+    "vocab.quiz.notEnough.title": "Pas assez de mots pour un quiz",
+    "vocab.quiz.notEnough.description": "Vous avez besoin d'au moins 4 mots pour un quiz. Apprenez plus de mots et revenez !",
+    "vocab.quiz.progress.label": "Progression",
+    "vocab.quiz.progress.counter": "{{current}} sur {{total}} questions",
+    "vocab.quiz.points": "Points : {{score}}/{{answered}}",
+    "vocab.quiz.question.translation": "Que signifie ce mot en français ?", // Adjusted for French UI
+    "vocab.quiz.question.definition": "Quel mot correspond à cette définition ?",
+    "vocab.quiz.completed.title": "Quiz terminé !",
+    "vocab.quiz.result.score": "{{score}}/{{total}}",
+    "vocab.quiz.result.percent": "{{percent}}%",
+    "vocab.quiz.result.message.excellent": "Excellent ! Vous maîtrisez bien vos mots ! 🎉", // TODO: Review tone
+    "vocab.quiz.result.message.good": "Bien joué ! Continuez comme ça ! 👏",
+    "vocab.quiz.result.message.fair": "Pas mal, mais il y a encore à améliorer. 💪",
+    "vocab.quiz.result.message.improve": "Continuez à pratiquer ! Les mots vont s'ancrer. 📚",
+    "vocab.quiz.button.retry": "Réessayer",
+    "vocab.quiz.button.toLibrary": "Retour à la bibliothèque",
+    "vocab.quiz.button.next": "Question suivante",
+    "vocab.quiz.button.showResults": "Voir les résultats",
+    "vocab.quiz.loading": "Chargement...",
+    
+    // Vocabulary Cards (Flashcards)
+    "vocab.cards.empty.title": "Aucun mot à étudier",
+    "vocab.cards.empty.description": "Ajoutez d'abord des mots à votre vocabulaire !",
+    "vocab.cards.completed.title": "Cartes mémoire terminées !",
+    "vocab.cards.stats.known": "Connu",
+    "vocab.cards.stats.unknown": "Inconnu",
+    "vocab.cards.stats.skipped": "Passé",
+    "vocab.cards.progress.label": "Progression",
+    "vocab.cards.progress.counter": "{{current}} sur {{total}}",
+    "vocab.cards.prompt.flip": "Cliquez pour retourner",
+    "vocab.cards.prompt.reveal": "Cliquez sur la carte pour voir la traduction",
+    "vocab.cards.prompt.rate": "Évaluez votre connaissance de ce mot",
+    "vocab.cards.section.definition": "Définition :",
+    "vocab.cards.section.example": "Exemple :",
+    "vocab.cards.section.synonym": "Synonyme :",
+    "vocab.cards.button.skip": "Passer",
+    "vocab.cards.button.unknown": "Pas su",
+    "vocab.cards.button.known": "Su",
+    "vocab.cards.button.retry": "Réessayer",
+    "vocab.cards.button.toLibrary": "Retour à la bibliothèque",
+    
+    // Vocabulary List
+    "vocab.list.wordsCount": "{{count}} mots",
+    "vocab.list.byAuthor": "{{title}} par {{author}}",
+    "vocab.list.bookIdFallback": "Livre {{id}}...",
+    "vocab.list.label.synonym": "Synonyme :",
+    "vocab.list.label.saved": "Enregistré",
+    "vocab.list.action.delete": "Supprimer",
+    "vocab.list.action.cancel": "Annuler",
+    
+    // Additional fallbacks & common
+    "vocab.fallback.noTranslation": "Aucune traduction",
+    "common.delete": "Supprimer",
+    "common.retry": "Réessayer"
   }
 };
 
