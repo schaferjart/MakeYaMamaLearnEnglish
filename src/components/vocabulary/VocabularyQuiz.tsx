@@ -13,6 +13,7 @@ import {
   GraduationCap
 } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale";
 
 // Utility function to clean XML tags from text
 const cleanXmlTags = (text: string): string => {
@@ -37,6 +38,7 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
   onComplete
 }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const { locale } = useLocale();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -48,31 +50,36 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
   useEffect(() => {
     if (vocabulary.length === 0) return;
 
-    const generateQuestions = () => {
+  const generateQuestions = () => {
       const quizQuestions: QuizQuestion[] = [];
       
       // Take up to 10 random words for the quiz
       const shuffledVocab = [...vocabulary].sort(() => Math.random() - 0.5).slice(0, 10);
       
+      const getTranslation = (w: VocabularyEntry) => {
+        const order: Array<keyof VocabularyEntry> = [
+          (locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr'),
+          'translation_de','translation_en','translation_fr'
+        ];
+        for (const key of order) {
+          const val = w[key];
+          if (typeof val === 'string' && val?.trim()) return val;
+        }
+        return undefined;
+      };
+
       shuffledVocab.forEach((word) => {
-        // Translation question: English -> German
-        if (word.translation_de) {
-          const correctAnswer = word.translation_de;
+        const correctAnswer = getTranslation(word);
+        if (correctAnswer) {
           const wrongAnswers = vocabulary
-            .filter(w => w.translation_de && w.translation_de !== correctAnswer)
-            .map(w => w.translation_de!)
+            .map(w => getTranslation(w))
+            .filter((v): v is string => !!v && v !== correctAnswer)
+            .filter((v, i, arr) => arr.indexOf(v) === i)
             .sort(() => Math.random() - 0.5)
             .slice(0, 3);
-          
           if (wrongAnswers.length >= 3) {
             const options = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
-            
-            quizQuestions.push({
-              word,
-              correctAnswer,
-              options,
-              type: 'translation'
-            });
+            quizQuestions.push({ word, correctAnswer, options, type: 'translation' });
           }
         }
 
@@ -104,7 +111,7 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
     const generatedQuestions = generateQuestions();
     setQuestions(generatedQuestions);
     setAnsweredQuestions(new Array(generatedQuestions.length).fill(false));
-  }, [vocabulary]);
+  }, [vocabulary, locale]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;

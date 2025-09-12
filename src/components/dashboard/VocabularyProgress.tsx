@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocale } from '@/lib/locale';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -29,6 +30,7 @@ interface VocabularyStats {
 
 export const VocabularyProgress = () => {
   const { user } = useAuth();
+  const { locale } = useLocale();
   const [stats, setStats] = useState<VocabularyStats>({
     totalWords: 0,
     weeklyWords: 0,
@@ -42,7 +44,7 @@ export const VocabularyProgress = () => {
     if (user) {
       fetchVocabularyStats();
     }
-  }, [user]);
+  }, [user, locale]);
 
   const fetchVocabularyStats = async () => {
     try {
@@ -92,13 +94,24 @@ export const VocabularyProgress = () => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5); // Top 5 books
 
-      // Recent words (last 5)
-      const recentWords = vocabularyData.slice(0, 5).map(word => ({
-        word: word.headword,
-  translation: word.translation_de || word.sense || '—',
-  bookTitle: word.books?.title || 'Unknown Book',
-        date: word.created_at
-      }));
+      // Recent words (last 5) with locale-aware translation fallback
+      const recentWords = vocabularyData.slice(0, 5).map(word => {
+        const order = [
+          locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
+          'translation_de', 'translation_en', 'translation_fr'
+        ];
+        let translation = '';
+        for (const k of order) {
+          const val = (word as any)[k];
+          if (typeof val === 'string' && val.trim()) { translation = val; break; }
+        }
+        return {
+          word: word.headword,
+          translation: translation || word.sense || '—',
+          bookTitle: word.books?.title || 'Unknown Book',
+          date: word.created_at
+        };
+      });
 
       setStats({
         totalWords,

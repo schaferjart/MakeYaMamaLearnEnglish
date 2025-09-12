@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocale } from '@/lib/locale';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
   onRefresh
 }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const { locale } = useLocale();
   const [books, setBooks] = useState<Record<string, BookInfo>>({});
 
   // Fetch book information for all unique book IDs
@@ -141,11 +143,19 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                       </div>
 
                       {/* Translation */}
-                      {word.translation_de && (
-                        <p className="text-primary font-medium">
-                          → {word.translation_de}
-                        </p>
-                      )}
+                      {(() => {
+                        const order: string[] = [
+                          locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
+                          'translation_de','translation_en','translation_fr'
+                        ];
+                        for (const key of order) {
+                          const val = (word as any)[key];
+                          if (typeof val === 'string' && val.trim()) {
+                            return <p className="text-primary font-medium">→ {val}</p>;
+                          }
+                        }
+                        return null;
+                      })()}
 
                       {/* Definition */}
                       {word.sense && (

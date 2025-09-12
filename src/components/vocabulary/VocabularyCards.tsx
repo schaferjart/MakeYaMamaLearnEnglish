@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocale } from '@/lib/locale';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
   onComplete
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { locale } = useLocale();
   const [isFlipped, setIsFlipped] = useState(false);
   const [knownCards, setKnownCards] = useState<Set<number>>(new Set());
   const [unknownCards, setUnknownCards] = useState<Set<number>>(new Set());
@@ -175,7 +177,17 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
             /* Back of card - German translation and details */
             <div className="space-y-4 w-full">
               <h2 className="text-3xl font-bold text-primary mb-6">
-                {currentCard.translation_de || t('vocab.fallback.noTranslation')}
+                {(() => {
+                  const order: string[] = [
+                    locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
+                    'translation_de','translation_en','translation_fr'
+                  ];
+                  for (const key of order) {
+                    const val = (currentCard as any)[key];
+                    if (typeof val === 'string' && val.trim()) return val;
+                  }
+                  return t('vocab.fallback.noTranslation');
+                })()}
               </h2>
               
               {currentCard.sense && (

@@ -89,17 +89,22 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
     try {
       setIsLoading(true);
       
-      await saveVocabulary({
+      // Build multilingual translation payload
+      const translationPayload: any = {
         headword: vocabularyData.word,
         lemma: vocabularyData.word,
         pos: vocabularyData.pos,
         sense: vocabularyData.definition,
         example: vocabularyData.example,
-        translation_de: vocabularyData.translation,
         book_id: bookId,
         cfi: cfi,
         user_id: user.id
-      });
+      };
+      if (locale === 'de') translationPayload.translation_de = vocabularyData.translation;
+      if (locale === 'en') translationPayload.translation_en = vocabularyData.translation;
+      if (locale === 'fr') translationPayload.translation_fr = vocabularyData.translation;
+
+      await saveVocabulary(translationPayload);
       
       setIsSaved(true);
       onSave?.(vocabularyData);
