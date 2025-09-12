@@ -11,6 +11,7 @@
     "preview": "vite preview",
   "test": "jest",
   "i18n:check": "node scripts/check-i18n.cjs"
+  ,"ci:i18n": "npm run i18n:check"
   },
   "dependencies": {
     "@elevenlabs/react": "^0.6.1",
