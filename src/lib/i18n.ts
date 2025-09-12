@@ -308,9 +308,23 @@ export const translations = {
   // Additional fallbacks & common
   "vocab.fallback.noTranslation": "Keine Übersetzung",
   "common.delete": "Löschen",
-  "common.retry": "Wiederholen"
-  },
+  "common.retry": "Wiederholen",
+  // Conversations (session list)
+  // Keys: conversations.list.* Added for ConversationsList component
+  "conversations.list.title": "Gespräche mit dem AI Tutor",
+  "conversations.list.sessionsBadge": "Sessions",
+  "conversations.list.sessionLabel": "Session:",
+  "conversations.list.noSession": "Ohne Session",
+  "conversations.list.messagesCount": "Nachrichten",
+  "conversations.list.userPrefix": "Du:",
+  "conversations.list.aiPrefix": "AI Tutor:",
+  "conversations.list.moreMessages": "... und {{count}} weitere Nachrichten",
+  "conversations.list.unknownDate": "Unbekannt",
+  "conversations.list.delete": "Löschen",
+  "conversations.list.cancel": "Abbrechen",
+  "conversations.list.voiceIndicator": "🎤"
   
+  },
   en: {
     // Navigation & General
     "app.title": "Make Ya Mama Learn English",
@@ -620,9 +634,21 @@ export const translations = {
     // Additional fallbacks & common
     "vocab.fallback.noTranslation": "No translation",
     "common.delete": "Delete",
-    "common.retry": "Retry"
-  }
-  ,
+    "common.retry": "Retry",
+    // Conversations (session list)
+    "conversations.list.title": "Conversations with the AI Tutor",
+    "conversations.list.sessionsBadge": "Sessions",
+    "conversations.list.sessionLabel": "Session:",
+    "conversations.list.noSession": "No Session",
+    "conversations.list.messagesCount": "Messages",
+    "conversations.list.userPrefix": "You:",
+    "conversations.list.aiPrefix": "AI Tutor:",
+    "conversations.list.moreMessages": "... and {{count}} more messages",
+    "conversations.list.unknownDate": "Unknown",
+    "conversations.list.delete": "Delete",
+    "conversations.list.cancel": "Cancel",
+    "conversations.list.voiceIndicator": "🎤"
+  },
   fr: {
     // Navigation & General
     "app.title": "Fais Apprendre l'Anglais à Ta Maman",
@@ -930,9 +956,22 @@ export const translations = {
     "vocab.list.action.cancel": "Annuler",
     
     // Additional fallbacks & common
-    "vocab.fallback.noTranslation": "Aucune traduction",
-    "common.delete": "Supprimer",
-    "common.retry": "Réessayer"
+  "vocab.fallback.noTranslation": "Aucune traduction",
+  "common.delete": "Supprimer",
+  "common.retry": "Réessayer",
+  // Conversations (session list)
+  "conversations.list.title": "Conversations avec le tuteur IA",
+  "conversations.list.sessionsBadge": "Sessions",
+  "conversations.list.sessionLabel": "Session :",
+  "conversations.list.noSession": "Sans session",
+  "conversations.list.messagesCount": "Messages",
+  "conversations.list.userPrefix": "Vous :",
+  "conversations.list.aiPrefix": "Tuteur IA :",
+  "conversations.list.moreMessages": "... et {{count}} messages de plus",
+  "conversations.list.unknownDate": "Inconnu",
+  "conversations.list.delete": "Supprimer",
+  "conversations.list.cancel": "Annuler",
+  "conversations.list.voiceIndicator": "🎤"
   }
 };
 
