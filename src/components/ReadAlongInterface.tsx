@@ -15,6 +15,7 @@ import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
 import { useAuth } from '@/hooks/useAuth';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
+import { useSessionTimer } from '@/hooks/useSessionTimer';
 
 interface ResumeData {
   chapterId: string;
@@ -62,11 +63,9 @@ export function ReadAlongInterface({
   const [speechRate, setSpeechRate] = useState(1.0);
   const [volume, setVolume] = useState(0.8);
   const [sessionTime, setSessionTime] = useState(300);
-  const [remainingTime, setRemainingTime] = useState(300);
   const [shouldEndSession, setShouldEndSession] = useState(false);
   const [isWaitingForTtsCompletion, setIsWaitingForTtsCompletion] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
-  const [isTimerActive, setIsTimerActive] = useState(false);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,12 +74,28 @@ export function ReadAlongInterface({
   const { user } = useAuth();
   
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isWaitingForTtsRef = useRef(false);
   const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const readingContainerRef = useRef<HTMLDivElement>(null);
 
   const isTtsActive = isPlaying && utteranceRef.current !== null;
+
+  // Use custom session timer hook
+  const handleTimerExpired = useCallback(() => {
+    setSessionEnded(true);
+    const isTtsCurrentlyActive = isPlaying && utteranceRef.current !== null;
+    if (isTtsCurrentlyActive) {
+      setIsWaitingForTtsCompletion(true);
+      isWaitingForTtsRef.current = true;
+    } else {
+      setShouldEndSession(true);
+    }
+  }, [isPlaying]);
+
+  const { remainingTime, isTimerActive, startTimer, stopTimer, formatTime } = useSessionTimer({
+    initialTime: sessionTime,
+    onTimeExpired: handleTimerExpired
+  });
 
   const { saveResumeData } = useLocalStorageResume(bookId, user?.id || '');
   const lastSavedSentence = useRef<number>(-1);
@@ -253,44 +268,6 @@ export function ReadAlongInterface({
     }
   }, [resumeData?.sentenceIndex, sentences.length, currentChapter?.id, isReturningFromConversation]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const startTimer = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setIsTimerActive(true);
-    timerRef.current = setInterval(() => {
-      setRemainingTime(prev => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
-  const stopTimer = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setIsTimerActive(false);
-  }, []);
-
-  useEffect(() => {
-    if (remainingTime <= 0 && isTimerActive) {
-      stopTimer();
-      setSessionEnded(true);
-      if (isTtsActive) {
-        setIsWaitingForTtsCompletion(true);
-        isWaitingForTtsRef.current = true;
-      } else {
-        setShouldEndSession(true);
-      }
-    }
-  }, [remainingTime, isTimerActive, isTtsActive, stopTimer]);
-
   useEffect(() => {
     if (shouldEndSession) {
       toast({
@@ -419,7 +396,6 @@ export function ReadAlongInterface({
       if ('speechSynthesis' in window && !isWaitingForTtsRef.current) {
         window.speechSynthesis.cancel();
       }
-      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
@@ -480,7 +456,7 @@ export function ReadAlongInterface({
               <Progress value={progressPercentage} className="h-3" />
               <div className="grid grid-cols-3 gap-2">
                 {[1, 5, 10, 15, 25, 60].map(m => (
-                  <Button key={m} variant="outline" size="sm" onClick={() => { setRemainingTime(m * 60); setSessionTime(m * 60); }} disabled={isTimerActive}>
+                  <Button key={m} variant="outline" size="sm" onClick={() => { setSessionTime(m * 60); }} disabled={isTimerActive}>
                     {m}m
                   </Button>
                 ))}
