@@ -179,8 +179,8 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
               <h2 className="text-3xl font-bold text-primary mb-6">
                 {(() => {
                   const order: string[] = [
-                    locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
-                    'translation_de','translation_en','translation_fr'
+                    (locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : locale === 'fr' ? 'translation_fr' : 'translation_hi'),
+                    'translation_de','translation_en','translation_fr','translation_hi'
                   ];
                   for (const key of order) {
                     const val = (currentCard as any)[key];

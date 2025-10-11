@@ -13,7 +13,8 @@ export const LocaleSwitcher: React.FC<{ className?: string }> = ({ className }) 
     >
       <option value="de">{t('language.german')}</option>
       <option value="en">{t('language.english')}</option>
-  <option value="fr">{t('language.french')}</option>
+      <option value="fr">{t('language.french')}</option>
+      <option value="hi">{t('language.hindi')}</option>
     </select>
   );
 };

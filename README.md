@@ -21,7 +21,7 @@ The user is able to define the speed of lecture, duration of sessions, can searc
 
 ---
 
-The MVP targets German speaking Mamas.
+Initially the MVP targeted German speaking Mamas. The interface is now internationalized and supports German (de), English (en), French (fr) and Hindi (hi). Additional languages can be added by extending the translation dictionaries and database columns.
 
 The Application uses WEB Speech API - installed on system. Meaning your Mama neds to have an English package installed on her Phone or Computer - otherwise the voice will be phonetically wrong. 
 

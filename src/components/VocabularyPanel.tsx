@@ -46,7 +46,7 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
       try {
         // Get word lookup and translation in parallel
         // Map app locale to DeepL target language codes
-        const targetMap: Record<string, string> = { de: 'DE', en: 'EN-GB', fr: 'FR' };
+  const targetMap: Record<string, string> = { de: 'DE', en: 'EN-GB', fr: 'FR', hi: 'HI' };
         const targetLang = targetMap[locale] || 'DE';
         const [wordData, translationData] = await Promise.all([
           lookupWord(selectedText.toLowerCase()),
@@ -102,7 +102,8 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
       };
       if (locale === 'de') translationPayload.translation_de = vocabularyData.translation;
       if (locale === 'en') translationPayload.translation_en = vocabularyData.translation;
-      if (locale === 'fr') translationPayload.translation_fr = vocabularyData.translation;
+  if (locale === 'fr') translationPayload.translation_fr = vocabularyData.translation;
+  if (locale === 'hi') translationPayload.translation_hi = vocabularyData.translation;
 
       await saveVocabulary(translationPayload);
       
@@ -199,7 +200,9 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
               <h4 className="font-medium text-sm text-primary mb-2">
                 {t('vocab.translation')} ({
                   locale === 'de' ? t('language.german') :
-                  locale === 'fr' ? t('language.french') : t('language.english')
+                  locale === 'fr' ? t('language.french') :
+                  locale === 'hi' ? t('language.hindi') :
+                  t('language.english')
                 })
               </h4>
               <p className="text-sm text-foreground bg-secondary/50 p-2 rounded">

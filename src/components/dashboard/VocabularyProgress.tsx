@@ -96,10 +96,10 @@ export const VocabularyProgress = () => {
 
       // Recent words (last 5) with locale-aware translation fallback
       const recentWords = vocabularyData.slice(0, 5).map(word => {
-        const order = [
-          locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
-          'translation_de', 'translation_en', 'translation_fr'
-        ];
+        const primary = locale === 'de' ? 'translation_de' :
+                        locale === 'en' ? 'translation_en' :
+                        locale === 'fr' ? 'translation_fr' : 'translation_hi';
+        const order = [primary, 'translation_de', 'translation_en', 'translation_fr', 'translation_hi'];
         let translation = '';
         for (const k of order) {
           const val = (word as any)[k];

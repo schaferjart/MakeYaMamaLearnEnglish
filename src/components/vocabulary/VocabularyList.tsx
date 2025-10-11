@@ -144,10 +144,10 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
 
                       {/* Translation */}
                       {(() => {
-                        const order: string[] = [
-                          locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr',
-                          'translation_de','translation_en','translation_fr'
-                        ];
+                        const primary = locale === 'de' ? 'translation_de' :
+                                        locale === 'en' ? 'translation_en' :
+                                        locale === 'fr' ? 'translation_fr' : 'translation_hi';
+                        const order: string[] = [primary,'translation_de','translation_en','translation_fr','translation_hi'];
                         for (const key of order) {
                           const val = (word as any)[key];
                           if (typeof val === 'string' && val.trim()) {

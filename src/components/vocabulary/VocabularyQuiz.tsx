@@ -57,9 +57,12 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
       const shuffledVocab = [...vocabulary].sort(() => Math.random() - 0.5).slice(0, 10);
       
       const getTranslation = (w: VocabularyEntry) => {
+        const primary = (locale === 'de' ? 'translation_de' :
+                         locale === 'en' ? 'translation_en' :
+                         locale === 'fr' ? 'translation_fr' : 'translation_hi') as keyof VocabularyEntry;
         const order: Array<keyof VocabularyEntry> = [
-          (locale === 'de' ? 'translation_de' : locale === 'en' ? 'translation_en' : 'translation_fr'),
-          'translation_de','translation_en','translation_fr'
+          primary,
+          'translation_de','translation_en','translation_fr','translation_hi'
         ];
         for (const key of order) {
           const val = w[key];

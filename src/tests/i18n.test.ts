@@ -22,6 +22,11 @@ describe('i18n basic behavior', () => {
     expect(t('library.progress', { percent: 42 })).toBe('Progrès : 42%');
   });
 
+  it('parameter interpolation works (hi)', () => {
+    setLocale('hi');
+    expect(t('library.progress', { percent: 42 })).toBe('प्रगति: 42%');
+  });
+
   it('falls back to German key when locale key removed (simulated)', () => {
     // Pick a key that exists in all locales now. Simulate removal by direct lookup bypass.
     setLocale('fr');
@@ -36,13 +41,14 @@ describe('i18n basic behavior', () => {
 
 // Vocabulary translation fallback logic unit (pure-functional simulation)
 describe('vocabulary translation fallback chain', () => {
-  interface MockVocab { translation_de?: string|null; translation_en?: string|null; translation_fr?: string|null; }
+  interface MockVocab { translation_de?: string|null; translation_en?: string|null; translation_fr?: string|null; translation_hi?: string|null; }
 
-  const resolve = (v: MockVocab, locale: 'de'|'en'|'fr') => {
+  const resolve = (v: MockVocab, locale: 'de'|'en'|'fr'|'hi') => {
     const order: Array<keyof MockVocab> =
-      locale === 'de' ? ['translation_de','translation_en','translation_fr'] :
-      locale === 'en' ? ['translation_en','translation_de','translation_fr'] :
-                        ['translation_fr','translation_de','translation_en'];
+      locale === 'de' ? ['translation_de','translation_en','translation_fr','translation_hi'] :
+      locale === 'en' ? ['translation_en','translation_de','translation_fr','translation_hi'] :
+      locale === 'fr' ? ['translation_fr','translation_de','translation_en','translation_hi'] :
+                        ['translation_hi','translation_de','translation_en','translation_fr'];
     for (const k of order) {
       const val = v[k];
       if (val) return val;
@@ -51,17 +57,23 @@ describe('vocabulary translation fallback chain', () => {
   };
 
   it('uses locale first if present', () => {
-    const v = { translation_de: 'Hund', translation_en: 'dog', translation_fr: 'chien' };
+    const v = { translation_de: 'Hund', translation_en: 'dog', translation_fr: 'chien', translation_hi: 'कुत्ता' };
     expect(resolve(v,'fr')).toBe('chien');
+    expect(resolve(v,'hi')).toBe('कुत्ता');
   });
 
   it('falls back to German then English for fr when fr missing', () => {
-    const v = { translation_de: 'Hund', translation_en: 'dog', translation_fr: null };
+    const v = { translation_de: 'Hund', translation_en: 'dog', translation_fr: null, translation_hi: null };
     expect(resolve(v,'fr')).toBe('Hund');
   });
 
+  it('falls back through chain for hi when hi missing', () => {
+    const v = { translation_de: 'Hund', translation_en: 'dog', translation_fr: 'chien', translation_hi: null };
+    expect(resolve(v,'hi')).toBe('Hund');
+  });
+
   it('falls back through entire chain to undefined', () => {
-    const v = { translation_de: null, translation_en: null, translation_fr: null };
+    const v = { translation_de: null, translation_en: null, translation_fr: null, translation_hi: null };
     expect(resolve(v,'en')).toBeUndefined();
   });
 });

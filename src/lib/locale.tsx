@@ -13,15 +13,16 @@ const LocaleContext = createContext<LocaleContextValue>({
 });
 
 const STORAGE_KEY = 'locale';
-const SUPPORTED: Locale[] = ['de', 'en', 'fr'];
+const SUPPORTED: Locale[] = ['de', 'en', 'fr', 'hi'];
 
 function detectInitial(): Locale {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && SUPPORTED.includes(stored as Locale)) return stored as Locale;
     const nav = navigator.language || (navigator as any).userLanguage || 'de';
-    if (nav.startsWith('fr')) return 'fr';
-    if (nav.startsWith('en')) return 'en';
+  if (nav.startsWith('fr')) return 'fr';
+  if (nav.startsWith('en')) return 'en';
+  if (nav.startsWith('hi')) return 'hi';
     return 'de';
   } catch {
     return 'de';
