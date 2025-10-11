@@ -1306,7 +1306,15 @@ export const translations = {
 export type TranslationKey = keyof typeof translations.de;
 export type Locale = keyof typeof translations;
 
-let currentLocale: Locale = 'de';
+let currentLocale: Locale = (() => {
+  if (typeof window !== 'undefined') {
+    const stored = window.localStorage.getItem('locale');
+    if (stored && (stored === 'de' || stored === 'en' || stored === 'fr' || stored === 'hi')) {
+      return stored as Locale;
+    }
+  }
+  return 'de';
+})();
 
 export const setLocale = (locale: Locale) => {
   currentLocale = locale;

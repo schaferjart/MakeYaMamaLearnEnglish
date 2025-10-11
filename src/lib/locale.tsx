@@ -31,10 +31,11 @@ function detectInitial(): Locale {
 
 export const LocaleProvider = ({ children }: { children: ReactNode }) => {
   const [locale, setLocaleState] = useState<Locale>(() => {
-    const current = getLocale(); // may be default 'de'
+    const current = getLocale();
     if (current) return current;
     return detectInitial();
   });
+  const [ready, setReady] = useState(false);
 
   const apply = useCallback((l: Locale) => {
     setLocaleInternal(l);
@@ -42,13 +43,18 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
     try { localStorage.setItem(STORAGE_KEY, l); } catch { /* ignore */ }
   }, []);
 
+  useEffect(() => {
+    apply(locale);
+    setReady(true);
+  }, [apply, locale]);
+
   const setLocale = (l: Locale) => {
     if (!SUPPORTED.includes(l)) return;
-  // Apply immediately so translators rerender with correct dictionary in same tick
-  apply(l);
-  setLocaleState(l);
+    apply(l);
+    setLocaleState(l);
   };
 
+  if (!ready) return null;
   return (
     <LocaleContext.Provider value={{ locale, setLocale }}>
       {children}
