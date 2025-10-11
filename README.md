@@ -9,7 +9,7 @@ But when going on vacation these Mamas are fucked because these Mamas they speak
 When I told her to watch a series with subtitles she said, that this does not work for her because of slang and speed.
 When I gave her my phone after telling ChatGPT to be a benevolent English tutor she screamed at me to tell my phone to speak slower. 
 
-So I asked her what she likes and she said reading books. Maybe your Mama does too.
+So I asked her what she likes and she said reading books. Maybe your Mama does too...
 So probably 20 years after the last self made present:
 
 No drawing, recipe for a spicy tomato sauce or origami birds - all stuff that lies around - but technology to move smoother around!
