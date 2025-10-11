@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { setLocale as setLocaleInternal, getLocale, Locale } from './i18n';
 
 interface LocaleContextValue {
@@ -35,8 +35,6 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
     if (current) return current;
     return detectInitial();
   });
-  const [ready, setReady] = useState(false);
-
   const apply = useCallback((l: Locale) => {
     setLocaleInternal(l);
     document.documentElement.lang = l;
@@ -45,7 +43,6 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     apply(locale);
-    setReady(true);
   }, [apply, locale]);
 
   const setLocale = (l: Locale) => {
@@ -54,7 +51,6 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
     setLocaleState(l);
   };
 
-  if (!ready) return null;
   return (
     <LocaleContext.Provider value={{ locale, setLocale }}>
       {children}
