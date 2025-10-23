@@ -12,7 +12,7 @@ When I gave her my phone after telling ChatGPT to be a benevolent English tutor 
 So I asked her what she likes and she said reading books. Maybe your Mama does too...
 So probably 20 years after the last self made present:
 
-No drawing, recipe for a spicy tomato sauce or origami birds - all stuff that lies around - but technology to move smoother around!
+No drawing, recipe for a spicy tomato sauce or origami birds - all stuff that lies around - but technology to move smoother!
 
 This applications core idea is to read and engage with the content of a book, creating first and foremost comfort in speaking: 
 Reading while listening matches sound to written form and the following conversation is leading the user to use the language in a low stake setting. 
