@@ -1,4 +1,4 @@
-# Make Ya Mama Learn English V2
+# Make Ya Mama Learn English
 
 Some Mamas have worked all their lifes in carework. 
 
