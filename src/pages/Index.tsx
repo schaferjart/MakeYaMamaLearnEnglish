@@ -12,11 +12,9 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ConversationsList } from "@/components/conversations/ConversationsList";
-import { LanguagePairSelector } from "@/components/LanguagePairSelector";
 import { useConversations } from "@/hooks/useConversations";
 import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle, MessageCircle, Filter } from "lucide-react";
 import { t } from "@/lib/i18n";
-import LocaleSwitcher from "@/components/LocaleSwitcher";
 import { useLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,9 +165,9 @@ const Index = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground" />
-                <LocaleSwitcher />
+                <span className="text-sm text-muted-foreground">{t('nav.language')}</span>
               </div>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/settings')}>
                 <Settings className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/help')}>
@@ -249,11 +247,9 @@ const Index = () => {
               </p>
             </div>
             
-            <DashboardStats />
-            
-            <LanguagePairSelector />
-            
-            <div className="grid gap-6 lg:grid-cols-3">
+        <DashboardStats />
+        
+        <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <VocabularyProgress />
               </div>

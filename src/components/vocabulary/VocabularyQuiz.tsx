@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { VocabularyEntry } from "@/lib/api";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   CheckCircle, 
   XCircle, 
@@ -45,6 +46,36 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
   const [quizComplete, setQuizComplete] = useState(false);
+  const [books, setBooks] = useState<Record<string, { language_code?: string }>>({});
+
+  // Fetch book information for language detection
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const uniqueBookIds = [...new Set(vocabulary.map(v => v.book_id).filter(Boolean))];
+      
+      if (uniqueBookIds.length === 0) return;
+
+      try {
+        const { data: booksData, error } = await supabase
+          .from('books')
+          .select('id, language_code')
+          .in('id', uniqueBookIds);
+
+        if (error) throw error;
+
+        const booksMap = (booksData || []).reduce((acc, book) => {
+          acc[book.id] = book;
+          return acc;
+        }, {} as Record<string, { language_code?: string }>);
+
+        setBooks(booksMap);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, [vocabulary]);
 
   // Generate quiz questions
   useEffect(() => {
@@ -262,6 +293,7 @@ export const VocabularyQuiz: React.FC<VocabularyQuizProps> = ({
                 <TextToSpeechButton
                   text={currentQuestion.word.headword}
                   size="default"
+                  language={books[currentQuestion.word.book_id!]?.language_code as any || 'en'}
                 />
               </div>
             ) : (

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { VocabularyEntry } from "@/lib/api";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   RotateCcw, 
   CheckCircle, 
@@ -37,9 +38,39 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
   const [knownCards, setKnownCards] = useState<Set<number>>(new Set());
   const [unknownCards, setUnknownCards] = useState<Set<number>>(new Set());
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [books, setBooks] = useState<Record<string, { language_code?: string }>>({});
 
   const currentCard = vocabulary[currentIndex];
   const progress = ((currentIndex + 1) / vocabulary.length) * 100;
+
+  // Fetch book information for language detection
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const uniqueBookIds = [...new Set(vocabulary.map(v => v.book_id).filter(Boolean))];
+      
+      if (uniqueBookIds.length === 0) return;
+
+      try {
+        const { data: booksData, error } = await supabase
+          .from('books')
+          .select('id, language_code')
+          .in('id', uniqueBookIds);
+
+        if (error) throw error;
+
+        const booksMap = (booksData || []).reduce((acc, book) => {
+          acc[book.id] = book;
+          return acc;
+        }, {} as Record<string, { language_code?: string }>);
+
+        setBooks(booksMap);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, [vocabulary]);
 
   const handleCardFlip = () => {
     setIsFlipped(!isFlipped);
@@ -160,6 +191,7 @@ export const VocabularyCards: React.FC<VocabularyCardsProps> = ({
                 <TextToSpeechButton
                   text={currentCard.headword}
                   size="default"
+                  language={books[currentCard.book_id!]?.language_code as any || 'en'}
                 />
               </div>
               

@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { t } from '@/lib/i18n'
 import { toast } from '@/hooks/use-toast'
 import { LanguageCode } from '@/lib/languages'
-import { useLanguage } from '@/contexts/LanguageContext'
+import { useLocale } from '@/lib/locale'
 
 interface ConversationTutorProps {
   sessionId: string | null
@@ -45,8 +45,11 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd, bookL
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const recordingStartTimeRef = useRef<number>(0)
 
-  // Get user's target language from context
-  const { activePair } = useLanguage();
+  // Get user's native language from locale
+  const { locale } = useLocale();
+
+  // Use locale as the user's native language for AI tutor responses
+  const userTargetLanguage = locale as LanguageCode;
 
   // Helper function to get TTS language code
   const getTTSLanguageCode = (languageCode: LanguageCode): string => {
@@ -161,7 +164,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd, bookL
           readContentSummary,
           history,
           sourceLanguage: bookLanguage,
-          targetLanguage: activePair?.target_language || 'en' // Fallback to English if no language pair
+          targetLanguage: userTargetLanguage // Use the correct target language
         };
         const { reply } = await invokeAiTutor(tutorParams);
         if (cancelled) return
@@ -500,7 +503,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd, bookL
         readContentSummary,
         history,
         sourceLanguage: bookLanguage,
-        targetLanguage: activePair?.target_language || 'en'
+        targetLanguage: userTargetLanguage
       };
       const { reply } = await invokeAiTutor(tutorParams);
       if (myToken !== cancelTokenRef.current) return
@@ -517,7 +520,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd, bookL
             bookId,
             readContentSummary,
             sourceLanguage: bookLanguage,
-            targetLanguage: activePair?.target_language || 'en'
+            targetLanguage: userTargetLanguage
           };
           const { reply } = await invokeAiTutor(tutorParams);
           if (myToken !== cancelTokenRef.current) return

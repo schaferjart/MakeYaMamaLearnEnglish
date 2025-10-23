@@ -6,6 +6,9 @@ import { ConversationEntry } from "@/lib/api";
 import { MessageCircle, Calendar, Trash2 } from "lucide-react";
 import { format } from 'date-fns';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
+import { supabase } from "@/integrations/supabase/client";
+import { useLocale } from "@/lib/locale";
+import { LanguageCode } from "@/lib/languages";
 import { t } from '@/lib/i18n';
 
 interface ConversationsListProps {
@@ -21,6 +24,37 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
   const [currentBookId, setCurrentBookId] = useState<string | undefined>(undefined);
+  const [books, setBooks] = useState<Record<string, { language_code?: string }>>({});
+  const { locale } = useLocale();
+
+  // Fetch book information for language detection
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const uniqueBookIds = [...new Set(conversations.map(c => c.sessions?.book_id).filter(Boolean))];
+      
+      if (uniqueBookIds.length === 0) return;
+
+      try {
+        const { data: booksData, error } = await supabase
+          .from('books')
+          .select('id, language_code')
+          .in('id', uniqueBookIds);
+
+        if (error) throw error;
+
+        const booksMap = (booksData || []).reduce((acc, book) => {
+          acc[book.id] = book;
+          return acc;
+        }, {} as Record<string, { language_code?: string }>);
+
+        setBooks(booksMap);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, [conversations]);
 
   const handleDelete = async (sessionId: string) => {
     // TODO: Implement delete functionality for entire session
@@ -233,6 +267,8 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
           <VocabularyPanel
             selectedText={selectedText}
             bookId={currentBookId}
+            bookLanguage={books[currentBookId!]?.language_code as LanguageCode || 'en'}
+            userTargetLanguage={locale as LanguageCode}
             onClose={handleCloseVocabulary}
           />
         </div>

@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Volume2, VolumeX, Loader2 } from "lucide-react"
 import { useTextToSpeech } from "@/hooks/useTextToSpeech"
+import { LanguageCode } from "@/lib/languages"
 
 interface TextToSpeechButtonProps {
   text: string
   voice?: string
+  language?: LanguageCode // NEW: Language for TTS
   variant?: "default" | "outline" | "ghost" | "secondary"
   size?: "default" | "sm" | "lg" | "icon"
   disabled?: boolean
@@ -14,12 +16,13 @@ interface TextToSpeechButtonProps {
 export const TextToSpeechButton = ({ 
   text, 
   voice = "Aria",
+  language = "en", // Default to English
   variant = "outline",
   size = "sm",
   disabled = false,
   className = ""
 }: TextToSpeechButtonProps) => {
-  const { speak, stop, isLoading, isPlaying } = useTextToSpeech({ voice })
+  const { speak, stop, isLoading, isPlaying } = useTextToSpeech({ voice, language })
 
   const handleClick = () => {
     if (isPlaying) {

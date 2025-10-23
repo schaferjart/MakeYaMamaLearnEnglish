@@ -144,15 +144,6 @@ export const VocabularyPanel = ({
     }
   };
 
-  const handlePronounce = () => {
-    // In real app, this would use TTS API
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(selectedText);
-      utterance.lang = 'en-GB';
-      speechSynthesis.speak(utterance);
-    }
-  };
-
   return (
     <Card className="w-96 max-w-[90vw] shadow-[var(--shadow-vocabulary)] border-vocabulary-highlight/20">
       <CardHeader className="pb-3">
@@ -172,6 +163,7 @@ export const VocabularyPanel = ({
             size="sm" 
             variant="outline"
             voice="Sarah"
+            language={bookLanguage} // Use book's language for TTS
           />
         </div>
       </CardHeader>

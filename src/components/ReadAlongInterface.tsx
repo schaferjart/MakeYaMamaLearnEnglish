@@ -13,10 +13,10 @@ import { t } from '@/lib/i18n';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocale } from '@/lib/locale';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
 import { LanguageCode } from '@/lib/languages';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ResumeData {
   chapterId: string;
@@ -77,7 +77,10 @@ export function ReadAlongInterface({
   
   const { toast } = useToast();
   const { user } = useAuth();
-  const { activePair } = useLanguage();
+  const { locale } = useLocale();
+
+  // Use locale as the user's native language for translations
+  const userTargetLanguage = locale as LanguageCode;
   
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -566,7 +569,7 @@ export function ReadAlongInterface({
             selectedText={selectedText} 
             bookId={bookId} 
             bookLanguage={bookLanguage}
-            userTargetLanguage={activePair?.target_language || 'en'}
+            userTargetLanguage={userTargetLanguage}
             onClose={handleCloseVocabulary} 
           />
         </div>

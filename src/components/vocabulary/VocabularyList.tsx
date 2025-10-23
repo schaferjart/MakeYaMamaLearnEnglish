@@ -18,6 +18,7 @@ interface BookInfo {
   id: string;
   title: string;
   author: string;
+  language_code?: string; // NEW: Book's language
 }
 
 // Utility function to clean XML tags from text
@@ -44,7 +45,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
       try {
         const { data: booksData, error } = await supabase
           .from('books')
-          .select('id, title, author')
+          .select('id, title, author, language_code')
           .in('id', uniqueBookIds);
 
         if (error) throw error;
@@ -139,6 +140,7 @@ export const VocabularyList: React.FC<VocabularyListProps> = ({
                           text={word.headword}
                           size="sm"
                           variant="ghost"
+                          language={books[word.book_id!]?.language_code as any || 'en'}
                         />
                       </div>
 

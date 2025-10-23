@@ -10,9 +10,9 @@ import Vocabulary from "./pages/Vocabulary";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
 import { useAuth } from "./hooks/useAuth";
 import { useLocale } from "./lib/locale";
-import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -39,12 +39,11 @@ const App = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <LanguageProvider>
-          <BrowserRouter key={locale}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter key={locale}>
             <Routes>
               <Route 
                 path="/" 
@@ -62,20 +61,23 @@ const App = () => {
                 path="/onboarding"
                 element={user ? <Onboarding /> : <Navigate to="/auth" replace />}
               />
-              <Route
-                path="/help"
-                element={user ? <Help /> : <Navigate to="/auth" replace />}
-              />
+                  <Route
+                    path="/help"
+                    element={user ? <Help /> : <Navigate to="/auth" replace />}
+                  />
+                  <Route
+                    path="/settings"
+                    element={user ? <Settings /> : <Navigate to="/auth" replace />}
+                  />
               <Route 
                 path="/auth" 
                 element={!user ? <Auth /> : <Navigate to="/" replace />} 
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </LanguageProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+              </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
   );
 };
 
