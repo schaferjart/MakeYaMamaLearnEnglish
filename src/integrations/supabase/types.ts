@@ -57,6 +57,9 @@ export type Database = {
           source: string | null
           title: string
           year: number | null
+          language_code: string
+          title_original: string | null
+          author_original: string | null
         }
         Insert: {
           author: string
@@ -68,6 +71,9 @@ export type Database = {
           source?: string | null
           title: string
           year?: number | null
+          language_code?: string
+          title_original?: string | null
+          author_original?: string | null
         }
         Update: {
           author?: string
@@ -79,6 +85,9 @@ export type Database = {
           source?: string | null
           title?: string
           year?: number | null
+          language_code?: string
+          title_original?: string | null
+          author_original?: string | null
         }
         Relationships: []
       }
@@ -275,6 +284,44 @@ export type Database = {
           },
         ]
       }
+      user_language_pairs: {
+        Row: {
+          id: string
+          user_id: string
+          source_language: string
+          target_language: string
+          is_active: boolean
+          proficiency_level: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          source_language: string
+          target_language: string
+          is_active?: boolean
+          proficiency_level?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          source_language?: string
+          target_language?: string
+          is_active?: boolean
+          proficiency_level?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_language_pairs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vocabulary: {
         Row: {
           book_id: string | null
@@ -289,7 +336,12 @@ export type Database = {
           sense: string | null
           synonym: string | null
           translation_de: string | null
+          translation_en: string | null
+          translation_fr: string | null
+          translation_hi: string | null
           user_id: string | null
+          source_language: string
+          target_language: string | null
         }
         Insert: {
           book_id?: string | null
@@ -304,7 +356,12 @@ export type Database = {
           sense?: string | null
           synonym?: string | null
           translation_de?: string | null
+          translation_en?: string | null
+          translation_fr?: string | null
+          translation_hi?: string | null
           user_id?: string | null
+          source_language?: string
+          target_language?: string | null
         }
         Update: {
           book_id?: string | null
@@ -319,7 +376,12 @@ export type Database = {
           sense?: string | null
           synonym?: string | null
           translation_de?: string | null
+          translation_en?: string | null
+          translation_fr?: string | null
+          translation_hi?: string | null
           user_id?: string | null
+          source_language?: string
+          target_language?: string | null
         }
         Relationships: [
           {

@@ -7,12 +7,15 @@ import { useTextToSpeech } from '@/hooks/useTextToSpeech'
 import { supabase } from '@/integrations/supabase/client'
 import { t } from '@/lib/i18n'
 import { toast } from '@/hooks/use-toast'
+import { LanguageCode } from '@/lib/languages'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface ConversationTutorProps {
   sessionId: string | null
   bookId: string
   readContent: string
   onEnd: () => void
+  bookLanguage?: LanguageCode // NEW: Book's language
 }
 
 interface ChatMessage {
@@ -20,7 +23,7 @@ interface ChatMessage {
   content: string
 }
 
-export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: ConversationTutorProps) => {
+export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd, bookLanguage = 'en' }: ConversationTutorProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -42,16 +45,61 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const recordingStartTimeRef = useRef<number>(0)
 
+  // Get user's target language from context
+  const { activePair } = useLanguage();
+
+  // Helper function to get TTS language code
+  const getTTSLanguageCode = (languageCode: LanguageCode): string => {
+    const languageMap: Record<LanguageCode, string> = {
+      'en': 'en-US',
+      'it': 'it-IT',
+      'fr': 'fr-FR',
+      'de': 'de-DE',
+      'es': 'es-ES',
+      'hi': 'hi-IN',
+      'pt': 'pt-PT',
+      'ru': 'ru-RU',
+      'ja': 'ja-JP',
+      'ko': 'ko-KR',
+      'zh': 'zh-CN',
+      'ar': 'ar-SA'
+    };
+    return languageMap[languageCode] || 'en-US';
+  };
+
   // Simple browser Speech Synthesis TTS
   const [isPlaying, setIsPlaying] = useState(false)
   
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
+      utterance.lang = getTTSLanguageCode(bookLanguage) // Use book's language
       utterance.rate = 0.8
       utterance.pitch = 1.0
       utterance.volume = 1.0
+      
+      // Try to select a voice for the book's language
+      const voices = window.speechSynthesis.getVoices()
+      const targetLang = getTTSLanguageCode(bookLanguage)
+      
+      // Try to find a voice for the book's language
+      let selectedVoice = voices.find(v => v.lang === targetLang)
+      
+      // If no exact match, try to find a voice that starts with the language code
+      if (!selectedVoice) {
+        const langPrefix = targetLang.split('-')[0]
+        selectedVoice = voices.find(v => v.lang.startsWith(langPrefix))
+      }
+      
+      // Fallback to any available voice
+      if (!selectedVoice && voices.length > 0) {
+        selectedVoice = voices[0]
+      }
+      
+      if (selectedVoice) {
+        utterance.voice = selectedVoice
+        console.log(`ConversationTutor selected voice for ${bookLanguage}:`, selectedVoice.name)
+      }
       
       utterance.onstart = () => {
         setIsPlaying(true)
@@ -77,13 +125,6 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         }
       }
       
-      // Prioritize high-quality English voices
-      const voices = speechSynthesis.getVoices()
-      const englishVoice = voices.find(voice => 
-        voice.lang.startsWith('en') && voice.name.includes('Female')
-      ) || voices.find(voice => voice.lang.startsWith('en'))
-      
-      if (englishVoice) utterance.voice = englishVoice
       speechSynthesis.speak(utterance)
     }
   }
@@ -112,14 +153,17 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
         if (error) throw error
         const cefrLevel = data?.cefr_level || 'A1'
         const history = [] as Array<{ role: 'user' | 'ai'; content: string }>
-        const { reply } = await invokeAiTutor({
+        const tutorParams = {
           sessionId: sessionId || undefined,
           userMessage: '',
           cefrLevel,
           bookId,
           readContentSummary,
           history,
-        })
+          sourceLanguage: bookLanguage,
+          targetLanguage: activePair?.target_language || 'en' // Fallback to English if no language pair
+        };
+        const { reply } = await invokeAiTutor(tutorParams);
         if (cancelled) return
         console.log('Initial AI reply:', reply)
         if (reply && reply.trim()) {
@@ -243,7 +287,8 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
     }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     const recognition = new SR()
-    recognition.lang = 'en-US'
+    recognition.lang = getTTSLanguageCode(bookLanguage) // Use book's language for speech recognition
+    console.log(`Speech recognition set to: ${recognition.lang} for book language: ${bookLanguage}`)
     recognition.interimResults = false
     recognition.maxAlternatives = 1
     recognition.continuous = false
@@ -388,7 +433,7 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
             duration: Date.now() - recordingStartTimeRef.current
           })
 
-          const result = await whisperTranscribe(audioBlob)
+          const result = await whisperTranscribe(audioBlob, bookLanguage)
           console.log('Whisper transcription result:', result)
           
           if (result && result.text && result.text.trim()) {
@@ -447,14 +492,17 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       if (error) throw error
       const cefrLevel = data?.cefr_level || 'A2'
       const history = messages.slice(-8)
-      const { reply } = await invokeAiTutor({
+      const tutorParams = {
         sessionId: sessionId || undefined,
         userMessage: userText,
         cefrLevel,
         bookId,
         readContentSummary,
         history,
-      })
+        sourceLanguage: bookLanguage,
+        targetLanguage: activePair?.target_language || 'en'
+      };
+      const { reply } = await invokeAiTutor(tutorParams);
       if (myToken !== cancelTokenRef.current) return
       setMessages((prev) => [...prev, { role: 'ai', content: reply }])
       speak(reply)
@@ -463,12 +511,15 @@ export const ConversationTutor = ({ sessionId, bookId, readContent, onEnd }: Con
       if (!didRetry) {
         setDidRetry(true)
         try {
-          const { reply } = await invokeAiTutor({
+          const tutorParams = {
             sessionId: sessionId || undefined,
             userMessage: userText,
             bookId,
             readContentSummary,
-          })
+            sourceLanguage: bookLanguage,
+            targetLanguage: activePair?.target_language || 'en'
+          };
+          const { reply } = await invokeAiTutor(tutorParams);
           if (myToken !== cancelTokenRef.current) return
           setMessages((prev) => [...prev, { role: 'ai', content: reply }])
           speak(reply)

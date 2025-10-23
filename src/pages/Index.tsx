@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookCard } from "@/components/BookCard";
 import { ReadingSession } from "@/components/ReadingSession";
 import { ReadAlongInterface } from "@/components/ReadAlongInterface";
@@ -11,15 +12,17 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { VocabularyProgress } from "@/components/dashboard/VocabularyProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ConversationsList } from "@/components/conversations/ConversationsList";
+import { LanguagePairSelector } from "@/components/LanguagePairSelector";
 import { useConversations } from "@/hooks/useConversations";
-import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle, MessageCircle } from "lucide-react";
+import { BookOpen, Globe, Settings, Library, User, LogOut, RefreshCw, BarChart3, GraduationCap, HelpCircle, MessageCircle, Filter } from "lucide-react";
 import { t } from "@/lib/i18n";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import { useLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { syncBooksFromStorage } from "@/lib/api";
+import { syncBooksFromStorage, getBooksByLanguage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { SUPPORTED_LANGUAGES, type LanguageCode } from "@/lib/languages";
 
 interface Book {
   id: string;
@@ -31,6 +34,9 @@ interface Book {
   progress?: number;
   wordsLearned?: number;
   content?: string;
+  language_code?: string;
+  title_original?: string;
+  author_original?: string;
 }
 
 const Index = () => {
@@ -43,21 +49,21 @@ const Index = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | 'all'>('all');
   const { conversations, isLoading: conversationsLoading, refreshConversations } = useConversations();
 
   useEffect(() => {
     loadBooks();
-  }, []);
+  }, [selectedLanguage]);
 
   const loadBooks = async () => {
     try {
       setLoading(true);
-      const { data: booksData, error } = await supabase
-        .from('books')
-        .select('*')
-        .order('title');
-
-      if (error) throw error;
+      
+      // Use the new API function for language filtering
+      const booksData = selectedLanguage === 'all' 
+        ? await getBooksByLanguage()
+        : await getBooksByLanguage(selectedLanguage);
 
       // Get progress for each book for current user
       const booksWithProgress = await Promise.all(
@@ -81,7 +87,8 @@ const Index = () => {
             coverUrl: book.cover_url, // Map cover_url to coverUrl for component compatibility
             progress: progressData?.percent ? Math.round(progressData.percent) : 0,
             wordsLearned: wordsCount || 0,
-            content: ""          };
+            content: ""
+          };
         })
       );
 
@@ -244,6 +251,8 @@ const Index = () => {
             
             <DashboardStats />
             
+            <LanguagePairSelector />
+            
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <VocabularyProgress />
@@ -283,6 +292,32 @@ const Index = () => {
                   {syncing ? t('library.syncing') : t('library.sync')}
                 </Button>
               </div>
+            </div>
+            
+            {/* Language Filter */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filter by language:</span>
+              </div>
+              <Select value={selectedLanguage} onValueChange={(value) => setSelectedLanguage(value as LanguageCode | 'all')}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Languages" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Languages</SelectItem>
+              {Object.entries(SUPPORTED_LANGUAGES).map(([code, lang]) => (
+                <SelectItem key={code} value={code}>
+                  {lang.name} Books
+                </SelectItem>
+              ))}
+                </SelectContent>
+              </Select>
+              {selectedLanguage !== 'all' && (
+                <Badge variant="secondary" className="ml-2">
+                  {SUPPORTED_LANGUAGES[selectedLanguage as LanguageCode].name}
+                </Badge>
+              )}
             </div>
             
             {loading ? (

@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { t } from '@/lib/i18n';
 import { ConversationTutor } from '@/components/ConversationTutor';
 import { useEpub } from '@/hooks/useEpub';
+import { LanguageCode } from '@/lib/languages';
 import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
 
 interface Book {
@@ -16,6 +17,7 @@ interface Book {
   title: string;
   author: string;
   epub_path: string | null;
+  language_code?: string; // NEW: Book's language
 }
 
 export const Reader = () => {
@@ -313,6 +315,7 @@ export const Reader = () => {
             sessionId={sessionId}
             bookId={bookId!}
             readContent={content}
+            bookLanguage={book.language_code as LanguageCode || 'en'}
             onEnd={handleConversationEnd}
           />
         ) : (
@@ -331,6 +334,7 @@ export const Reader = () => {
             onSessionEnd={handleSessionEnd}
             resumeData={resumeData} // Direct passing
             isReturningFromConversation={isReturningFromConversation}
+            bookLanguage={book.language_code as LanguageCode || 'en'}
           />
         )}
       </div>

@@ -54,8 +54,8 @@ export const translations = {
     
     // Authentication
     "auth.title": "Anmeldung",
-    "auth.welcome": "Viele Mamas haben ihr lebenslang im Haushalt geaerbeitet und deswegen nie Englisch gebraucht und gelernt. Diese Mamas sind nun gefickt wenn sie in die Feerien gehen weil sie nichts verstehen.",
-    "auth.description": "Die ersste App überhaupt für Mamas die endlich in die Ferien gehen wollen!",
+    "auth.welcome": "Viele Mamas haben ihr Leben lang im Haushalt gearbeitet und haben deswegen seit der Schulzeit nie wieder Englisch gebraucht . Diese Mamas sind in Schwierigkeiten wenn sie in die Ferien gehen weil sie nichts verstehen.",
+    "auth.description": "Die erste App überhaupt für Mamas die endlich in die Ferien gehen wollen!",
     "auth.email": "E-Mail",
     "auth.password": "Passwort",
     "auth.confirmPassword": "Passwort bestätigen",

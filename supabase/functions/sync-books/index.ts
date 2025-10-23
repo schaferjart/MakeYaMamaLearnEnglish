@@ -7,6 +7,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Language detection based on filename patterns
+const detectBookLanguage = (filename: string): string => {
+  // Simple filename-based detection
+  if (filename.includes('/it/') || filename.includes('_it_') || filename.includes('-it-')) return 'it';
+  if (filename.includes('/fr/') || filename.includes('_fr_') || filename.includes('-fr-')) return 'fr';  
+  if (filename.includes('/de/') || filename.includes('_de_') || filename.includes('-de-')) return 'de';
+  if (filename.includes('/es/') || filename.includes('_es_') || filename.includes('-es-')) return 'es';
+  if (filename.includes('/pt/') || filename.includes('_pt_') || filename.includes('-pt-')) return 'pt';
+  if (filename.includes('/ru/') || filename.includes('_ru_') || filename.includes('-ru-')) return 'ru';
+  if (filename.includes('/ja/') || filename.includes('_ja_') || filename.includes('-ja-')) return 'ja';
+  if (filename.includes('/ko/') || filename.includes('_ko_') || filename.includes('-ko-')) return 'ko';
+  if (filename.includes('/zh/') || filename.includes('_zh_') || filename.includes('-zh-')) return 'zh';
+  if (filename.includes('/ar/') || filename.includes('_ar_') || filename.includes('-ar-')) return 'ar';
+  if (filename.includes('/hi/') || filename.includes('_hi_') || filename.includes('-hi-')) return 'hi';
+  return 'en'; // Default to English
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -216,6 +233,10 @@ serve(async (req) => {
           .from('ebooks')
           .createSignedUrl(file.name, 3600)
 
+        // Detect language from filename
+        const languageCode = detectBookLanguage(file.name);
+        console.log(`Detected language for ${file.name}: ${languageCode}`);
+
         const bookData = {
           title: title,
           author: author,
@@ -223,7 +244,10 @@ serve(async (req) => {
           source: translator ? `Translated by ${translator}` : 'Standard Ebooks',
           year: null,
           opf_json: null,
-          cover_url: coverUrl
+          cover_url: coverUrl,
+          language_code: languageCode,
+          title_original: title, // For now, same as title
+          author_original: author // For now, same as author
         }
 
         // Insert book into database

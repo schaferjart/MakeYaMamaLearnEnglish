@@ -27,11 +27,13 @@ serve(async (req) => {
 
     const form = await req.formData()
     const audio = form.get('audio') as File | null
+    const language = form.get('language') as string | null || 'en' // Accept language parameter, default to English
 
     console.log('Whisper request:', { 
       hasAudio: !!audio, 
       audioSize: audio?.size || 0, 
-      audioType: audio?.type || 'unknown' 
+      audioType: audio?.type || 'unknown',
+      language: language
     })
 
     if (!audio || !(audio instanceof File)) {
@@ -58,7 +60,7 @@ serve(async (req) => {
     const openaiForm = new FormData()
     openaiForm.append('file', audioFile)
     openaiForm.append('model', 'whisper-1')
-    openaiForm.append('language', 'en')
+    openaiForm.append('language', language) // Use the language parameter
     openaiForm.append('response_format', 'json')
     // Add temperature for more consistent results
     openaiForm.append('temperature', '0')

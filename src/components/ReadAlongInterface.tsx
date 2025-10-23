@@ -15,6 +15,8 @@ import { useLocalStorageResume } from '@/hooks/useLocalStorageResume';
 import { useAuth } from '@/hooks/useAuth';
 import { EpubChapter } from '@/hooks/useEpub';
 import { VocabularyPanel } from '@/components/VocabularyPanel';
+import { LanguageCode } from '@/lib/languages';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ResumeData {
   chapterId: string;
@@ -37,6 +39,7 @@ interface ReadAlongInterfaceProps {
   onSessionEnd?: () => void;
   resumeData?: ResumeData | null;
   isReturningFromConversation?: boolean;
+  bookLanguage?: LanguageCode; // NEW: Book's language
 }
 
 export function ReadAlongInterface({
@@ -53,7 +56,8 @@ export function ReadAlongInterface({
   onProgressUpdate,
   onSessionEnd,
   resumeData,
-  isReturningFromConversation
+  isReturningFromConversation,
+  bookLanguage = 'en' // NEW: Default to English
 }: ReadAlongInterfaceProps) {
   const [selectedText, setSelectedText] = useState("");
   const [showVocabulary, setShowVocabulary] = useState(false);
@@ -73,12 +77,32 @@ export function ReadAlongInterface({
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const { activePair } = useLanguage();
   
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isWaitingForTtsRef = useRef(false);
   const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const readingContainerRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to get TTS language code
+  const getTTSLanguageCode = (languageCode: LanguageCode): string => {
+    const languageMap: Record<LanguageCode, string> = {
+      'en': 'en-US',
+      'it': 'it-IT',
+      'fr': 'fr-FR',
+      'de': 'de-DE',
+      'es': 'es-ES',
+      'hi': 'hi-IN',
+      'pt': 'pt-PT',
+      'ru': 'ru-RU',
+      'ja': 'ja-JP',
+      'ko': 'ko-KR',
+      'zh': 'zh-CN',
+      'ar': 'ar-SA'
+    };
+    return languageMap[languageCode] || 'en-US';
+  };
 
   const isTtsActive = isPlaying && utteranceRef.current !== null;
 
@@ -312,13 +336,28 @@ export function ReadAlongInterface({
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = speechRate;
     utterance.volume = volume;
+    utterance.lang = getTTSLanguageCode(bookLanguage); // Use book's language
 
     if (!selectedVoiceRef.current) {
         const voices = window.speechSynthesis.getVoices();
-        const preferredVoices = ['Samantha (en-US)', 'Alex (en-US)', 'Victoria (en-US)', 'Daniel (en-GB)', 'Karen (en-AU)'];
-        let selected = voices.find(v => preferredVoices.includes(`${v.name} (${v.lang})`));
-        if (!selected) selected = voices.find(v => v.lang.startsWith('en'));
+        const targetLang = getTTSLanguageCode(bookLanguage);
+        
+        // Try to find a voice for the book's language
+        let selected = voices.find(v => v.lang === targetLang);
+        
+        // If no exact match, try to find a voice that starts with the language code
+        if (!selected) {
+          const langPrefix = targetLang.split('-')[0];
+          selected = voices.find(v => v.lang.startsWith(langPrefix));
+        }
+        
+        // Fallback to any available voice
+        if (!selected && voices.length > 0) {
+          selected = voices[0];
+        }
+        
         selectedVoiceRef.current = selected;
+        console.log(`Selected voice for ${bookLanguage}:`, selected?.name || 'No voice found');
     }
     if (selectedVoiceRef.current) utterance.voice = selectedVoiceRef.current;
 
@@ -523,7 +562,13 @@ export function ReadAlongInterface({
       
       {showVocabulary && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <VocabularyPanel selectedText={selectedText} bookId={bookId} onClose={handleCloseVocabulary} />
+          <VocabularyPanel 
+            selectedText={selectedText} 
+            bookId={bookId} 
+            bookLanguage={bookLanguage}
+            userTargetLanguage={activePair?.target_language || 'en'}
+            onClose={handleCloseVocabulary} 
+          />
         </div>
       )}
     </div>

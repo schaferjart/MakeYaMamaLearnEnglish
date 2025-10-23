@@ -10,11 +10,14 @@ import { useLocale } from "@/lib/locale";
 import { TextToSpeechButton } from "@/components/TextToSpeechButton";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { type LanguageCode } from "@/lib/languages";
 
 interface VocabularyPanelProps {
   selectedText: string;
   onClose: () => void;
   bookId?: string;
+  bookLanguage?: LanguageCode; // NEW: Book's language
+  userTargetLanguage?: LanguageCode; // NEW: User's native language
   cfi?: string;
   onSave?: (vocabularyData: VocabularyData) => void;
 }
@@ -26,9 +29,19 @@ interface VocabularyData {
   translation: string;
   example: string;
   pos?: string;
+  sourceLanguage?: LanguageCode;
+  targetLanguage?: LanguageCode;
 }
 
-export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: VocabularyPanelProps) => {
+export const VocabularyPanel = ({ 
+  selectedText, 
+  onClose, 
+  bookId, 
+  bookLanguage, 
+  userTargetLanguage, 
+  cfi, 
+  onSave 
+}: VocabularyPanelProps) => {
   const { user } = useAuth();
   const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
@@ -38,19 +51,15 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
 
   useEffect(() => {
     const fetchWordData = async () => {
-      if (!selectedText.trim()) return;
+      if (!selectedText.trim() || !bookLanguage || !userTargetLanguage) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
-        // Get word lookup and translation in parallel
-        // Map app locale to DeepL target language codes
-  const targetMap: Record<string, string> = { de: 'DE', en: 'EN-GB', fr: 'FR', hi: 'HI' };
-        const targetLang = targetMap[locale] || 'DE';
         const [wordData, translationData] = await Promise.all([
           lookupWord(selectedText.toLowerCase()),
-          translateText(selectedText, targetLang, 'EN')
+          translateText(selectedText, bookLanguage, userTargetLanguage)
         ]);
 
         const data: VocabularyData = {
@@ -59,13 +68,15 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
           synonyms: [], // Could be extracted from definitions
           translation: translationData.translation,
           example: wordData.example || wordData.examples[0] || t('vocab.fallback.noExample', { word: selectedText }),
-          pos: wordData.pos
+          pos: wordData.pos,
+          sourceLanguage: bookLanguage,
+          targetLanguage: userTargetLanguage
         };
 
         setVocabularyData(data);
       } catch (err) {
         console.error('Error fetching word data:', err);
-  setError(t('vocab.error.fetchFailed'));
+        setError(t('vocab.error.fetchFailed'));
         
         // Fallback data
         setVocabularyData({
@@ -74,6 +85,8 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
           synonyms: [],
           translation: t('vocab.fallback.translationTempUnavailable'),
           example: t('vocab.fallback.noExample', { word: selectedText }),
+          sourceLanguage: bookLanguage,
+          targetLanguage: userTargetLanguage
         });
       } finally {
         setIsLoading(false);
@@ -81,7 +94,7 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
     };
 
     fetchWordData();
-  }, [selectedText]);
+  }, [selectedText, bookLanguage, userTargetLanguage]);
 
   const handleSave = async () => {
     if (!vocabularyData || !user) return;
@@ -89,23 +102,23 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
     try {
       setIsLoading(true);
       
-      // Build multilingual translation payload
-      const translationPayload: any = {
+      await saveVocabulary({
         headword: vocabularyData.word,
         lemma: vocabularyData.word,
         pos: vocabularyData.pos,
         sense: vocabularyData.definition,
         example: vocabularyData.example,
+        source_language: bookLanguage,
+        target_language: userTargetLanguage,
+        // Set the appropriate translation column based on target language
+        ...(userTargetLanguage === 'de' && { translation_de: vocabularyData.translation }),
+        ...(userTargetLanguage === 'en' && { translation_en: vocabularyData.translation }),
+        ...(userTargetLanguage === 'fr' && { translation_fr: vocabularyData.translation }),
+        ...(userTargetLanguage === 'hi' && { translation_hi: vocabularyData.translation }),
         book_id: bookId,
         cfi: cfi,
         user_id: user.id
-      };
-      if (locale === 'de') translationPayload.translation_de = vocabularyData.translation;
-      if (locale === 'en') translationPayload.translation_en = vocabularyData.translation;
-  if (locale === 'fr') translationPayload.translation_fr = vocabularyData.translation;
-  if (locale === 'hi') translationPayload.translation_hi = vocabularyData.translation;
-
-      await saveVocabulary(translationPayload);
+      });
       
       setIsSaved(true);
       onSave?.(vocabularyData);
@@ -199,10 +212,13 @@ export const VocabularyPanel = ({ selectedText, onClose, bookId, cfi, onSave }: 
             <div>
               <h4 className="font-medium text-sm text-primary mb-2">
                 {t('vocab.translation')} ({
-                  locale === 'de' ? t('language.german') :
-                  locale === 'fr' ? t('language.french') :
-                  locale === 'hi' ? t('language.hindi') :
-                  t('language.english')
+                  userTargetLanguage === 'de' ? t('language.german') :
+                  userTargetLanguage === 'fr' ? t('language.french') :
+                  userTargetLanguage === 'hi' ? t('language.hindi') :
+                  userTargetLanguage === 'en' ? t('language.english') :
+                  userTargetLanguage === 'it' ? 'Italiano' :
+                  userTargetLanguage === 'es' ? 'Español' :
+                  'Translation'
                 })
               </h4>
               <p className="text-sm text-foreground bg-secondary/50 p-2 rounded">

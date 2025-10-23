@@ -13,6 +13,8 @@ interface TutorRequestBody {
   bookId?: string
   readContentSummary?: string
   history?: Array<{ role: 'user' | 'ai'; content: string }>
+  sourceLanguage?: string // NEW: Language being learned
+  targetLanguage?: string // NEW: User's native language
 }
 
 serve(async (req) => {
@@ -21,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { sessionId, userMessage, cefrLevel, bookId, readContentSummary, history = [] }: TutorRequestBody = await req.json()
+    const { sessionId, userMessage, cefrLevel, bookId, readContentSummary, history = [], sourceLanguage = 'en', targetLanguage = 'de' }: TutorRequestBody = await req.json()
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
@@ -81,12 +83,31 @@ serve(async (req) => {
     const level = cefrLevel || 'A2'
     const contentSnippet = (readContentSummary || '').slice(0, 1200)
 
-    const systemPrompt = `ABSOLUTELY CRITICAL: You MUST respond in English ONLY. NO German words allowed at all. This is mandatory.
-Role: You are a patient, empathetic English tutor for German-speaking mothers.
-Level: Adapt your English to CEFR ${level} (very simple at A1; concise but natural at higher levels).
+    // Language mapping for better prompts
+    const languageNames: Record<string, string> = {
+      'en': 'English',
+      'de': 'German', 
+      'fr': 'French',
+      'it': 'Italian',
+      'es': 'Spanish',
+      'pt': 'Portuguese',
+      'ru': 'Russian',
+      'ja': 'Japanese',
+      'ko': 'Korean',
+      'zh': 'Chinese',
+      'ar': 'Arabic',
+      'hi': 'Hindi'
+    }
+
+    const sourceLangName = languageNames[sourceLanguage] || 'English'
+    const targetLangName = languageNames[targetLanguage] || 'German'
+
+    const systemPrompt = `ABSOLUTELY CRITICAL: You MUST respond in ${sourceLangName} ONLY. NO ${targetLangName} words allowed at all. This is mandatory.
+Role: You are a patient, empathetic ${sourceLangName} tutor for ${targetLangName}-speaking learners.
+Level: Adapt your ${sourceLangName} to CEFR ${level} (very simple at A1; concise but natural at higher levels).
 Policy:
-- Reply in English by default, 1–2 sentences only.
-- Use a brief German hint (one short sentence) only if the learner is clearly stuck (e.g., asks for help twice or answers “I don’t know”).
+- Reply in ${sourceLangName} by default, 1–2 sentences only.
+- Use a brief ${targetLangName} hint (one short sentence) only if the learner is clearly stuck (e.g., asks for help twice or answers "I don't know").
 - Stay on-topic: Use the reading context below; if off-topic, gently steer back with one short sentence.
 - Keep continuity: Do not contradict earlier turns. If asked about previous questions, refer to the last question asked.
 - Be encouraging and supportive.

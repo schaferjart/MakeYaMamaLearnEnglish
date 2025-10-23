@@ -12,6 +12,7 @@ import Onboarding from "./pages/Onboarding";
 import Help from "./pages/Help";
 import { useAuth } from "./hooks/useAuth";
 import { useLocale } from "./lib/locale";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -42,35 +43,37 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-  <BrowserRouter key={locale}>
-          <Routes>
-            <Route 
-              path="/" 
-              element={<OnboardingGate><Index /></OnboardingGate>}
-            />
-            <Route 
-              path="/reader/:bookId" 
-              element={<OnboardingGate><Reader /></OnboardingGate>}
-            />
-            <Route 
-              path="/vocabulary" 
-              element={<OnboardingGate><Vocabulary /></OnboardingGate>}
-            />
-            <Route
-              path="/onboarding"
-              element={user ? <Onboarding /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/help"
-              element={user ? <Help /> : <Navigate to="/auth" replace />}
-            />
-            <Route 
-              path="/auth" 
-              element={!user ? <Auth /> : <Navigate to="/" replace />} 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <LanguageProvider>
+          <BrowserRouter key={locale}>
+            <Routes>
+              <Route 
+                path="/" 
+                element={<OnboardingGate><Index /></OnboardingGate>}
+              />
+              <Route 
+                path="/reader/:bookId" 
+                element={<OnboardingGate><Reader /></OnboardingGate>}
+              />
+              <Route 
+                path="/vocabulary" 
+                element={<OnboardingGate><Vocabulary /></OnboardingGate>}
+              />
+              <Route
+                path="/onboarding"
+                element={user ? <Onboarding /> : <Navigate to="/auth" replace />}
+              />
+              <Route
+                path="/help"
+                element={user ? <Help /> : <Navigate to="/auth" replace />}
+              />
+              <Route 
+                path="/auth" 
+                element={!user ? <Auth /> : <Navigate to="/" replace />} 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
