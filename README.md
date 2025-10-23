@@ -2,9 +2,7 @@
 
 Some Mamas have worked all their lifes in carework. 
 
-Thank you Mamas - and damn you society for this unfair setting. 
-
-But when going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it - so, my Mama told me. 
+When going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it - so, my Mama told me. 
 
 When I told her to watch a series with subtitles she said, that this does not work for her because of slang and speed.
 When I gave her my phone after telling ChatGPT to be a benevolent English tutor she screamed at me to tell my phone to speak slower. 
@@ -52,7 +50,7 @@ The Application uses WEB Speech API - installed on system. Meaning your Mama nee
 For Requests regarding uploading particular books, text me. 
 
 
-**https://makeyamamalearnenglishv2.lovable.app**
+**https://mymle.lovable.app/**
 
 ---
 
