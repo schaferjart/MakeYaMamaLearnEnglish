@@ -21,14 +21,14 @@ The user is able to define the speed of lecture, duration of sessions, can searc
 
 ---
 
-## Version v1.01-i19n - Multi-Language Learning Platform
+## Version v1.01-i19n
 
 **NEW FEATURES:**
 - **Multi-Language Support**: Learn any language from any other language
-- **Smart Language Detection**: Books automatically detected by language
-- **Perfect TTS Accents**: Text-to-speech uses correct accent for each book's language
+- **Language Detection**: Books automatically detected by language
+- **TTS Accents**: Text-to-speech uses correct accent for each book's language
 - **AI Tutor Language Matching**: AI tutor responds in the book's language
-- **Smart Speech Recognition**: Voice input understands the book's language
+- **Speech Recognition**: Voice input understands the book's language
 - **Settings Page**: Centralized language preferences management
 - **Language-Aware Vocabulary**: All vocabulary features respect book language
 
