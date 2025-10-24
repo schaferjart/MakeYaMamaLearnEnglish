@@ -1,10 +1,8 @@
-# Make Ya Mama Learn English V2
+# Make Ya Mama Learn English
 
 Some Mamas have worked all their lifes in carework. 
 
-Thank you Mamas - and damn you society for this unfair setting. 
-
-But when going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it - so, my Mama told me. 
+When going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it - so, my Mama told me. 
 
 When I told her to watch a series with subtitles she said, that this does not work for her because of slang and speed.
 When I gave her my phone after telling ChatGPT to be a benevolent English tutor she screamed at me to tell my phone to speak slower. 
@@ -12,7 +10,7 @@ When I gave her my phone after telling ChatGPT to be a benevolent English tutor 
 So I asked her what she likes and she said reading books. Maybe your Mama does too...
 So probably 20 years after the last self made present:
 
-No drawing, recipe for a spicy tomato sauce or origami birds - all stuff that lies around - but technology to move smoother around!
+No drawing, recipe for a spicy tomato sauce or origami birds - all stuff that lies around - but technology to move smoother!
 
 This applications core idea is to read and engage with the content of a book, creating first and foremost comfort in speaking: 
 Reading while listening matches sound to written form and the following conversation is leading the user to use the language in a low stake setting. 
@@ -21,14 +19,14 @@ The user is able to define the speed of lecture, duration of sessions, can searc
 
 ---
 
-## Version v1.01-i19n - Multi-Language Learning Platform
+## Version v1.01-i19n
 
 **NEW FEATURES:**
 - **Multi-Language Support**: Learn any language from any other language
-- **Smart Language Detection**: Books automatically detected by language
-- **Perfect TTS Accents**: Text-to-speech uses correct accent for each book's language
+- **Language Detection**: Books automatically detected by language
+- **TTS Accents**: Text-to-speech uses correct accent for each book's language
 - **AI Tutor Language Matching**: AI tutor responds in the book's language
-- **Smart Speech Recognition**: Voice input understands the book's language
+- **Speech Recognition**: Voice input understands the book's language
 - **Settings Page**: Centralized language preferences management
 - **Language-Aware Vocabulary**: All vocabulary features respect book language
 
@@ -52,7 +50,7 @@ The Application uses WEB Speech API - installed on system. Meaning your Mama nee
 For Requests regarding uploading particular books, text me. 
 
 
-**https://makeyamamalearnenglishv2.lovable.app**
+**https://mymle.lovable.app/**
 
 ---
 
