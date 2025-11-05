@@ -1,6 +1,6 @@
 # Make Ya Mama Learn English
 
-Some Mamas have worked all their lifes in carework. 
+Some Mamas have worked all their lifes (in carework). 
 
 When going on vacation these Mamas are fucked because these Mamas they speak no English and have never learned it - so, my Mama told me. 
 
